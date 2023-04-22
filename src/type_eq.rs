@@ -1,6 +1,12 @@
 use crate::type_fn::{self, TypeFn, CallFn};
 
-use core::mem::forget;
+use core::{
+    cmp::{Ordering, Eq, Ord, PartialEq, PartialOrd},
+    default::Default,
+    hash::{Hash, Hasher},
+    fmt::{self, Debug},
+    mem::forget,
+};
 
 macro_rules! projected_type_eq {
     ($type_eq:ident, $Left:ident, $Right:ident, $generic:ty) => {unsafe{
@@ -309,5 +315,48 @@ enum Amb {
     Indefinite,
     // definitely false
     No,
+}
+
+
+
+impl<T: ?Sized> Default for TypeEq<T, T> {
+    fn default() -> Self {
+        Self::NEW
+    }
+}
+
+impl<L: ?Sized, R: ?Sized> Debug for TypeEq<L, R> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("TypeEq")
+    }
+}
+
+impl<L: ?Sized, R: ?Sized> PartialEq for TypeEq<L, R> {
+    fn eq(&self, _: &Self) -> bool {
+        true
+    }
+}
+
+impl<L: ?Sized, R: ?Sized> PartialOrd for TypeEq<L, R> {
+    fn partial_cmp(&self, _: &Self) -> Option<Ordering> {
+        Some(Ordering::Equal)
+    }
+}
+
+impl<L: ?Sized, R: ?Sized> Ord for TypeEq<L, R> {
+    fn cmp(&self, _: &Self) -> Ordering {
+        Ordering::Equal
+    }
+}
+
+impl<L: ?Sized, R: ?Sized> Eq for TypeEq<L, R> {}
+
+
+impl<L: ?Sized, R: ?Sized> Hash for TypeEq<L, R> {
+    fn hash<H>(&self, state: &mut H)
+    where H: Hasher
+    {
+        ().hash(state)
+    }
 }
 

@@ -17,6 +17,82 @@
 //! # Examples
 //! 
 //! <span id="example0"></span>
+//! ### Polymorphic branching
+//! 
+//! This example demonstrates how type witnesses can be used to 
+//! choose between expressions of different types with a constant. 
+//! 
+//! ```rust
+//! use typewit::TypeEq;
+//! 
+//! const fn main() {
+//!     assert!(matches!(choose!(0; b"a string", 2, panic!()), b"a string"));
+//! 
+//!     const UNO: u64 = 1;
+//!     assert!(matches!(choose!(UNO; loop{}, [3, 5], true), [3, 5]));
+//! 
+//!     assert!(matches!(choose!(2 + 3; (), unreachable!(), ['5', '3']), ['5', '3']));
+//! }
+//! 
+//! /// Evaluates the argument at position `$chosen % 3`, other arguments aren't evaluated.
+//! /// 
+//! /// The arguments can all be different types.
+//! /// 
+//! /// `$chosen` must be a `u64` constant.
+//! #[macro_export]
+//! macro_rules! choose {
+//!     ($chosen:expr; $arg_0: expr, $arg_1: expr, $arg_2: expr) => {
+//!         match Choice::<{$chosen % 3}>::VAL {
+//!             // `te` (a `TypeEq<T, X>`) allows us to safely go between 
+//!             // the type that the match returns (its `T` type argument)
+//!             // and the type of `$arg_0` (its `X` type argument).
+//!             Branch3::A(te) => {
+//!                 // `to_left` goes from `X` to `T`
+//!                 te.to_left($arg_0)
+//!             }
+//!             // same as the `A` branch, with a different type for the argument
+//!             Branch3::B(te) => te.to_left($arg_1),
+//!             // same as the `A` branch, with a different type for the argument
+//!             Branch3::C(te) => te.to_left($arg_2),
+//!         }
+//!     }
+//! }
+//! 
+//! // This is a type witness
+//! pub enum Branch3<T, X, Y, Z> {
+//!     // This variant requires `T == X`
+//!     A(TypeEq<T, X>),
+//! 
+//!     // This variant requires `T == Y`
+//!     B(TypeEq<T, Y>),
+//! 
+//!     // This variant requires `T == Z`
+//!     C(TypeEq<T, Z>),
+//! }
+//! 
+//! // Used to get different values of `Branch3` depending on `N`
+//! pub trait Choice<const N: u64> {
+//!     const VAL: Self;
+//! }
+//! 
+//! impl<X, Y, Z> Choice<0> for Branch3<X, X, Y, Z> {
+//!     // Because the first two type arguments of `Branch3` are `X`
+//!     // (as required by the `TypeEq<T, X>` field in Branch3's type definition),
+//!     // we can construct `TypeEq::NEW` here.
+//!     const VAL: Self = Self::A(TypeEq::NEW);
+//! }
+//! 
+//! impl<X, Y, Z> Choice<1> for Branch3<Y, X, Y, Z> {
+//!     const VAL: Self = Self::B(TypeEq::NEW);
+//! }
+//! 
+//! impl<X, Y, Z> Choice<2> for Branch3<Z, X, Y, Z> {
+//!     const VAL: Self = Self::C(TypeEq::NEW);
+//! }
+//! 
+//! ```
+//! 
+//! <span id="example0"></span>
 //! ### Indexing polymorphism
 //! 
 //! This example demonstrates how one can emulate trait polymorphism in `const fn`s

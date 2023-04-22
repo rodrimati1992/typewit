@@ -36,6 +36,7 @@ use core::marker::PhantomData;
 /// where
 ///     T: StrTryFrom<'a, L>
 /// {
+///     // `WITNESS` comes from the `HasTypeWitness` trait
 ///     match T::WITNESS {
 ///         StrTryFromWitness::Str(te) => {
 ///             // `te` (a `TypeEq<T, &'a str>`) allows coercing between `T` and `&'a str`,
@@ -56,7 +57,9 @@ use core::marker::PhantomData;
 /// 
 /// 
 /// // trait alias pattern
-/// trait StrTryFrom<'a, const L: usize>: Copy + HasTypeWitness<StrTryFromWitness<'a, Self, L>> {}
+/// pub trait StrTryFrom<'a, const L: usize>: 
+///     Copy + HasTypeWitness<StrTryFromWitness<'a, Self, L>> 
+/// {}
 /// 
 /// impl<'a, T, const L: usize> StrTryFrom<'a, L> for T
 /// where
