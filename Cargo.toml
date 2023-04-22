@@ -1,0 +1,26 @@
+[package]
+name = "typewit"
+version = "0.3.4"
+authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
+rust-version = "1.57.0"
+edition = "2021"
+license = "Zlib"
+description = "type-witness-based abstractions for emulating polymorphism in const fns"
+documentation = "https://docs.rs/typewit/"
+keywords = ["no-std", "const_fn"]
+categories = ["no-std"]
+repository = "https://github.com/rodrimati1992/typewit/"
+include = [
+    "Cargo.toml", 
+    "src/**/*.rs", 
+    "LICENSE-ZLIB.md", 
+]
+
+[dependencies]
+
+
+[features]
+
+[package.metadata.docs.rs]
+features = []
+
