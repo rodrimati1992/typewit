@@ -22,7 +22,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: enable-rust-stable
-      if: matrix.rust != '1.61'
+      if: matrix.rust != '1.61.0'
       run: echo "rustv=__rust_stable" >> $GITHUB_ENV
 
     - uses: actions/checkout@v2
