@@ -1,5 +1,5 @@
 use typewit::{
-    type_fn::{GRef, GRefMut},
+    type_fn::{GRef, GRefMut, TypeFn},
     TypeEq,
 };
 
@@ -65,12 +65,21 @@ fn map_test() {
 
 #[test]
 fn project_test() {
+    #[derive(Debug, PartialEq)]
+    struct Foo<T>(T);
+
+    struct FooFn;
+    impl<T> TypeFn<T> for FooFn {
+        type Output = Foo<T>;
+    }
+
+
     assert_type_eq(TypeEq::new::<u8>().project::<GRef<'_>>(), TypeEq::new::<&u8>());
     assert_type_eq(TypeEq::new::<u8>().project::<GRefMut<'_>>(), TypeEq::new::<&mut u8>());
-    const fn te_map<'a, T>(te: TypeEq<T, u8>, x: &'a mut T) -> &'a mut u8 {
-        te.project::<GRefMut<'_>>().to_right(x)
+    const fn te_map<'a, T>(te: TypeEq<T, u8>, x: Foo<T>) -> Foo<u8> {
+        te.project::<FooFn>().to_right(x)
     }
-    assert_eq!(te_map(TypeEq::new::<u8>(), &mut 8), &mut 8u8);
+    assert_eq!(te_map(TypeEq::new::<u8>(), Foo(8u8)), Foo(8u8));
 }
 
 #[test]
