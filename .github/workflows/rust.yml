@@ -38,8 +38,6 @@ jobs:
         set -ex
         rustup override set ${{ matrix.rust }}
 
-        cargo update -Z minimal-versions
-        
         cd "${{github.workspace}}/"
         cargo build
         
