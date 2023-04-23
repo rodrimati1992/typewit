@@ -201,10 +201,18 @@
 //! 
 //! # // would use `konst::slice::slice_range`,
 //! # // but it would become a cyclic dependency once `konst` depends on this crate.
-//! # const fn slice_range<T>(slice: &[T], Range{start, end}: Range<usize>) -> &[T] {
-//! #   assert!(start <= end && end <= slice.len());
-//! #   let len = end - start;
-//! #   unsafe{ core::slice::from_raw_parts(slice.as_ptr().add(start), len) }
+//! # const fn slice_range<T>(mut slice: &[T], Range{mut start, end}: Range<usize>) -> &[T] {
+//! #     assert!(start <= end && end <= slice.len());
+//! #     let mut removed_end = slice.len() - end;
+//! #     while let ([_, rem @ ..], 1..) = (slice, start) {
+//! #         start -= 1;
+//! #         slice = rem;
+//! #     }
+//! #     while let ([rem @ .., _], 1..) = (slice, removed_end) {
+//! #         removed_end -= 1;
+//! #         slice = rem;
+//! #     }
+//! #     slice
 //! # }
 //! ```
 //! 
@@ -245,7 +253,7 @@
 //! 
 //! # Minimum Supported Rust Version
 //! 
-//! `typewit` requires Rust 1.57.0.
+//! `typewit` requires Rust 1.61.0.
 //! 
 //! Features that require newer versions of Rust, or the nightly compiler,
 //! need to be explicitly enabled with crate features.

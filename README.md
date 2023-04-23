@@ -241,7 +241,7 @@ the `const_mut_refs` nightly feature.
 
 # Minimum Supported Rust Version
 
-`typewit` requires Rust 1.57.0.
+`typewit` requires Rust 1.61.0.
 
 Features that require newer versions of Rust, or the nightly compiler,
 need to be explicitly enabled with crate features.
