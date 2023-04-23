@@ -19,11 +19,12 @@ jobs:
       matrix:
         rust: [stable, beta, nightly, 1.61.0]
 
+    steps:
+    - uses: actions/checkout@v2
     - name: enable-rust-stable
       if: matrix.rust != '1.61'
       run: echo "rustv=__rust_stable" >> $GITHUB_ENV
 
-    steps:
     - uses: actions/checkout@v2
     - name: ci-all-versions
       run: |
