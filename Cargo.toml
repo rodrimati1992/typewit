@@ -25,5 +25,5 @@ nightly_mut_refs = ["mut_refs"]
 docsrs = []
 
 [package.metadata.docs.rs]
-features = []
+features = ["alloc", "nightly_mut_refs", "docsrs"]
 

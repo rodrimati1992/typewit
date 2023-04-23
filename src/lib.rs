@@ -115,7 +115,7 @@
 //! where
 //!     I: SliceIndex<T>,
 //! {
-//!     // `WITNESS` comes from the `HasTypeWitness` trait
+//!     // `I::WITNESS` expands to `<I as HasTypeWitness<IndexWitness<I>>>::WITNESS`,
 //!     match I::WITNESS {
 //!         IndexWitness::Usize(arg_te) => {
 //!             // `arg_te` (a `TypeEq<I, usize>`) allows coercing between `I` and `usize`,

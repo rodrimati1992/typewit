@@ -69,7 +69,8 @@ mod type_eq_ {
     /// where
     ///     R: HasTypeWitness<RetWitness<'a, R>>
     /// {
-    ///     // `WITNESS` comes from the `HasTypeWitness` trait        
+    ///     // `R::WITNESS` expands to
+    ///     // `<R as HasTypeWitness<RetWitness<'a, R>>>::WITNESS`
     ///     match R::WITNESS {
     ///         RetWitness::U8(te) => te.to_left(3u8),
     ///         RetWitness::Str(te) => te.to_right("hello"),

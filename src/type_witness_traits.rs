@@ -36,7 +36,8 @@ use core::marker::PhantomData;
 /// where
 ///     T: StrTryFrom<'a, L>
 /// {
-///     // `WITNESS` comes from the `HasTypeWitness` trait
+///     // `T::WITNESS` expands to 
+///     // `<T as HasTypeWitness<StrTryFromWitness<'a, T, L>>::WITNESS`
 ///     match T::WITNESS {
 ///         StrTryFromWitness::Str(te) => {
 ///             // `te` (a `TypeEq<T, &'a str>`) allows coercing between `T` and `&'a str`,
