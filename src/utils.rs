@@ -18,3 +18,24 @@ macro_rules! __priv_transmute {
         )
     }};
 }
+
+
+macro_rules! conditionally_const {
+    (
+        feature = $feature:literal;
+        
+        $( #[$meta:meta] )*
+        $vis:vis fn $fn_name:ident $([$($generics:tt)*])? (
+            $($params:tt)*
+        ) -> $ret:ty 
+        $block:block
+    ) => (
+        $(#[$meta])*
+        #[cfg(feature = $feature)]
+        $vis const fn $fn_name $(<$($generics)*>)? ($($params)*) -> $ret $block
+
+        $(#[$meta])*
+        #[cfg(not(feature = $feature))]
+        $vis fn $fn_name $(<$($generics)*>)? ($($params)*) -> $ret $block
+    )
+} pub(crate) use conditionally_const;

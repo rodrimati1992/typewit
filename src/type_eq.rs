@@ -8,16 +8,21 @@ use core::{
     mem::forget,
 };
 
+#[cfg(feature = "alloc")]
+use alloc::boxed::Box;
+
+
 macro_rules! projected_type_eq {
     ($type_eq:ident, $Left:ident, $Right:ident, $generic:ty) => {unsafe{
         let _te: crate::TypeEq<$Left, $Right> = $type_eq;
-        crate::ProjectedTypeEq::<$generic, $Left, $Right>::new_unchecked()
+        crate::__ProjectedTypeEq::<$generic, $Left, $Right>::new_unchecked()
     }}
 }
 
 /// A [`TypeEq`] whose type arguments are projected using the 
 /// `F` [type-level function](crate::type_fn::TypeFn).
-pub type ProjectedTypeEq<F, L, R> = TypeEq<CallFn<F, L>, CallFn<F, R>>;
+#[doc(hidden)]
+pub type __ProjectedTypeEq<F, L, R> = TypeEq<CallFn<F, L>, CallFn<F, R>>;
 
 
 // Declaring `TypeEq` in a submodule to prevent "safely" constructing `TypeEq` with
@@ -235,7 +240,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// # Example
     /// 
     /// ```rust
-    /// use typewit::{type_fn::TypeFn, TypeEq};
+    /// use typewit::{TypeEq, TypeFn};
     /// 
     /// assert_eq!(foo(TypeEq::NEW), (false, 5));
     /// 
@@ -262,7 +267,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// 
     /// ```
     /// 
-    pub const fn map<F>(self, func: F) -> ProjectedTypeEq<F, L, R> 
+    pub const fn map<F>(self, func: F) -> TypeEq<CallFn<F, L>, CallFn<F, R>>
     where
         F: TypeFn<L> + TypeFn<R>
     {
@@ -279,7 +284,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// # Example
     /// 
     /// ```rust
-    /// use typewit::{type_fn::TypeFn, TypeEq};
+    /// use typewit::{TypeEq, TypeFn};
     /// 
     /// assert_eq!(foo(TypeEq::NEW), vec![3u32, 5, 8]);
     /// 
@@ -296,7 +301,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// 
     /// ```
     /// 
-    pub const fn project<F>(self) -> ProjectedTypeEq<F, L, R> 
+    pub const fn project<F>(self) -> TypeEq<CallFn<F, L>, CallFn<F, R>>
     where
         F: TypeFn<L> + TypeFn<R>
     {
@@ -306,6 +311,27 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// Converts a `TypeEq<L, R>` to `TypeEq<&L, &R>`
     pub const fn in_ref<'a>(self) -> TypeEq<&'a L, &'a R> {
         projected_type_eq!{self, L, R, type_fn::GRef<'a>}
+    }
+
+    crate::utils::conditionally_const!{
+        feature = "mut_refs";
+
+        /// Converts a `TypeEq<L, R>` to `TypeEq<&mut L, &mut R>`
+        /// 
+        /// # Constness
+        /// 
+        /// This requires either of the `"mut_refs"` or `"const_mut_refs"` 
+        /// crate features to be enabled to be a `const fn`.
+        pub fn in_mut['a](self) -> TypeEq<&'a mut L, &'a mut R> {
+            projected_type_eq!{self, L, R, type_fn::GRefMut<'a>}
+        }
+    }
+
+    /// Converts a `TypeEq<L, R>` to `TypeEq<Box<L>, Box<R>>`
+    #[cfg(feature = "alloc")]
+    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "alloc")))]
+    pub const fn in_box(self) -> TypeEq<Box<L>, Box<R>> {
+        projected_type_eq!{self, L, R, type_fn::GBox}
     }
 }
 

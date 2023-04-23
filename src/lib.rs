@@ -223,10 +223,42 @@
 //!              usize
 //! ```
 //! 
+//! # Cargo features
+//! 
+//! These are the features of this crates:
+//! 
+//! - `"alloc"`: enable items that use anything from the alloc crate.
+//! 
+//! - `"mut_refs"`: turns functions that take mutable references into const fns.
+//! note: as of April 2023, 
+//! this crate feature requires a stable compiler from the future.
+//! 
+//! - `"nightly_mut_refs"`(requires the nightly compiler):
+//! Enables the `"mut_refs"` crate feature and 
+//! the `const_mut_refs` nightly feature.
+//! 
+//! 
+//! # No-std support
+//! 
+//! `typewit` is `#![no_std]`, it can be used anywhere Rust can be used.
+//! 
+//! # Minimum Supported Rust Version
+//! 
+//! `typewit` requires Rust 1.57.0.
+//! 
+//! Features that require newer versions of Rust, or the nightly compiler,
+//! need to be explicitly enabled with crate features.
+//! 
+//! 
 //! 
 //! [`TypeEq`]: crate::TypeEq
-
 #![no_std]
+#![cfg_attr(feature = "nightly_mut_refs", feature(const_mut_refs))]
+#![cfg_attr(feature = "docsrs", feature(doc_cfg))]
+#![deny(unused_results)]
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
 
 // Documentation for concepts not specific to any one item
 macro_rules! explain_type_witness {
@@ -258,3 +290,8 @@ pub mod __ {
         assert, compile_error, concat, stringify,
     };
 }
+
+
+#[doc = include_str!("./README.md")]
+#[cfg(doctest)]
+pub struct ReadmeDoctests;

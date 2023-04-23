@@ -22,6 +22,82 @@ which can coerce between a type parameter and as many types as there are variant
 # Examples
 
 <span id="example0"></span>
+### Polymorphic branching
+
+This example demonstrates how type witnesses can be used to 
+choose between expressions of different types with a constant. 
+
+```rust
+use typewit::TypeEq;
+
+const fn main() {
+    assert!(matches!(choose!(0; b"a string", 2, panic!()), b"a string"));
+
+    const UNO: u64 = 1;
+    assert!(matches!(choose!(UNO; loop{}, [3, 5], true), [3, 5]));
+
+    assert!(matches!(choose!(2 + 3; (), unreachable!(), ['5', '3']), ['5', '3']));
+}
+
+/// Evaluates the argument at position `$chosen % 3`, other arguments aren't evaluated.
+/// 
+/// The arguments can all be different types.
+/// 
+/// `$chosen` must be a `u64` constant.
+#[macro_export]
+macro_rules! choose {
+    ($chosen:expr; $arg_0: expr, $arg_1: expr, $arg_2: expr) => {
+        match Choice::<{$chosen % 3}>::VAL {
+            // `te` (a `TypeEq<T, X>`) allows us to safely go between 
+            // the type that the match returns (its `T` type argument)
+            // and the type of `$arg_0` (its `X` type argument).
+            Branch3::A(te) => {
+                // `to_left` goes from `X` to `T`
+                te.to_left($arg_0)
+            }
+            // same as the `A` branch, with a different type for the argument
+            Branch3::B(te) => te.to_left($arg_1),
+            // same as the `A` branch, with a different type for the argument
+            Branch3::C(te) => te.to_left($arg_2),
+        }
+    }
+}
+
+// This is a type witness
+pub enum Branch3<T, X, Y, Z> {
+    // This variant requires `T == X`
+    A(TypeEq<T, X>),
+
+    // This variant requires `T == Y`
+    B(TypeEq<T, Y>),
+
+    // This variant requires `T == Z`
+    C(TypeEq<T, Z>),
+}
+
+// Used to get different values of `Branch3` depending on `N`
+pub trait Choice<const N: u64> {
+    const VAL: Self;
+}
+
+impl<X, Y, Z> Choice<0> for Branch3<X, X, Y, Z> {
+    // Because the first two type arguments of `Branch3` are `X`
+    // (as required by the `TypeEq<T, X>` field in Branch3's type definition),
+    // we can construct `TypeEq::NEW` here.
+    const VAL: Self = Self::A(TypeEq::NEW);
+}
+
+impl<X, Y, Z> Choice<1> for Branch3<Y, X, Y, Z> {
+    const VAL: Self = Self::B(TypeEq::NEW);
+}
+
+impl<X, Y, Z> Choice<2> for Branch3<Z, X, Y, Z> {
+    const VAL: Self = Self::C(TypeEq::NEW);
+}
+
+```
+
+<span id="example0"></span>
 ### Indexing polymorphism
 
 This example demonstrates how one can emulate trait polymorphism in `const fn`s
@@ -146,9 +222,17 @@ error[E0277]: the trait bound `RangeFull: SliceIndex<{integer}>` is not satisfie
 
 # Cargo features
 
-These are the features of these crates:
+These are the features of this crates:
 
-**none yet**
+- `"alloc"`: enable items that use anything from the alloc crate.
+
+- `"mut_refs"`: turns functions that take mutable references into const fns.
+note: as of April 2023, 
+this crate feature requires a stable compiler from the future.
+
+- `"nightly_mut_refs"`(requires the nightly compiler):
+Enables the `"mut_refs"` crate feature and 
+the `const_mut_refs` nightly feature.
 
 
 # No-std support
@@ -161,3 +245,7 @@ These are the features of these crates:
 
 Features that require newer versions of Rust, or the nightly compiler,
 need to be explicitly enabled with crate features.
+
+
+
+[`TypeEq`]: crate::TypeEq

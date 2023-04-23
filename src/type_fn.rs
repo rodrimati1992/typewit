@@ -50,3 +50,15 @@ impl<'a, T: 'a + ?Sized> TypeFn<T> for GRefMut<'a> {
     type Output = &'a mut T;
 }
 
+////////////////
+
+/// Type-level function from `T` to `Box<T>`
+#[cfg(feature = "alloc")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "alloc")))]
+pub struct GBox;
+
+#[cfg(feature = "alloc")]
+impl<T: ?Sized> TypeFn<T> for GBox {
+    type Output = alloc::boxed::Box<T>;
+}
+
