@@ -27,7 +27,7 @@ jobs:
         rustup override set ${{ matrix.rust }}
         cargo update
 
-        cd "${{github.workspace}}/konst_kernel/"
+        cd "${{github.workspace}}/"
         cargo test --no-default-features 
         cargo test --no-default-features --features "alloc"
 
@@ -40,10 +40,8 @@ jobs:
 
         cargo update -Z minimal-versions
         
-        cd "${{github.workspace}}/konst_proc_macros/"
+        cd "${{github.workspace}}/"
         cargo build
-
-        cd "${{github.workspace}}/konst/"
         
         cargo test --no-default-features 
         cargo test --no-default-features --features "alloc"
