@@ -1,0 +1,114 @@
+error[E0308]: mismatched types
+ --> tests/misc_tests/type_eq_ui_tests/to_left_right_type_err-err.rs:5:16
+  |
+4 | fn to_left_err<L, R>(te: TypeEq<L, R>, left: impl Fn() -> L, right: impl Fn() -> R) {
+  |                -  - expected type parameter
+  |                |
+  |                found type parameter
+5 |     let _: R = te.to_left(right());
+  |            -   ^^^^^^^^^^^^^^^^^^^ expected type parameter `R`, found type parameter `L`
+  |            |
+  |            expected due to this
+  |
+  = note: expected type parameter `R`
+             found type parameter `L`
+  = note: a type parameter was expected, but a different one was found; you might be missing a type parameter or trait bound
+  = note: for more information, visit https://doc.rust-lang.org/book/ch10-02-traits.html#traits-as-parameters
+
+error[E0308]: mismatched types
+ --> tests/misc_tests/type_eq_ui_tests/to_left_right_type_err-err.rs:6:27
+  |
+4 | fn to_left_err<L, R>(te: TypeEq<L, R>, left: impl Fn() -> L, right: impl Fn() -> R) {
+  |                -  - expected type parameter
+  |                |
+  |                found type parameter
+5 |     let _: R = te.to_left(right());
+6 |     let _: R = te.to_left(left());
+  |                   ------- ^^^^^^ expected type parameter `R`, found type parameter `L`
+  |                   |
+  |                   arguments to this method are incorrect
+  |
+  = note: expected type parameter `R`
+             found type parameter `L`
+  = note: a type parameter was expected, but a different one was found; you might be missing a type parameter or trait bound
+  = note: for more information, visit https://doc.rust-lang.org/book/ch10-02-traits.html#traits-as-parameters
+note: method defined here
+ --> src/type_eq.rs
+  |
+  |     pub const fn to_left(self, from: R) -> L {
+  |                  ^^^^^^^
+
+error[E0308]: mismatched types
+ --> tests/misc_tests/type_eq_ui_tests/to_left_right_type_err-err.rs:6:16
+  |
+4 | fn to_left_err<L, R>(te: TypeEq<L, R>, left: impl Fn() -> L, right: impl Fn() -> R) {
+  |                -  - expected type parameter
+  |                |
+  |                found type parameter
+5 |     let _: R = te.to_left(right());
+6 |     let _: R = te.to_left(left());
+  |            -   ^^^^^^^^^^^^^^^^^^ expected type parameter `R`, found type parameter `L`
+  |            |
+  |            expected due to this
+  |
+  = note: expected type parameter `R`
+             found type parameter `L`
+  = note: a type parameter was expected, but a different one was found; you might be missing a type parameter or trait bound
+  = note: for more information, visit https://doc.rust-lang.org/book/ch10-02-traits.html#traits-as-parameters
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/to_left_right_type_err-err.rs:10:28
+   |
+9  | fn to_right_err<L, R>(te: TypeEq<L, R>, left: impl Fn() -> L, right: impl Fn() -> R) {
+   |                 -  - found type parameter
+   |                 |
+   |                 expected type parameter
+10 |     let _: L = te.to_right(right());
+   |                   -------- ^^^^^^^ expected type parameter `L`, found type parameter `R`
+   |                   |
+   |                   arguments to this method are incorrect
+   |
+   = note: expected type parameter `L`
+              found type parameter `R`
+   = note: a type parameter was expected, but a different one was found; you might be missing a type parameter or trait bound
+   = note: for more information, visit https://doc.rust-lang.org/book/ch10-02-traits.html#traits-as-parameters
+note: method defined here
+  --> src/type_eq.rs
+   |
+   |     pub const fn to_right(self, from: L) -> R {
+   |                  ^^^^^^^^
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/to_left_right_type_err-err.rs:10:16
+   |
+9  | fn to_right_err<L, R>(te: TypeEq<L, R>, left: impl Fn() -> L, right: impl Fn() -> R) {
+   |                 -  - found type parameter
+   |                 |
+   |                 expected type parameter
+10 |     let _: L = te.to_right(right());
+   |            -   ^^^^^^^^^^^^^^^^^^^^ expected type parameter `L`, found type parameter `R`
+   |            |
+   |            expected due to this
+   |
+   = note: expected type parameter `L`
+              found type parameter `R`
+   = note: a type parameter was expected, but a different one was found; you might be missing a type parameter or trait bound
+   = note: for more information, visit https://doc.rust-lang.org/book/ch10-02-traits.html#traits-as-parameters
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/to_left_right_type_err-err.rs:11:16
+   |
+9  | fn to_right_err<L, R>(te: TypeEq<L, R>, left: impl Fn() -> L, right: impl Fn() -> R) {
+   |                 -  - found type parameter
+   |                 |
+   |                 expected type parameter
+10 |     let _: L = te.to_right(right());
+11 |     let _: L = te.to_right(left());
+   |            -   ^^^^^^^^^^^^^^^^^^^ expected type parameter `L`, found type parameter `R`
+   |            |
+   |            expected due to this
+   |
+   = note: expected type parameter `L`
+              found type parameter `R`
+   = note: a type parameter was expected, but a different one was found; you might be missing a type parameter or trait bound
+   = note: for more information, visit https://doc.rust-lang.org/book/ch10-02-traits.html#traits-as-parameters

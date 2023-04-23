@@ -18,11 +18,15 @@ include = [
     "LICENSE-ZLIB.md", 
 ]
 
+[dev-dependencies.trybuild]
+version = "1.0"
+
 [features]
 alloc = []
 mut_refs = []
 nightly_mut_refs = ["mut_refs"]
 docsrs = []
+__ui_tests = []
 
 [package.metadata.docs.rs]
 features = ["alloc", "nightly_mut_refs", "docsrs"]

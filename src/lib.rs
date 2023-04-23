@@ -1,3 +1,4 @@
+#![allow(clippy::needless_doctest_main)]
 //! This crate provides abstractions for creating type witnesses.
 //! 
 //! The inciting motivation for this crate is emulating trait polymorphism in `const fn`
@@ -255,7 +256,11 @@
 #![no_std]
 #![cfg_attr(feature = "nightly_mut_refs", feature(const_mut_refs))]
 #![cfg_attr(feature = "docsrs", feature(doc_cfg))]
+#![allow(clippy::type_complexity)]
+#![deny(missing_docs)]
+#![deny(clippy::missing_const_for_fn)]
 #![deny(unused_results)]
+
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
@@ -291,7 +296,3 @@ pub mod __ {
     };
 }
 
-
-#[doc = include_str!("./README.md")]
-#[cfg(doctest)]
-pub struct ReadmeDoctests;

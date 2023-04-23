@@ -380,10 +380,8 @@ impl<L: ?Sized, R: ?Sized> Eq for TypeEq<L, R> {}
 
 
 impl<L: ?Sized, R: ?Sized> Hash for TypeEq<L, R> {
-    fn hash<H>(&self, state: &mut H)
+    fn hash<H>(&self, _state: &mut H)
     where H: Hasher
-    {
-        ().hash(state)
-    }
+    {}
 }
 

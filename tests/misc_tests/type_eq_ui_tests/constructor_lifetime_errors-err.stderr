@@ -1,0 +1,46 @@
+error: lifetime may not live long enough
+ --> tests/misc_tests/type_eq_ui_tests/constructor_lifetime_errors-err.rs:4:5
+  |
+3 | const fn unrelated_lifetime<'a, 'b>() -> TypeEq<&'a (), &'b ()> {
+  |                             --  -- lifetime `'b` defined here
+  |                             |
+  |                             lifetime `'a` defined here
+4 |     TypeEq::NEW
+  |     ^^^^^^^^^^^ function was supposed to return data with lifetime `'b` but it is returning data with lifetime `'a`
+  |
+  = help: consider adding the following bound: `'a: 'b`
+  = note: requirement occurs because of the type `TypeEq<&(), &()>`, which makes the generic argument `&()` invariant
+  = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+  = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+error: lifetime may not live long enough
+ --> tests/misc_tests/type_eq_ui_tests/constructor_lifetime_errors-err.rs:4:5
+  |
+3 | const fn unrelated_lifetime<'a, 'b>() -> TypeEq<&'a (), &'b ()> {
+  |                             --  -- lifetime `'b` defined here
+  |                             |
+  |                             lifetime `'a` defined here
+4 |     TypeEq::NEW
+  |     ^^^^^^^^^^^ function was supposed to return data with lifetime `'a` but it is returning data with lifetime `'b`
+  |
+  = help: consider adding the following bound: `'b: 'a`
+  = note: requirement occurs because of the type `TypeEq<&(), &()>`, which makes the generic argument `&()` invariant
+  = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+  = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+help: `'a` and `'b` must be the same: replace one with the other
+
+error: lifetime may not live long enough
+ --> tests/misc_tests/type_eq_ui_tests/constructor_lifetime_errors-err.rs:8:5
+  |
+7 | const fn sublifetime<'a, 'b: 'a>() -> TypeEq<&'a (), &'b ()> {
+  |                      --  -- lifetime `'b` defined here
+  |                      |
+  |                      lifetime `'a` defined here
+8 |     TypeEq::NEW
+  |     ^^^^^^^^^^^ function was supposed to return data with lifetime `'b` but it is returning data with lifetime `'a`
+  |
+  = help: consider adding the following bound: `'a: 'b`
+  = note: requirement occurs because of the type `TypeEq<&(), &()>`, which makes the generic argument `&()` invariant
+  = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+  = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance

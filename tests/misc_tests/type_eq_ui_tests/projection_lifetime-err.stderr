@@ -1,0 +1,183 @@
+error: lifetime may not live long enough
+ --> tests/misc_tests/type_eq_ui_tests/projection_lifetime-err.rs:7:5
+  |
+6 | fn in_ref_return_different_lts<'a, 'b, L, R>(te: TypeEq<L, R>) -> TypeEq<&'a L, &'b R> {
+  |                                --  -- lifetime `'b` defined here
+  |                                |
+  |                                lifetime `'a` defined here
+7 |     te.in_ref()
+  |     ^^^^^^^^^^^ function was supposed to return data with lifetime `'b` but it is returning data with lifetime `'a`
+  |
+  = help: consider adding the following bound: `'a: 'b`
+  = note: requirement occurs because of the type `TypeEq<&L, &R>`, which makes the generic argument `&L` invariant
+  = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+  = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+error: lifetime may not live long enough
+ --> tests/misc_tests/type_eq_ui_tests/projection_lifetime-err.rs:7:5
+  |
+6 | fn in_ref_return_different_lts<'a, 'b, L, R>(te: TypeEq<L, R>) -> TypeEq<&'a L, &'b R> {
+  |                                --  -- lifetime `'b` defined here
+  |                                |
+  |                                lifetime `'a` defined here
+7 |     te.in_ref()
+  |     ^^^^^^^^^^^ function was supposed to return data with lifetime `'a` but it is returning data with lifetime `'b`
+  |
+  = help: consider adding the following bound: `'b: 'a`
+  = note: requirement occurs because of the type `TypeEq<&L, &R>`, which makes the generic argument `&L` invariant
+  = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+  = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+help: `'a` and `'b` must be the same: replace one with the other
+
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/projection_lifetime-err.rs:11:5
+   |
+10 | fn in_mut_return_different_lts<'a, 'b, L, R>(te: TypeEq<L, R>) -> TypeEq<&'a mut L, &'b mut R> {
+   |                                --  -- lifetime `'b` defined here
+   |                                |
+   |                                lifetime `'a` defined here
+11 |     te.in_mut()
+   |     ^^^^^^^^^^^ function was supposed to return data with lifetime `'b` but it is returning data with lifetime `'a`
+   |
+   = help: consider adding the following bound: `'a: 'b`
+   = note: requirement occurs because of the type `TypeEq<&mut L, &mut R>`, which makes the generic argument `&mut L` invariant
+   = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+   = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/projection_lifetime-err.rs:11:5
+   |
+10 | fn in_mut_return_different_lts<'a, 'b, L, R>(te: TypeEq<L, R>) -> TypeEq<&'a mut L, &'b mut R> {
+   |                                --  -- lifetime `'b` defined here
+   |                                |
+   |                                lifetime `'a` defined here
+11 |     te.in_mut()
+   |     ^^^^^^^^^^^ function was supposed to return data with lifetime `'a` but it is returning data with lifetime `'b`
+   |
+   = help: consider adding the following bound: `'b: 'a`
+   = note: requirement occurs because of the type `TypeEq<&mut L, &mut R>`, which makes the generic argument `&mut L` invariant
+   = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+   = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/projection_lifetime-err.rs:15:5
+   |
+14 | fn map_ref_return_different_lts<'a, 'b, L, R>(te: TypeEq<L, R>) -> TypeEq<&'a L, &'b R> {
+   |                                 --  -- lifetime `'b` defined here
+   |                                 |
+   |                                 lifetime `'a` defined here
+15 |     te.map(GRef::NEW)
+   |     ^^^^^^^^^^^^^^^^^ function was supposed to return data with lifetime `'b` but it is returning data with lifetime `'a`
+   |
+   = help: consider adding the following bound: `'a: 'b`
+   = note: requirement occurs because of the type `TypeEq<&L, &R>`, which makes the generic argument `&L` invariant
+   = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+   = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/projection_lifetime-err.rs:15:5
+   |
+14 | fn map_ref_return_different_lts<'a, 'b, L, R>(te: TypeEq<L, R>) -> TypeEq<&'a L, &'b R> {
+   |                                 --  -- lifetime `'b` defined here
+   |                                 |
+   |                                 lifetime `'a` defined here
+15 |     te.map(GRef::NEW)
+   |     ^^^^^^^^^^^^^^^^^ function was supposed to return data with lifetime `'a` but it is returning data with lifetime `'b`
+   |
+   = help: consider adding the following bound: `'b: 'a`
+   = note: requirement occurs because of the type `TypeEq<&L, &R>`, which makes the generic argument `&L` invariant
+   = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+   = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/projection_lifetime-err.rs:19:5
+   |
+18 | fn project_ref_return_different_lts<'a, 'b, L, R>(te: TypeEq<L, R>) -> TypeEq<&'a L, &'b R> {
+   |                                     --  -- lifetime `'b` defined here
+   |                                     |
+   |                                     lifetime `'a` defined here
+19 |     te.project::<GRef>()
+   |     ^^^^^^^^^^^^^^^^^^^^ function was supposed to return data with lifetime `'b` but it is returning data with lifetime `'a`
+   |
+   = help: consider adding the following bound: `'a: 'b`
+   = note: requirement occurs because of the type `TypeEq<&L, &R>`, which makes the generic argument `&L` invariant
+   = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+   = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/projection_lifetime-err.rs:19:5
+   |
+18 | fn project_ref_return_different_lts<'a, 'b, L, R>(te: TypeEq<L, R>) -> TypeEq<&'a L, &'b R> {
+   |                                     --  -- lifetime `'b` defined here
+   |                                     |
+   |                                     lifetime `'a` defined here
+19 |     te.project::<GRef>()
+   |     ^^^^^^^^^^^^^^^^^^^^ function was supposed to return data with lifetime `'a` but it is returning data with lifetime `'b`
+   |
+   = help: consider adding the following bound: `'b: 'a`
+   = note: requirement occurs because of the type `TypeEq<&L, &R>`, which makes the generic argument `&L` invariant
+   = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+   = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/projection_lifetime-err.rs:23:5
+   |
+22 | fn map_mut_return_different_lts<'a, 'b, L, R>(te: TypeEq<L, R>) -> TypeEq<&'a mut L, &'b mut R> {
+   |                                 --  -- lifetime `'b` defined here
+   |                                 |
+   |                                 lifetime `'a` defined here
+23 |     te.map(GRefMut::NEW)
+   |     ^^^^^^^^^^^^^^^^^^^^ function was supposed to return data with lifetime `'b` but it is returning data with lifetime `'a`
+   |
+   = help: consider adding the following bound: `'a: 'b`
+   = note: requirement occurs because of the type `TypeEq<&mut L, &mut R>`, which makes the generic argument `&mut L` invariant
+   = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+   = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/projection_lifetime-err.rs:23:5
+   |
+22 | fn map_mut_return_different_lts<'a, 'b, L, R>(te: TypeEq<L, R>) -> TypeEq<&'a mut L, &'b mut R> {
+   |                                 --  -- lifetime `'b` defined here
+   |                                 |
+   |                                 lifetime `'a` defined here
+23 |     te.map(GRefMut::NEW)
+   |     ^^^^^^^^^^^^^^^^^^^^ function was supposed to return data with lifetime `'a` but it is returning data with lifetime `'b`
+   |
+   = help: consider adding the following bound: `'b: 'a`
+   = note: requirement occurs because of the type `TypeEq<&mut L, &mut R>`, which makes the generic argument `&mut L` invariant
+   = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+   = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/projection_lifetime-err.rs:29:5
+   |
+26 | fn project_mut_return_different_lts<'a, 'b, L, R>(
+   |                                     --  -- lifetime `'b` defined here
+   |                                     |
+   |                                     lifetime `'a` defined here
+...
+29 |     te.project::<GRefMut>()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^ function was supposed to return data with lifetime `'b` but it is returning data with lifetime `'a`
+   |
+   = help: consider adding the following bound: `'a: 'b`
+   = note: requirement occurs because of the type `TypeEq<&mut L, &mut R>`, which makes the generic argument `&mut L` invariant
+   = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+   = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/projection_lifetime-err.rs:29:5
+   |
+26 | fn project_mut_return_different_lts<'a, 'b, L, R>(
+   |                                     --  -- lifetime `'b` defined here
+   |                                     |
+   |                                     lifetime `'a` defined here
+...
+29 |     te.project::<GRefMut>()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^ function was supposed to return data with lifetime `'a` but it is returning data with lifetime `'b`
+   |
+   = help: consider adding the following bound: `'b: 'a`
+   = note: requirement occurs because of the type `TypeEq<&mut L, &mut R>`, which makes the generic argument `&mut L` invariant
+   = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+   = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
