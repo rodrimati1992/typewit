@@ -53,48 +53,81 @@ mod type_eq_ {
     ///
     /// # Examples
     /// 
-    /// ### Polymorphic function
+    /// ### Polymorphic branching
     /// 
-    /// This demonstrates how one can write a polymorphic `const fn`
-    /// (as of 2023-04-30, trait methods can't be called in const fns)
+    /// This example demonstrates how type witnesses can be used to 
+    /// choose between expressions of different types with a constant. 
     /// 
     /// ```rust
-    /// use typewit::{HasTypeWitness, MakeTypeWitness, TypeWitnessTypeArg, TypeEq};
+    /// use typewit::TypeEq;
     /// 
-    /// assert_eq!(returnal::<u8>(), 3);
-    /// assert_eq!(returnal::<&str>(), "hello");
+    /// const fn main() {
+    ///     assert!(matches!(choose!(0; b"a string", 2, panic!()), b"a string"));
     /// 
+    ///     const UNO: u64 = 1;
+    ///     assert!(matches!(choose!(UNO; loop{}, [3, 5], true), [3, 5]));
     /// 
-    /// const fn returnal<'a, R>() -> R
-    /// where
-    ///     R: HasTypeWitness<RetWitness<'a, R>>
-    /// {
-    ///     // `R::WITNESS` expands to
-    ///     // `<R as HasTypeWitness<RetWitness<'a, R>>>::WITNESS`
-    ///     match R::WITNESS {
-    ///         RetWitness::U8(te) => te.to_left(3u8),
-    ///         RetWitness::Str(te) => te.to_right("hello"),
+    ///     assert!(matches!(choose!(2 + 3; (), unreachable!(), ['5', '3']), ['5', '3']));
+    /// }
+    /// 
+    /// /// Evaluates the argument at position `$chosen % 3`, other arguments aren't evaluated.
+    /// /// 
+    /// /// The arguments can all be different types.
+    /// /// 
+    /// /// `$chosen` must be a `u64` constant.
+    /// #[macro_export]
+    /// macro_rules! choose {
+    ///     ($chosen:expr; $arg_0: expr, $arg_1: expr, $arg_2: expr) => {
+    ///         match Choice::<{$chosen % 3}>::VAL {
+    ///             // `te` (a `TypeEq<T, X>`) allows us to safely go between 
+    ///             // the type that the match returns (its `T` type argument)
+    ///             // and the type of `$arg_0` (its `X` type argument).
+    ///             Branch3::A(te) => {
+    ///                 // `to_left` goes from `X` to `T`
+    ///                 te.to_left($arg_0)
+    ///             }
+    ///             // same as the `A` branch, with a different type for the argument
+    ///             Branch3::B(te) => te.to_left($arg_1),
+    ///             // same as the `A` branch, with a different type for the argument
+    ///             Branch3::C(te) => te.to_left($arg_2),
+    ///         }
     ///     }
-    /// }   
-    /// 
-    /// enum RetWitness<'a, R> {
-    ///     U8(TypeEq<R, u8>),
-    ///     Str(TypeEq<&'a str, R>),
     /// }
     /// 
-    /// impl<R> TypeWitnessTypeArg for RetWitness<'_, R> {
-    ///     type Arg = R;
+    /// // This is a type witness
+    /// pub enum Branch3<T, X, Y, Z> {
+    ///     // This variant requires `T == X`
+    ///     A(TypeEq<T, X>),
+    /// 
+    ///     // This variant requires `T == Y`
+    ///     B(TypeEq<T, Y>),
+    /// 
+    ///     // This variant requires `T == Z`
+    ///     C(TypeEq<T, Z>),
     /// }
     /// 
-    /// impl MakeTypeWitness for RetWitness<'_, u8> {
-    ///     const MAKE: Self = RetWitness::U8(TypeEq::NEW);
+    /// // Used to get different values of `Branch3` depending on `N`
+    /// pub trait Choice<const N: u64> {
+    ///     const VAL: Self;
     /// }
     /// 
-    /// impl<'a> MakeTypeWitness for RetWitness<'a, &'a str> {
-    ///     const MAKE: Self = RetWitness::Str(TypeEq::NEW);
+    /// impl<X, Y, Z> Choice<0> for Branch3<X, X, Y, Z> {
+    ///     // Because the first two type arguments of `Branch3` are `X`
+    ///     // (as required by the `TypeEq<T, X>` field in Branch3's type definition),
+    ///     // we can construct `TypeEq::NEW` here.
+    ///     const VAL: Self = Self::A(TypeEq::NEW);
+    /// }
+    /// 
+    /// impl<X, Y, Z> Choice<1> for Branch3<Y, X, Y, Z> {
+    ///     const VAL: Self = Self::B(TypeEq::NEW);
+    /// }
+    /// 
+    /// impl<X, Y, Z> Choice<2> for Branch3<Z, X, Y, Z> {
+    ///     const VAL: Self = Self::C(TypeEq::NEW);
     /// }
     /// 
     /// ```
+    /// 
     pub struct TypeEq<L: ?Sized, R: ?Sized>(PhantomData<(
         fn(PhantomData<L>) -> PhantomData<L>,
         fn(PhantomData<R>) -> PhantomData<R>,

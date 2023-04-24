@@ -22,85 +22,66 @@ which can coerce between a type parameter and as many types as there are variant
 # Examples
 
 <span id="example0"></span>
-### Polymorphic branching
 
-This example demonstrates how type witnesses can be used to 
-choose between expressions of different types with a constant. 
+### Polymorphic function
+
+This demonstrates how one can write a return-type-polymorphic `const fn`
+(as of 2023-04-30, trait methods can't be called in const fns)
 
 ```rust
-use typewit::TypeEq;
+use typewit::{HasTypeWitness, MakeTypeWitness, TypeWitnessTypeArg, TypeEq};
 
-const fn main() {
-    assert!(matches!(choose!(0; b"a string", 2, panic!()), b"a string"));
+assert_eq!(returnal::<u8>(), 3);
+assert_eq!(returnal::<&str>(), "hello");
 
-    const UNO: u64 = 1;
-    assert!(matches!(choose!(UNO; loop{}, [3, 5], true), [3, 5]));
 
-    assert!(matches!(choose!(2 + 3; (), unreachable!(), ['5', '3']), ['5', '3']));
-}
-
-/// Evaluates the argument at position `$chosen % 3`, other arguments aren't evaluated.
-/// 
-/// The arguments can all be different types.
-/// 
-/// `$chosen` must be a `u64` constant.
-#[macro_export]
-macro_rules! choose {
-    ($chosen:expr; $arg_0: expr, $arg_1: expr, $arg_2: expr) => {
-        match Choice::<{$chosen % 3}>::VAL {
-            // `te` (a `TypeEq<T, X>`) allows us to safely go between 
-            // the type that the match returns (its `T` type argument)
-            // and the type of `$arg_0` (its `X` type argument).
-            Branch3::A(te) => {
-                // `to_left` goes from `X` to `T`
-                te.to_left($arg_0)
-            }
-            // same as the `A` branch, with a different type for the argument
-            Branch3::B(te) => te.to_left($arg_1),
-            // same as the `A` branch, with a different type for the argument
-            Branch3::C(te) => te.to_left($arg_2),
+const fn returnal<'a, R>() -> R
+where
+    R: HasTypeWitness<RetWitness<'a, R>>
+{
+    // `R::WITNESS` expands to
+    // `<R as HasTypeWitness<RetWitness<'a, R>>>::WITNESS`.
+    // `HasTypeWitness` delegates to the `MakeTypeWitness` trait to get `WITNESS`.
+    match R::WITNESS {
+        RetWitness::U8(te) => {
+            // `te` (a `TypeEq<R, u8>`) allows coercing between `R` and `u8`,
+            // because `TypeEq` is a value-level proof that both types are the same.
+            // `te.to_left(...)` goes from `u8` to `R`.
+            te.to_left(3u8)
+        }
+        RetWitness::Str(te) => {
+            // `te` is a `TypeEq<&'a str, R>`
+            // `te.to_right(...)` goes from `&'a str` to `R`.
+            te.to_right("hello")
         }
     }
 }
 
 // This is a type witness
-pub enum Branch3<T, X, Y, Z> {
-    // This variant requires `T == X`
-    A(TypeEq<T, X>),
+enum RetWitness<'a, R> {
+    // This variant requires `R == u8`
+    U8(TypeEq<R, u8>),
 
-    // This variant requires `T == Y`
-    B(TypeEq<T, Y>),
-
-    // This variant requires `T == Z`
-    C(TypeEq<T, Z>),
+    // This variant requires `&'a str == R`
+    Str(TypeEq<&'a str, R>),
 }
 
-// Used to get different values of `Branch3` depending on `N`
-pub trait Choice<const N: u64> {
-    const VAL: Self;
+impl<R> TypeWitnessTypeArg for RetWitness<'_, R> {
+    type Arg = R;
 }
 
-impl<X, Y, Z> Choice<0> for Branch3<X, X, Y, Z> {
-    // Because the first two type arguments of `Branch3` are `X`
-    // (as required by the `TypeEq<T, X>` field in Branch3's type definition),
-    // we can construct `TypeEq::NEW` here.
-    const VAL: Self = Self::A(TypeEq::NEW);
+impl MakeTypeWitness for RetWitness<'_, u8> {
+    const MAKE: Self = RetWitness::U8(TypeEq::NEW);
 }
 
-impl<X, Y, Z> Choice<1> for Branch3<Y, X, Y, Z> {
-    const VAL: Self = Self::B(TypeEq::NEW);
-}
-
-impl<X, Y, Z> Choice<2> for Branch3<Z, X, Y, Z> {
-    const VAL: Self = Self::C(TypeEq::NEW);
+impl<'a> MakeTypeWitness for RetWitness<'a, &'a str> {
+    const MAKE: Self = RetWitness::Str(TypeEq::NEW);
 }
 
 ```
 
-<span id="example0"></span>
+<span id="example1"></span>
 ### Indexing polymorphism
-
-This example demonstrates how one can emulate trait polymorphism in `const fn`s
 
 ```rust
 use std::ops::Range;
@@ -120,7 +101,7 @@ const fn index<T, I>(slice: &[T], idx: I) -> &I::Returns
 where
     I: SliceIndex<T>,
 {
-    // `WITNESS` comes from the `HasTypeWitness` trait
+    // `I::WITNESS` expands to `<I as HasTypeWitness<IndexWitness<I>>>::WITNESS`,
     match I::WITNESS {
         IndexWitness::Usize(arg_te) => {
             // `arg_te` (a `TypeEq<I, usize>`) allows coercing between `I` and `usize`,
@@ -184,7 +165,8 @@ impl MakeTypeWitness for IndexWitness<Range<usize>> {
     const MAKE: Self = Self::Range(TypeEq::NEW);
 }
 
-//////
+//////////////////////////////
+// stuff that maps TypeEq's type arguments
 
 const fn project_ret<L, R, T>(te: TypeEq<L, R>) -> TypeEq<L::Returns, R::Returns>
 where
@@ -202,6 +184,7 @@ struct SliceIndexRets<T>(std::marker::PhantomData<fn() -> T>);
 impl<T, I: SliceIndex<T>> typewit::TypeFn<I> for SliceIndexRets<T>  {
     type Output = I::Returns;
 }
+
 ```
 
 When the wrong type is passed for the index,
@@ -224,7 +207,7 @@ error[E0277]: the trait bound `RangeFull: SliceIndex<{integer}>` is not satisfie
 
 These are the features of this crates:
 
-- `"alloc"`: enable items that use anything from the alloc crate.
+- `"alloc"`: enable items that use anything from the `alloc` crate.
 
 - `"mut_refs"`: turns functions that take mutable references into const fns.
 note: as of April 2023, 
@@ -248,4 +231,6 @@ need to be explicitly enabled with crate features.
 
 
 
-[`TypeEq`]: crate::TypeEq
+
+
+[`TypeEq`]: https://docs.rs/typewit/latest/typewit/struct.TypeEq.html
