@@ -1,6 +1,6 @@
 use typewit::{
     type_fn::{GRef, GRefMut, TypeFn},
-    TypeEq,
+    HasTypeWitness, MakeTypeWitness, TypeEq,
 };
 
 use crate::misc_tests::test_utils::{assert_type, assert_type_eq};
@@ -52,6 +52,24 @@ fn assert_type_eq_constructor_types() {
         assert_type::<_, TypeEq<(), bool>>(TypeEq::<(), bool>::new_unchecked());
     }
 }
+
+#[test]
+fn assert_type_eq_as_type_witness() {
+    assert_type::<_, TypeEq<bool, bool>>(<TypeEq<_, bool> as MakeTypeWitness>::MAKE);
+    assert_type::<_, TypeEq<bool, bool>>(<TypeEq<bool, _> as MakeTypeWitness>::MAKE);
+    assert_type::<_, TypeEq<bool, bool>>(<TypeEq<bool, bool> as MakeTypeWitness>::MAKE);
+
+    assert_type::<_, TypeEq<i8, i8>>(<i8 as HasTypeWitness<TypeEq<_, _>>>::WITNESS);
+    assert_type::<_, TypeEq<i8, i8>>(<_ as HasTypeWitness<TypeEq<i8, _>>>::WITNESS);
+
+    // does not work, unfortunately
+    // assert_type::<_, TypeEq<i8, i8>>(<_ as HasTypeWitness<TypeEq<_, i8>>>::WITNESS);
+
+    assert_type::<_, TypeEq<i8, i8>>(<_ as HasTypeWitness<TypeEq<i8, i8>>>::WITNESS);
+
+}
+
+
 
 #[test]
 fn map_test() {

@@ -46,9 +46,9 @@
 //!             te.to_left(3u8)
 //!         }
 //!         RetWitness::Str(te) => {
-//!             // `te` is a `TypeEq<&'a str, R>`
-//!             // `te.to_right(...)` goes from `&'a str` to `R`.
-//!             te.to_right("hello")
+//!             // `te` is a `TypeEq<R, &'a str>`
+//!             // `te.to_left(...)` goes from `&'a str` to `R`.
+//!             te.to_left("hello")
 //!         }
 //!     }
 //! }
@@ -59,7 +59,7 @@
 //!     U8(TypeEq<R, u8>),
 //!
 //!     // This variant requires `&'a str == R`
-//!     Str(TypeEq<&'a str, R>),
+//!     Str(TypeEq<R, &'a str>),
 //! }
 //! 
 //! impl<R> TypeWitnessTypeArg for RetWitness<'_, R> {

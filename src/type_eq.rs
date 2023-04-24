@@ -1,4 +1,7 @@
-use crate::type_fn::{self, TypeFn, CallFn};
+use crate::{
+    type_fn::{self, CallFn, TypeFn}, 
+    MakeTypeWitness, TypeWitnessTypeArg,
+};
 
 use core::{
     cmp::{Ordering, Eq, Ord, PartialEq, PartialOrd},
@@ -26,6 +29,64 @@ pub type __ProjectedTypeEq<F, L, R> = TypeEq<CallFn<F, L>, CallFn<F, R>>;
 
 
 /// Constructs a [`TypeEq<T, T>`](TypeEq)
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use typewit::{HasTypeWitness, MakeTypeWitness, TypeWitnessTypeArg, TypeEq, type_eq};
+/// 
+/// assert_eq!(ascii_to_upper(b'a'), b'A');
+/// assert_eq!(ascii_to_upper(b'f'), b'F');
+/// assert_eq!(ascii_to_upper(b'B'), b'B');
+/// assert_eq!(ascii_to_upper(b'0'), b'0');
+/// 
+/// assert_eq!(ascii_to_upper('c'), 'C');
+/// assert_eq!(ascii_to_upper('e'), 'E');
+/// assert_eq!(ascii_to_upper('H'), 'H');
+/// assert_eq!(ascii_to_upper('@'), '@');
+/// 
+/// const fn ascii_to_upper<T>(c: T) -> T 
+/// where
+///     T: HasTypeWitness<Wit<T>>,
+/// {
+///     // `T::WITNESS` expands to
+///     // `<T as HasTypeWitness<Wit<T>>>::WITNESS`.
+///     // `HasTypeWitness` delegates to the `MakeTypeWitness` trait to make `WITNESS`.
+///     match T::WITNESS {
+///         Wit::U8(te) => {
+///             // `te` is a `TypeEq<T, u8>`, which allows casting between `T` and `u8`.
+///             // `te.to_right(...)` goes from `T` to `u8`
+///             // `te.to_left(...)` goes from `u8` to `T`
+///             te.to_left(te.to_right(c).to_ascii_uppercase())
+///         }
+///         Wit::Char(te) => {
+///             // `te` is a `TypeEq<T, char>`, which allows casting between `T` and `char`.
+///             // `te.to_right(...)` goes from `T` to `char`
+///             // `te.to_left(...)` goes from `char` to `T`
+///             te.to_left(te.to_right(c).to_ascii_uppercase())
+///         }
+///     }
+/// }
+/// 
+/// // This is a type witness
+/// enum Wit<T> {
+///     // this variant requires `T == u8`
+///     U8(TypeEq<T, u8>),
+/// 
+///     // this variant requires `T == char`
+///     Char(TypeEq<T, char>),
+/// }
+/// impl<T> TypeWitnessTypeArg for Wit<T> {
+///     type Arg = T;
+/// }
+/// impl MakeTypeWitness for Wit<u8> {
+///     const MAKE: Self = Self::U8(type_eq());
+/// }
+/// impl MakeTypeWitness for Wit<char> {
+///     const MAKE: Self = Self::Char(type_eq());
+/// }
+/// 
+/// ```
 #[inline(always)]
 pub const fn type_eq<T: ?Sized>() -> TypeEq<T, T> {
     TypeEq::NEW
@@ -39,7 +100,6 @@ mod type_eq_ {
     use core::marker::PhantomData;
 
     /// Value-level proof that `L` is the same type as `R`
-    /// 
     ///
     /// This type can be used to prove that `L` and `R` are the same type,
     /// because it can only be safely constructed with 
@@ -48,6 +108,14 @@ mod type_eq_ {
     ///
     /// This type is not too useful by itself, it becomes useful 
     /// [when put inside of an enum](#polymorphic-branching).
+    ///
+    /// 
+    /// `TypeEq<L, R>` uses the `L` type parameter as the more generic type by convention
+    /// (e.g: `TypeEq<T, char>`).
+    /// This only matters if you're using the type witness traits 
+    /// ([`HasTypeWitness`](crate::HasTypeWitness), 
+    /// [`MakeTypeWitness`](crate::MakeTypeWitness), 
+    ///  [`TypeWitnessTypeArg`](crate::TypeWitnessTypeArg)) with `TypeEq`.
     ///
     /// # Soundness
     /// 
@@ -156,6 +224,23 @@ mod type_eq_ {
 
     impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
         /// Swaps the type parameters of this `TypeEq`
+        /// 
+        /// # Example
+        /// 
+        /// ```rust
+        /// use typewit::TypeEq;
+        /// 
+        /// assert_eq!(flip_bytes([3, 5], TypeEq::NEW), [5, 3]);
+        /// 
+        /// const fn flip_bytes<T>(val: T, te: TypeEq<T, [u8; 2]>) -> T {
+        ///     bar(val, te.flip())
+        /// }
+        /// const fn bar<T>(val: T, te: TypeEq<[u8; 2], T>) -> T {
+        ///     let [l, r] = te.to_left(val);
+        ///     te.to_right([r, l])
+        /// }
+        /// ```
+        /// 
         #[inline(always)]
         pub const fn flip(self) -> TypeEq<R, L> {
             TypeEq(PhantomData)
@@ -180,11 +265,12 @@ mod type_eq_ {
         /// // SAFETY: WRONG! UNSOUND!
         /// let te: TypeEq<u8, i8> = unsafe{ TypeEq::new_unchecked() };
         /// 
-        /// // because `TypeEq<u8, i8>` is incorrect,
+        /// // Because `TypeEq<u8, i8>` is incorrect,
         /// // we get this absurd `TypeEq` from the `project` method.
         /// let absurd: TypeEq<(), Vec<usize>> = te.project::<Func>();
         /// 
-        /// // This cast is UB, it killed the test runner when uncommented.
+        /// // This casts from `()` to `Vec<usize>` (which is UB),
+        /// // it killed the test runner when uncommented.
         /// // absurd.to_right(()); 
         /// 
         /// struct Func;
@@ -321,6 +407,16 @@ impl<L, R> TypeEq<L, R> {
         unsafe { crate::__priv_transmute!(R, L, from) }
     }
 }
+
+
+impl<L: ?Sized, R: ?Sized> TypeWitnessTypeArg for TypeEq<L, R> {
+    type Arg = L;
+}
+
+impl<T: ?Sized> MakeTypeWitness for TypeEq<T, T> {
+    const MAKE: Self = Self::NEW;
+}
+
 
 impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// Maps the type arguments of this `TypeEq`
