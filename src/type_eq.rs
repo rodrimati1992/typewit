@@ -25,6 +25,14 @@ macro_rules! projected_type_eq {
 pub type __ProjectedTypeEq<F, L, R> = TypeEq<CallFn<F, L>, CallFn<F, R>>;
 
 
+/// Constructs a [`TypeEq<T, T>`](TypeEq)
+#[inline(always)]
+pub const fn type_eq<T: ?Sized>() -> TypeEq<T, T> {
+    TypeEq::NEW
+}
+
+
+
 // Declaring `TypeEq` in a submodule to prevent "safely" constructing `TypeEq` with
 // two different type arguments in the `crate::type_eq` module.
 mod type_eq_ {
@@ -39,7 +47,7 @@ mod type_eq_ {
     /// where both type arguments are the same type.
     ///
     /// This type is not too useful by itself, it becomes useful 
-    /// [when put inside of an enum](#polymorphic-function).
+    /// [when put inside of an enum](#polymorphic-branching).
     ///
     /// # Soundness
     /// 
@@ -133,8 +141,8 @@ mod type_eq_ {
         fn(PhantomData<R>) -> PhantomData<R>,
     )>);
 
-    impl<L: ?Sized> TypeEq<L, L> {
-        /// Constructs a `TypeEq<L, L>`.
+    impl<T: ?Sized> TypeEq<T, T> {
+        /// Constructs a `TypeEq<T, T>`.
         pub const NEW: Self = TypeEq(PhantomData);
     }
 
@@ -246,6 +254,34 @@ impl<L, R> TypeEq<L, R> {
     /// 
     /// This cast is a no-op because having a `TypeEq<L, R>` value
     /// proves that `L` and `R` are the same type.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeEq, type_eq};
+    /// 
+    /// use std::cmp::Ordering::{self, *};
+    /// 
+    /// assert_eq!(mutated(Less, Wit::Ord(type_eq())), Greater);
+    /// assert_eq!(mutated(Equal, Wit::Ord(type_eq())), Equal);
+    /// assert_eq!(mutated(Greater, Wit::Ord(type_eq())), Less);
+    /// 
+    /// assert_eq!(mutated(false, Wit::Bool(type_eq())), true);
+    /// assert_eq!(mutated(true, Wit::Bool(type_eq())), false);
+    /// 
+    /// const fn mutated<R>(arg: R, w: Wit<R>) -> R {
+    ///     match w {
+    ///         Wit::Ord(te) => te.to_left(te.to_right(arg).reverse()),
+    ///         Wit::Bool(te) => te.to_left(!te.to_right(arg)),
+    ///     }
+    /// }
+    /// 
+    /// enum Wit<R> {
+    ///     Ord(TypeEq<R, Ordering>),
+    ///     Bool(TypeEq<R, bool>),
+    /// }
+    /// ```
+    /// 
     #[inline(always)]
     pub const fn to_right(self, from: L) -> R {
         self.reachability_hint(());
@@ -256,6 +292,28 @@ impl<L, R> TypeEq<L, R> {
     /// 
     /// This cast is a no-op because having a `TypeEq<L, R>` value
     /// proves that `L` and `R` are the same type.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeEq, type_eq};
+    /// 
+    /// assert_eq!(stuff(Wit::OptSlice(type_eq())), Some(&[3, 5, 8][..]));
+    /// assert_eq!(stuff(Wit::Bool(type_eq())), true);
+    /// 
+    /// const fn stuff<R>(te: Wit<R>) -> R {
+    ///     match te {
+    ///         Wit::OptSlice(te) => te.to_left(Some(&[3, 5, 8])),
+    ///         Wit::Bool(te) => te.to_left(true),
+    ///     }
+    /// }
+    /// 
+    /// enum Wit<R> {
+    ///     OptSlice(TypeEq<R, Option<&'static [u16]>>),
+    ///     Bool(TypeEq<R, bool>),
+    /// }
+    /// ```
+    /// 
     #[inline(always)]
     pub const fn to_left(self, from: R) -> L {
         self.reachability_hint(());
@@ -343,6 +401,29 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     }
 
     /// Converts a `TypeEq<L, R>` to `TypeEq<&L, &R>`
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeEq, type_eq};
+    /// 
+    /// assert_eq!(get(Returned::U8(type_eq())), &3);
+    /// assert_eq!(get(Returned::Str(type_eq())), "hello");
+    /// 
+    /// 
+    /// const fn get<R: ?Sized>(te: Returned<R>) -> &'static R {
+    ///     match te {
+    ///         Returned::U8(te) => te.in_ref().to_left(&3),
+    ///         Returned::Str(te) => te.in_ref().to_left("hello"),
+    ///     }
+    /// }
+    /// 
+    /// enum Returned<R: ?Sized> {
+    ///     U8(TypeEq<R, u8>),
+    ///     Str(TypeEq<R, str>),
+    /// }
+    /// ```
+    /// 
     pub const fn in_ref<'a>(self) -> TypeEq<&'a L, &'a R> {
         projected_type_eq!{self, L, R, type_fn::GRef<'a>}
     }
@@ -356,12 +437,80 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
         /// 
         /// This requires either of the `"mut_refs"` or `"const_mut_refs"` 
         /// crate features to be enabled to be a `const fn`.
+        /// 
+        /// # Example
+        /// 
+        #[cfg_attr(not(feature = "mut_refs"), doc = "```ignore")]
+        #[cfg_attr(feature = "mut_refs", doc = "```rust")]
+        #[cfg_attr(feature = "nightly_mut_refs", doc = "# #![feature(const_mut_refs)]")]
+        /// 
+        /// use typewit::{TypeEq, type_eq};
+        /// 
+        /// let foo = &mut Foo { bar: 10, baz: ['W', 'H', 'O'] };
+        /// 
+        /// *get_mut(foo, Field::U8(type_eq())) *= 2;
+        /// assert_eq!(foo.bar, 20);
+        /// 
+        /// assert_eq!(*get_mut(foo, Field::Chars(type_eq())), ['W', 'H', 'O']);
+        /// 
+        /// 
+        /// const fn get_mut<R>(foo: &mut Foo, te: Field<R>) -> &mut R {
+        ///     match te {
+        ///         Field::U8(te) => te.in_mut().to_left(&mut foo.bar),
+        ///         Field::Chars(te) => te.in_mut().to_left(&mut foo.baz),
+        ///     }
+        /// }
+        /// 
+        /// struct Foo {
+        ///     bar: u8,
+        ///     baz: [char; 3],
+        /// }
+        /// 
+        /// enum Field<R: ?Sized> {
+        ///     U8(TypeEq<R, u8>),
+        ///     Chars(TypeEq<R, [char; 3]>),
+        /// }
+        /// ```
+        /// 
         pub fn in_mut['a](self) -> TypeEq<&'a mut L, &'a mut R> {
             projected_type_eq!{self, L, R, type_fn::GRefMut<'a>}
         }
     }
 
     /// Converts a `TypeEq<L, R>` to `TypeEq<Box<L>, Box<R>>`
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeEq, type_eq};
+    /// 
+    /// use std::any::Any;
+    /// use std::fmt::Display;
+    /// 
+    /// assert_eq!(factory(Dyn::ANY).downcast::<u16>().unwrap(), Box::new(1337));
+    /// assert_eq!(factory(Dyn::DISPLAY).to_string(), "hello bob");
+    /// 
+    /// fn factory<R: ?Sized>(te: Dyn<R>) -> Box<R> {
+    ///     match te {
+    ///         Dyn::Any(te) => te.in_box().to_left(Box::new(1337u16)),
+    ///         Dyn::Display(te) => te.in_box().to_left(Box::new("hello bob")),
+    ///     }
+    /// }
+    /// 
+    /// enum Dyn<R: ?Sized> {
+    ///     Any(TypeEq<R, dyn Any>),
+    ///     Display(TypeEq<R, dyn Display>),
+    /// }
+    /// impl Dyn<dyn Any> {
+    ///     const ANY: Self = Self::Any(type_eq());
+    /// }
+    /// impl Dyn<dyn Display> {
+    ///     const DISPLAY: Self = Self::Display(type_eq());
+    /// }
+    /// 
+    /// 
+    /// ```
+    ///
     #[cfg(feature = "alloc")]
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "alloc")))]
     pub const fn in_box(self) -> TypeEq<Box<L>, Box<R>> {
