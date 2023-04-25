@@ -50,9 +50,9 @@ where
             te.to_left(3u8)
         }
         RetWitness::Str(te) => {
-            // `te` is a `TypeEq<&'a str, R>`
-            // `te.to_right(...)` goes from `&'a str` to `R`.
-            te.to_right("hello")
+            // `te` is a `TypeEq<R, &'a str>`
+            // `te.to_left(...)` goes from `&'a str` to `R`.
+            te.to_left("hello")
         }
     }
 }
@@ -63,7 +63,7 @@ enum RetWitness<'a, R> {
     U8(TypeEq<R, u8>),
 
     // This variant requires `&'a str == R`
-    Str(TypeEq<&'a str, R>),
+    Str(TypeEq<R, &'a str>),
 }
 
 impl<R> TypeWitnessTypeArg for RetWitness<'_, R> {
@@ -71,10 +71,12 @@ impl<R> TypeWitnessTypeArg for RetWitness<'_, R> {
 }
 
 impl MakeTypeWitness for RetWitness<'_, u8> {
+    // We can construct the `TypeEq` here because it's a `TypeEq<u8, u8>`
     const MAKE: Self = RetWitness::U8(TypeEq::NEW);
 }
 
 impl<'a> MakeTypeWitness for RetWitness<'a, &'a str> {
+    // We can construct the `TypeEq` here because it's a `TypeEq<&'a str, &'a str>`
     const MAKE: Self = RetWitness::Str(TypeEq::NEW);
 }
 
@@ -152,6 +154,7 @@ impl<T> SliceIndex<T> for usize {
 }
 
 impl MakeTypeWitness for IndexWitness<usize> {
+    // We can construct the `TypeEq` here because it's a `TypeEq<usize, usize>`
     const MAKE: Self = Self::Usize(TypeEq::NEW);
 }
 
@@ -162,6 +165,8 @@ impl<T> SliceIndex<T> for Range<usize> {
 }
 
 impl MakeTypeWitness for IndexWitness<Range<usize>> {
+    // We can construct the `TypeEq` here because 
+    // it's a `TypeEq<Range<usize>, Range<usize>>`
     const MAKE: Self = Self::Range(TypeEq::NEW);
 }
 

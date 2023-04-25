@@ -67,10 +67,12 @@
 //! }
 //! 
 //! impl MakeTypeWitness for RetWitness<'_, u8> {
+//!     // We can construct the `TypeEq` here because it's a `TypeEq<u8, u8>`
 //!     const MAKE: Self = RetWitness::U8(TypeEq::NEW);
 //! }
 //! 
 //! impl<'a> MakeTypeWitness for RetWitness<'a, &'a str> {
+//!     // We can construct the `TypeEq` here because it's a `TypeEq<&'a str, &'a str>`
 //!     const MAKE: Self = RetWitness::Str(TypeEq::NEW);
 //! }
 //! 
@@ -148,6 +150,7 @@
 //! }
 //! 
 //! impl MakeTypeWitness for IndexWitness<usize> {
+//!     // We can construct the `TypeEq` here because it's a `TypeEq<usize, usize>`
 //!     const MAKE: Self = Self::Usize(TypeEq::NEW);
 //! }
 //! 
@@ -158,6 +161,8 @@
 //! }
 //! 
 //! impl MakeTypeWitness for IndexWitness<Range<usize>> {
+//!     // We can construct the `TypeEq` here because 
+//!     // it's a `TypeEq<Range<usize>, Range<usize>>`
 //!     const MAKE: Self = Self::Range(TypeEq::NEW);
 //! }
 //! 
