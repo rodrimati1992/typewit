@@ -4,5 +4,6 @@
 mod misc_tests {
     mod ui_tests;
     mod typeeq_tests;
+    mod simple_type_witness_macro_tests;
     mod test_utils;
 }
