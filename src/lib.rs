@@ -272,6 +272,7 @@ macro_rules! explain_type_witness {
 #[macro_use]
 pub mod type_fn;
 mod utils;
+mod macros;
 mod type_eq;
 mod type_witness_traits;
 
@@ -289,5 +290,6 @@ pub mod __ {
         mem::ManuallyDrop,
         assert, compile_error, concat, stringify,
     };
-}
 
+    pub use crate::utils::TypeIdentity;
+}
