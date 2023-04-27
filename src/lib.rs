@@ -264,7 +264,7 @@ extern crate alloc;
 macro_rules! explain_type_witness {
     () => ("\
         A [type witness](crate) is \
-        an enum whose variants only have [`TypeEq`] fields.
+        an enum whose variants only have [`TypeEq`](crate::TypeEq) fields.
         Each variant requires the enum's type parameter to be a specific type.
     ")
 }
@@ -287,6 +287,8 @@ pub use crate::type_fn::{CallFn, TypeFn};
 #[doc(hidden)]
 pub mod __ {
     pub use core::{
+        clone::Clone,
+        marker::Copy,
         mem::ManuallyDrop,
         assert, compile_error, concat, stringify,
     };

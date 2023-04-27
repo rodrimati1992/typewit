@@ -47,10 +47,10 @@ jobs:
         cargo build
         
         cargo test --no-default-features 
-        cargo test --no-default-features --features "${{env.rustv}} alloc"
-        cargo test --no-default-features --features "${{env.rustv}} nightly_mut_refs"
-        cargo test --no-default-features --features "${{env.rustv}} alloc nightly_mut_refs"
-        cargo test --no-default-features --features "${{env.rustv}} __ui_tests alloc nightly_mut_refs"
+        cargo test --no-default-features --features "__rust_stable alloc"
+        cargo test --no-default-features --features "__rust_stable nightly_mut_refs"
+        cargo test --no-default-features --features "__rust_stable alloc nightly_mut_refs"
+        cargo test --no-default-features --features "__rust_stable __ui_tests alloc nightly_mut_refs"
 
         MIRI_NIGHTLY=nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)
         echo "Installing latest nightly with Miri"
