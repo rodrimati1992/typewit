@@ -2,6 +2,8 @@
 /// 
 #[doc = explain_type_witness!()]
 /// 
+/// [**examples below**](#examples)
+/// 
 /// # Generated items
 /// 
 /// This macro generates:
@@ -36,7 +38,7 @@
 ///         $(,)?
 ///     }
 /// ```
-/// `[$($generics:tt)*]`(optional parameter) are the generic parameters of the enum,
+/// `[$($generics:tt)*]`(optional parameter): these are the generic parameters of the enum,
 /// to which this macro adds an implicit `__Wit` type parameter that the variants constrain.
 /// 
 /// `[$($var_gen_args:tt)*]`(optional parameter)[(example usage)](#var_gen_args-example): 
@@ -80,7 +82,8 @@
 /// 
 /// typewit::simple_type_witness! {
 ///     // Generic parameters go inside square brackets (these are optional),
-///     // the macro implicitly adds a `__Wit` type parameter after all generics.
+///     // Declares an `enum Witness<'a, __Wit>`,
+///     // the `__Wit` type parameter is added after all generics.
 ///     enum Witness['a] {
 ///         // This variant requires `__Wit == u8`
 ///         U8 = u8,
@@ -114,7 +117,8 @@
 /// # use std::fmt::Debug;
 /// typewit::simple_type_witness! {
 ///     // Generic parameters go inside square brackets (these are optional),
-///     // the macro implicitly adds a `__Wit` type parameter after all generics.
+///     // Declares an `enum Witness<'a, T, __Wit>`,
+///     // the `__Wit` type parameter is added after all generics.
 ///     enum Witness['a, T] 
 ///     // the constraints in the where clause go inside square brackets 
 ///     where[T: Debug] 
@@ -157,6 +161,7 @@
 ///     const MAKE: Self = Self::Ref(typewit::TypeEq::NEW);
 /// }
 /// ```
+/// (consult the [generated items] section for all the generated impls)
 /// 
 /// <span id = "var_gen_args-example"></span>
 /// ### `$var_gen_args` parameter
@@ -166,15 +171,18 @@
 /// ```rust
 /// typewit::simple_type_witness! {
 ///     // Generic parameters go inside square brackets (these are optional),
-///     // the macro implicitly adds a `__Wit` type parameter after all generics.
+///     // Declares an `enum Foo<T, const N: usize, __Wit>`,
+///     // the `__Wit` type parameter is added after all generics.
 ///     enum Foo[T, const N: usize] {
+///         // This variant requires `__Wit == u64`.
+///         // 
 ///         // The `[(), 0]` here
 ///         // replaces `impl<T, const N: usize> MakeTypeWitness for Foo<T, N, u64>`
 ///         // with     `impl MakeTypeWitness for Foo<(), 0, u64>`.
-///         // 
-///         // Doing this allows the  `T` and `N` type arguments to be inferred
-///         // every time that this variant is constructed.
+///         // Using `[(), 0]` allows the  `T` and `N` type parameters to be inferred
+///         // when the `MakeTypeWitness` impl for `Foo<_, _, u64>` is used.
 ///         U64[(), 0] = u64,
+///         // This variant requires `__Wit == [T; N]`.
 ///         Array = [T; N],
 ///     }
 /// }
@@ -348,13 +356,13 @@ macro_rules! __stw_parse_generics {
 #[macro_export]
 macro_rules! __stw_where_clause_trailing_comma {
     ( $fixed:tt [$($prev:tt)*] [] ) => {
-        $crate::__stw_declare_enum!{ $fixed where [$($prev)*] }
+        $crate::__stw_with_parsed_args!{ $fixed where [$($prev)*] }
     };
     ( $fixed:tt [$($prev:tt)*] [,]) => {
-        $crate::__stw_declare_enum!{ $fixed where [$($prev)*,] }
+        $crate::__stw_with_parsed_args!{ $fixed where [$($prev)*,] }
     };
     ( $fixed:tt [$($prev:tt)*] [$t0:tt]) => {
-        $crate::__stw_declare_enum!{ $fixed where [$($prev)* $t0,] }
+        $crate::__stw_with_parsed_args!{ $fixed where [$($prev)* $t0,] }
     };
     ($fixed:tt [$($prev:tt)*] [$t0:tt $($rem:tt)+]) => {
         $crate::__stw_where_clause_trailing_comma!{
@@ -366,7 +374,7 @@ macro_rules! __stw_where_clause_trailing_comma {
 
 #[doc(hidden)]
 #[macro_export]
-macro_rules! __stw_declare_enum {
+macro_rules! __stw_with_parsed_args {
     (
         (
             $(# $enum_meta:tt)*
@@ -413,7 +421,7 @@ macro_rules! __stw_top_items {
         }
     ) => {
         $(#$enum_meta)*
-        $vis enum $enum <$($generics)* __Wit> 
+        $vis enum $enum <$($generics)* __Wit: ?Sized> 
         where $($where)*
         {
             $(
@@ -422,11 +430,11 @@ macro_rules! __stw_top_items {
             )*
         }
 
-        impl<$($generics)* __Wit> $crate::__::Copy for $enum<$($gen_args)* __Wit> 
+        impl<$($generics)* __Wit: ?Sized> $crate::__::Copy for $enum<$($gen_args)* __Wit> 
         where $($where)*
         {}
 
-        impl<$($generics)* __Wit> $crate::__::Clone for $enum<$($gen_args)* __Wit> 
+        impl<$($generics)* __Wit: ?Sized> $crate::__::Clone for $enum<$($gen_args)* __Wit> 
         where $($where)*
         {
             fn clone(&self) -> Self {
@@ -434,7 +442,9 @@ macro_rules! __stw_top_items {
             }
         }
 
-        impl<$($generics)* __Wit> $crate::TypeWitnessTypeArg for $enum<$($gen_args)* __Wit> 
+        impl<$($generics)* __Wit: ?Sized> 
+            $crate::TypeWitnessTypeArg 
+        for $enum<$($gen_args)* __Wit> 
         where $($where)*
         {
             type Arg = __Wit;

@@ -25,7 +25,7 @@
 //! (as of 2023-04-30, trait methods can't be called in const fns)
 //! 
 //! ```rust
-//! use typewit::{HasTypeWitness, MakeTypeWitness, TypeWitnessTypeArg, TypeEq};
+//! use typewit::{MakeTypeWitness, TypeWitnessTypeArg, TypeEq};
 //! 
 //! assert_eq!(returnal::<u8>(), 3);
 //! assert_eq!(returnal::<&str>(), "hello");
@@ -33,12 +33,9 @@
 //! 
 //! const fn returnal<'a, R>() -> R
 //! where
-//!     R: HasTypeWitness<RetWitness<'a, R>>
+//!     RetWitness<'a, R>: MakeTypeWitness,
 //! {
-//!     // `R::WITNESS` expands to
-//!     // `<R as HasTypeWitness<RetWitness<'a, R>>>::WITNESS`.
-//!     // `HasTypeWitness` delegates to the `MakeTypeWitness` trait to get `WITNESS`.
-//!     match R::WITNESS {
+//!     match MakeTypeWitness::MAKE {
 //!         RetWitness::U8(te) => {
 //!             // `te` (a `TypeEq<R, u8>`) allows coercing between `R` and `u8`,
 //!             // because `TypeEq` is a value-level proof that both types are the same.
@@ -53,29 +50,18 @@
 //!     }
 //! }
 //! 
-//! // This is a type witness
-//! enum RetWitness<'a, R> {
-//!     // This variant requires `R == u8`
-//!     U8(TypeEq<R, u8>),
-//!
-//!     // This variant requires `&'a str == R`
-//!     Str(TypeEq<R, &'a str>),
+//! // This macro declares a type witness enum
+//! typewit::simple_type_witness! {
+//!     // Declares `enum RetWitness<'a, __Wit>` 
+//!     // (the `__Wit` type parameter is implicitly added after all generics)
+//!     enum RetWitness['a] {
+//!         // This variant requires `__Wit == u8`
+//!         U8 = u8,
+//!    
+//!         // This variant requires `__Wit == &'a str`
+//!         Str = &'a str,
+//!     }
 //! }
-//! 
-//! impl<R> TypeWitnessTypeArg for RetWitness<'_, R> {
-//!     type Arg = R;
-//! }
-//! 
-//! impl MakeTypeWitness for RetWitness<'_, u8> {
-//!     // We can construct the `TypeEq` here because it's a `TypeEq<u8, u8>`
-//!     const MAKE: Self = RetWitness::U8(TypeEq::NEW);
-//! }
-//! 
-//! impl<'a> MakeTypeWitness for RetWitness<'a, &'a str> {
-//!     // We can construct the `TypeEq` here because it's a `TypeEq<&'a str, &'a str>`
-//!     const MAKE: Self = RetWitness::Str(TypeEq::NEW);
-//! }
-//! 
 //! ```
 //! 
 //! <span id="example1"></span>
@@ -99,14 +85,15 @@
 //! where
 //!     I: SliceIndex<T>,
 //! {
-//!     // `I::WITNESS` expands to `<I as HasTypeWitness<IndexWitness<I>>>::WITNESS`,
+//!     // `I::WITNESS` is `<I as HasTypeWitness<IndexWitness<I>>>::WITNESS`,
 //!     match I::WITNESS {
 //!         IndexWitness::Usize(arg_te) => {
 //!             // `arg_te` (a `TypeEq<I, usize>`) allows coercing between `I` and `usize`,
 //!             // because `TypeEq` is a value-level proof that both types are the same.
 //!             let idx: usize = arg_te.to_right(idx);
 //! 
-//!             // mapping the `TypeEq` from the argument's type to the return type.
+//!             // mapping the type arguments of `TypeEq<I, usize>`
+//!             // to their `SliceIndexRets<T>::Returns` associated type.
 //!             let ret_te: TypeEq<I::Returns, T> = project_ret(arg_te);
 //!             // `.in_ref()` converts `TypeEq<L, R>` into `TypeEq<&L, &R>`
 //!             let ret_te: TypeEq<&I::Returns, &T> = ret_te.in_ref();
@@ -130,40 +117,25 @@
 //!     type Returns: ?Sized;
 //! }
 //! 
-//! // This is a type witness
-//! enum IndexWitness<I> {
-//!     // This variant requires `I == usize`
-//!     Usize(TypeEq<I, usize>),
-//!
-//!     // This variant requires `I == Range<usize>`
-//!     Range(TypeEq<I, Range<usize>>),
-//! }
-//! 
-//! impl<I> TypeWitnessTypeArg for IndexWitness<I> {
-//!     type Arg = I;
-//! }
-//! 
-//! //////
-//! 
 //! impl<T> SliceIndex<T> for usize {
 //!     type Returns = T;
 //! }
-//! 
-//! impl MakeTypeWitness for IndexWitness<usize> {
-//!     // We can construct the `TypeEq` here because it's a `TypeEq<usize, usize>`
-//!     const MAKE: Self = Self::Usize(TypeEq::NEW);
-//! }
-//! 
-//! //////
 //! 
 //! impl<T> SliceIndex<T> for Range<usize> {
 //!     type Returns = [T];
 //! }
 //! 
-//! impl MakeTypeWitness for IndexWitness<Range<usize>> {
-//!     // We can construct the `TypeEq` here because 
-//!     // it's a `TypeEq<Range<usize>, Range<usize>>`
-//!     const MAKE: Self = Self::Range(TypeEq::NEW);
+//! // This macro declares a type witness enum
+//! typewit::simple_type_witness! {
+//!     // Declares `enum IndexWitness<__Wit>` 
+//!     // (the `__Wit` type parameter is implicitly added after all generics)
+//!     enum IndexWitness {
+//!         // This variant requires `__Wit == usize`
+//!         Usize = usize,
+//!    
+//!         // This variant requires `__Wit == Range<usize>`
+//!         Range = Range<usize>,
+//!     }
 //! }
 //! 
 //! //////////////////////////////

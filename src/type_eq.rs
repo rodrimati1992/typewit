@@ -33,7 +33,7 @@ pub type __ProjectedTypeEq<F, L, R> = TypeEq<CallFn<F, L>, CallFn<F, R>>;
 /// # Example
 /// 
 /// ```rust
-/// use typewit::{HasTypeWitness, MakeTypeWitness, TypeWitnessTypeArg, TypeEq, type_eq};
+/// use typewit::{MakeTypeWitness, TypeWitnessTypeArg, TypeEq, type_eq};
 /// 
 /// assert_eq!(ascii_to_upper(b'a'), b'A');
 /// assert_eq!(ascii_to_upper(b'f'), b'F');
@@ -47,12 +47,9 @@ pub type __ProjectedTypeEq<F, L, R> = TypeEq<CallFn<F, L>, CallFn<F, R>>;
 /// 
 /// const fn ascii_to_upper<T>(c: T) -> T 
 /// where
-///     T: HasTypeWitness<Wit<T>>,
+///     Wit<T>: MakeTypeWitness,
 /// {
-///     // `T::WITNESS` expands to
-///     // `<T as HasTypeWitness<Wit<T>>>::WITNESS`.
-///     // `HasTypeWitness` delegates to the `MakeTypeWitness` trait to make `WITNESS`.
-///     match T::WITNESS {
+///     match MakeTypeWitness::MAKE {
 ///         Wit::U8(te) => {
 ///             // `te` is a `TypeEq<T, u8>`, which allows casting between `T` and `u8`.
 ///             // `te.to_right(...)` goes from `T` to `u8`
@@ -85,8 +82,27 @@ pub type __ProjectedTypeEq<F, L, R> = TypeEq<CallFn<F, L>, CallFn<F, R>>;
 /// impl MakeTypeWitness for Wit<char> {
 ///     const MAKE: Self = Self::Char(type_eq());
 /// }
-/// 
 /// ```
+/// The `Wit` type definition and its impls can also be written using 
+/// the [`simple_type_witness`] macro:
+/// ```rust
+/// // This macro declares a type witness
+/// typewit::simple_type_witness! {
+///     // Declares `enum Wit<__Wit>`
+///     // The `__Wit` type parameter is implicit and always the last generic parameter.
+///     enum Wit {
+///         // this variant requires `__Wit == u8`
+///         U8 = u8,
+///         // this variant requires `__Wit == char`
+///         Char = char,
+///     }
+/// }
+/// ```
+/// note that [`simple_type_witness`] can't replace enums whose 
+/// witnessed type parameter is not the last, 
+/// or have variants with anything but one `TypeEq` field each.
+/// 
+/// [`simple_type_witness`]: crate::simple_type_witness
 #[inline(always)]
 pub const fn type_eq<T: ?Sized>() -> TypeEq<T, T> {
     TypeEq::NEW
@@ -123,7 +139,7 @@ mod type_eq_ {
     /// [projecting](Self::project) the type arguments results in the same type for 
     /// both arguments.
     /// 
-    /// Creating a `TypeEq<L, R>` where `L != R` allows
+    /// Unsafely creating a `TypeEq<L, R>` where `L != R` allows
     /// [transmuting between any two types](#arbitrary-transmute)
     /// (that is bad).
     ///
@@ -433,10 +449,12 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// assert_eq!(foo(TypeEq::NEW), (false, 5));
     /// 
     /// const fn foo<'a, T>(te: TypeEq<u32, T>) -> (bool, T) {
-    ///     // The argument passed to `TypeEq::map` is a `GPair<bool>`
     ///     // `GPair<bool>` maps `u32` to `(bool, u32)`
     ///     //           and maps `T`   to `(bool, T)`
-    ///     let map_te: TypeEq<(bool, u32), (bool, T)> = te.map(GPair::NEW); 
+    ///     let map_te: TypeEq<(bool, u32), (bool, T)> = te.map(GPair::<bool>::NEW); 
+    /// 
+    ///     // same as the above, but inferring `GPair`'s generic arguments.
+    ///     let _: TypeEq<(bool, u32), (bool, T)> = te.map(GPair::NEW); 
     /// 
     ///     map_te.to_right((false, 5u32))
     /// }
@@ -501,22 +519,33 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// # Example
     /// 
     /// ```rust
-    /// use typewit::{TypeEq, type_eq};
+    /// use typewit::{MakeTypeWitness, TypeEq};
     /// 
-    /// assert_eq!(get(Returned::U8(type_eq())), &3);
-    /// assert_eq!(get(Returned::Str(type_eq())), "hello");
+    /// assert_eq!(get::<u8>(), &3);
+    /// assert_eq!(get::<str>(), "hello");
     /// 
     /// 
-    /// const fn get<R: ?Sized>(te: Returned<R>) -> &'static R {
-    ///     match te {
+    /// const fn get<R: ?Sized>() -> &'static R 
+    /// where
+    ///     Returned<R>: MakeTypeWitness
+    /// {
+    ///     match MakeTypeWitness::MAKE {
+    ///         // `te` is a `TypeEq<R, u8>`
     ///         Returned::U8(te) => te.in_ref().to_left(&3),
+    ///
+    ///         // `te` is a `TypeEq<R, str>`
     ///         Returned::Str(te) => te.in_ref().to_left("hello"),
     ///     }
     /// }
     /// 
-    /// enum Returned<R: ?Sized> {
-    ///     U8(TypeEq<R, u8>),
-    ///     Str(TypeEq<R, str>),
+    /// typewit::simple_type_witness! {
+    ///     // declares the `enum Returned<R> {` type witness
+    ///     enum Returned {
+    ///         // this variant requires `R == u8`
+    ///         U8 = u8,
+    ///         // this variant requires `R == str`
+    ///         Str = str,
+    ///     }
     /// }
     /// ```
     /// 
@@ -544,16 +573,16 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
         /// 
         /// let foo = &mut Foo { bar: 10, baz: ['W', 'H', 'O'] };
         /// 
-        /// *get_mut(foo, Field::U8(type_eq())) *= 2;
+        /// *get_mut(foo, Field::Bar(type_eq())) *= 2;
         /// assert_eq!(foo.bar, 20);
         /// 
-        /// assert_eq!(*get_mut(foo, Field::Chars(type_eq())), ['W', 'H', 'O']);
+        /// assert_eq!(*get_mut(foo, Field::Baz(type_eq())), ['W', 'H', 'O']);
         /// 
         /// 
         /// const fn get_mut<R>(foo: &mut Foo, te: Field<R>) -> &mut R {
         ///     match te {
-        ///         Field::U8(te) => te.in_mut().to_left(&mut foo.bar),
-        ///         Field::Chars(te) => te.in_mut().to_left(&mut foo.baz),
+        ///         Field::Bar(te) => te.in_mut().to_left(&mut foo.bar),
+        ///         Field::Baz(te) => te.in_mut().to_left(&mut foo.baz),
         ///     }
         /// }
         /// 
@@ -563,8 +592,8 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
         /// }
         /// 
         /// enum Field<R: ?Sized> {
-        ///     U8(TypeEq<R, u8>),
-        ///     Chars(TypeEq<R, [char; 3]>),
+        ///     Bar(TypeEq<R, u8>),
+        ///     Baz(TypeEq<R, [char; 3]>),
         /// }
         /// ```
         /// 
@@ -578,32 +607,36 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// # Example
     /// 
     /// ```rust
-    /// use typewit::{TypeEq, type_eq};
+    /// use typewit::{MakeTypeWitness, TypeEq, type_eq};
     /// 
     /// use std::any::Any;
     /// use std::fmt::Display;
     /// 
-    /// assert_eq!(factory(Dyn::ANY).downcast::<u16>().unwrap(), Box::new(1337));
-    /// assert_eq!(factory(Dyn::DISPLAY).to_string(), "hello bob");
+    /// assert_eq!(factory::<dyn Any>().downcast::<u16>().unwrap(), Box::new(1337));
+    /// assert_eq!(factory::<dyn Display>().to_string(), "hello bob");
     /// 
-    /// fn factory<R: ?Sized>(te: Dyn<R>) -> Box<R> {
-    ///     match te {
+    /// fn factory<R: ?Sized>() -> Box<R> 
+    /// where
+    ///     Dyn<R>: MakeTypeWitness
+    /// {
+    ///     match MakeTypeWitness::MAKE {
+    ///         // `te` is a `TypeEq<R, dyn Any>`
     ///         Dyn::Any(te) => te.in_box().to_left(Box::new(1337u16)),
+    ///
+    ///         // `te` is a `TypeEq<R, dyn Display>`
     ///         Dyn::Display(te) => te.in_box().to_left(Box::new("hello bob")),
     ///     }
     /// }
     /// 
-    /// enum Dyn<R: ?Sized> {
-    ///     Any(TypeEq<R, dyn Any>),
-    ///     Display(TypeEq<R, dyn Display>),
+    /// typewit::simple_type_witness! {
+    ///     // declares the `enum Dyn<R> {` type witness
+    ///     enum Dyn {
+    ///         // this variant requires `R == dyn Any`
+    ///         Any = dyn Any,
+    ///         // this variant requires `R == dyn Display`
+    ///         Display = dyn Display,
+    ///     }
     /// }
-    /// impl Dyn<dyn Any> {
-    ///     const ANY: Self = Self::Any(type_eq());
-    /// }
-    /// impl Dyn<dyn Display> {
-    ///     const DISPLAY: Self = Self::Display(type_eq());
-    /// }
-    /// 
     /// 
     /// ```
     ///
