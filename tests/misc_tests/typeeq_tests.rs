@@ -33,6 +33,19 @@ fn flip_method() {
 }
 
 #[test]
+fn join_method() {
+    fn joiner<A, B, C>(tea: TypeEq<A, B>, teb: TypeEq<B, C>) {
+        let _: TypeEq<A, C> = tea.join(teb);
+        assert_type::<_, TypeEq<A, C>>(tea.join(teb));
+    }
+    joiner(TypeEq::<u8, u8>::NEW, TypeEq::NEW);
+
+    const TE: TypeEq<String, String> = TypeEq::new();
+    assert_eq!(TE.join(TE).to_left("3".to_string()), "3");
+    assert_eq!(TE.join(TE).to_right("5".to_string()), "5");
+}
+
+#[test]
 fn to_left_to_right_unchecked() {
     const TE: TypeEq<Vec<u8>, Vec<u8>> = unsafe { TypeEq::new_unchecked() };
     assert_eq!(TE.to_left(vec![3]), [3]);

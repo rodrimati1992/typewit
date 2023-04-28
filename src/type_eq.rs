@@ -239,29 +239,6 @@ mod type_eq_ {
     }
 
     impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
-        /// Swaps the type parameters of this `TypeEq`
-        /// 
-        /// # Example
-        /// 
-        /// ```rust
-        /// use typewit::TypeEq;
-        /// 
-        /// assert_eq!(flip_bytes([3, 5], TypeEq::NEW), [5, 3]);
-        /// 
-        /// const fn flip_bytes<T>(val: T, te: TypeEq<T, [u8; 2]>) -> T {
-        ///     bar(val, te.flip())
-        /// }
-        /// const fn bar<T>(val: T, te: TypeEq<[u8; 2], T>) -> T {
-        ///     let [l, r] = te.to_left(val);
-        ///     te.to_right([r, l])
-        /// }
-        /// ```
-        /// 
-        #[inline(always)]
-        pub const fn flip(self) -> TypeEq<R, L> {
-            TypeEq(PhantomData)
-        }
-
         /// Constructs a `TypeEq<L, R>`.
         ///
         /// # Safety
@@ -298,6 +275,58 @@ mod type_eq_ {
         ///
         #[inline(always)]
         pub const unsafe fn new_unchecked() -> TypeEq<L, R> {
+            TypeEq(PhantomData)
+        }
+
+        /// Swaps the type parameters of this `TypeEq`
+        /// 
+        /// # Example
+        /// 
+        /// ```rust
+        /// use typewit::TypeEq;
+        /// 
+        /// assert_eq!(flip_bytes([3, 5], TypeEq::NEW), [5, 3]);
+        /// 
+        /// const fn flip_bytes<T>(val: T, te: TypeEq<T, [u8; 2]>) -> T {
+        ///     bar(val, te.flip())
+        /// }
+        /// const fn bar<T>(val: T, te: TypeEq<[u8; 2], T>) -> T {
+        ///     let [l, r] = te.to_left(val);
+        ///     te.to_right([r, l])
+        /// }
+        /// ```
+        /// 
+        #[inline(always)]
+        pub const fn flip(self: TypeEq<L, R>) -> TypeEq<R, L> {
+            TypeEq(PhantomData)
+        }
+
+        /// Joins this `TypeEq<L, R>` with a `TypeEq<R, O>`, producing a `TypeEq<L, O>`.
+        /// 
+        /// The returned `TypeEq` can then be used to coerce between `L` and `O`.
+        /// 
+        /// # Example
+        /// 
+        /// ```rust
+        /// use typewit::TypeEq;
+        /// 
+        /// assert_eq!(foo(TypeEq::NEW, TypeEq::NEW, Some(3)), Some(3));
+        /// assert_eq!(foo(TypeEq::NEW, TypeEq::NEW, None), None);
+        /// 
+        /// 
+        /// fn foo<L, X>(
+        ///     this: TypeEq<L, Option<X>>,
+        ///     that: TypeEq<Option<X>, Option<u32>>,
+        ///     value: Option<u32>,
+        /// ) -> L {
+        ///     let te: TypeEq<L, Option<u32>> = this.join(that);
+        ///     te.to_left(value)
+        /// }
+        /// 
+        /// ```
+        /// 
+        #[inline(always)]
+        pub const fn join<O: ?Sized>(self: TypeEq<L, R>, _other: TypeEq<R, O>) -> TypeEq<L, O> {
             TypeEq(PhantomData)
         }
     }
