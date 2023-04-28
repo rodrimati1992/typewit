@@ -25,7 +25,7 @@
 //! (as of 2023-04-30, trait methods can't be called in const fns)
 //! 
 //! ```rust
-//! use typewit::{MakeTypeWitness, TypeWitnessTypeArg, TypeEq};
+//! use typewit::{MakeTypeWitness, TypeEq};
 //! 
 //! assert_eq!(returnal::<u8>(), 3);
 //! assert_eq!(returnal::<&str>(), "hello");
@@ -67,10 +67,13 @@
 //! <span id="example1"></span>
 //! ### Indexing polymorphism
 //! 
+//! This function demonstrates const fn polymorphism
+//! and projecting [`TypeEq`] by implementing [`TypeFn`].
+//! 
 //! ```rust
 //! use std::ops::Range;
 //! 
-//! use typewit::{HasTypeWitness, MakeTypeWitness, TypeWitnessTypeArg, TypeEq};
+//! use typewit::{HasTypeWitness, TypeEq};
 //! 
 //! fn main() {
 //!     let array = [3, 5, 8, 13, 21, 34, 55, 89];
@@ -81,7 +84,7 @@
 //!     assert_eq!(index(&array, 3..5), [13, 21]);
 //! }
 //! 
-//! const fn index<T, I>(slice: &[T], idx: I) -> &I::Returns
+//! const fn index<T, I>(slice: &[T], idx: I) -> &SliceIndexRet<I, T>
 //! where
 //!     I: SliceIndex<T>,
 //! {
@@ -92,37 +95,21 @@
 //!             // because `TypeEq` is a value-level proof that both types are the same.
 //!             let idx: usize = arg_te.to_right(idx);
 //! 
-//!             // mapping the type arguments of `TypeEq<I, usize>`
-//!             // to their `SliceIndexRets<T>::Returns` associated type.
-//!             let ret_te: TypeEq<I::Returns, T> = project_ret(arg_te);
-//!             // `.in_ref()` converts `TypeEq<L, R>` into `TypeEq<&L, &R>`
-//!             let ret_te: TypeEq<&I::Returns, &T> = ret_te.in_ref();
-//! 
-//!             let ret: &T = &slice[idx];
-//! 
-//!             ret_te.to_left(ret)
+//!             // using the `TypeFn` impl for `FnSliceIndexRet<T>` to 
+//!             // map `TypeEq<I, usize>` 
+//!             // to  `TypeEq<SliceIndexRet<I, T>, SliceIndexRet<usize, T>>`
+//!             arg_te.project::<FnSliceIndexRet<T>>()
+//!                 // converts`TypeEq<SliceIndexRet<I, T>, T>` 
+//!                 //      to `TypeEq<&SliceIndexRet<I, T>, &T>`
+//!                 .in_ref()
+//!                 .to_left(&slice[idx])
 //!         }
 //!         IndexWitness::Range(arg_te) => {
 //!             let range: Range<usize> = arg_te.to_right(idx);
-//! 
-//!             let ret_te: TypeEq<I::Returns, [T]> = project_ret(arg_te);
 //!             let ret: &[T] = slice_range(slice, range);
-//!             ret_te.in_ref().to_left(ret)
+//!             arg_te.project::<FnSliceIndexRet<T>>().in_ref().to_left(ret)
 //!         }
 //!     }
-//! }
-//! 
-//! /// Trait for all types that can be used as slice indices
-//! trait SliceIndex<T>: HasTypeWitness<IndexWitness<Self>> + Sized {
-//!     type Returns: ?Sized;
-//! }
-//! 
-//! impl<T> SliceIndex<T> for usize {
-//!     type Returns = T;
-//! }
-//! 
-//! impl<T> SliceIndex<T> for Range<usize> {
-//!     type Returns = [T];
 //! }
 //! 
 //! // This macro declares a type witness enum
@@ -138,26 +125,29 @@
 //!     }
 //! }
 //! 
-//! //////////////////////////////
-//! // stuff that maps TypeEq's type arguments
-//! 
-//! const fn project_ret<L, R, T>(te: TypeEq<L, R>) -> TypeEq<L::Returns, R::Returns>
-//! where
-//!     L: SliceIndex<T>,
-//!     R: SliceIndex<T>,
-//! {
-//!     // using `SliceIndexRets`'s `TypeFn` impl to map the `TypeEq`
-//!     te.project::<SliceIndexRets<T>>()
+//! /// Trait for all types that can be used as slice indices
+//! /// 
+//! /// The `HasTypeWitness` supertrait allows getting a `IndexWitness<Self>`
+//! /// with its `WITNESS` associated constant.
+//! trait SliceIndex<T>: HasTypeWitness<IndexWitness<Self>> + Sized {
+//!     type Returns: ?Sized;
 //! }
+//! impl<T> SliceIndex<T> for usize {
+//!     type Returns = T;
+//! }
+//! impl<T> SliceIndex<T> for Range<usize> {
+//!     type Returns = [T];
+//! }
+//! 
+//! type SliceIndexRet<I, T> = <I as SliceIndex<T>>::Returns;
 //! 
 //! // This is a type-level function from `I` to `<I as SliceIndex<T>>::Returns`
-//! struct SliceIndexRets<T>(std::marker::PhantomData<fn() -> T>);
+//! struct FnSliceIndexRet<T>(std::marker::PhantomData<fn() -> T>);
 //! 
-//! // What makes SliceIndexRets a type-level function
-//! impl<T, I: SliceIndex<T>> typewit::TypeFn<I> for SliceIndexRets<T>  {
-//!     type Output = I::Returns;
+//! // What makes FnSliceIndexRet a type-level function
+//! impl<T, I: SliceIndex<T>> typewit::TypeFn<I> for FnSliceIndexRet<T>  {
+//!     type Output = SliceIndexRet<I, T>;
 //! }
-//! 
 //! # // would use `konst::slice::slice_range`,
 //! # // but it would become a cyclic dependency once `konst` depends on this crate.
 //! # const fn slice_range<T>(mut slice: &[T], Range{mut start, end}: Range<usize>) -> &[T] {
@@ -195,7 +185,7 @@
 //! 
 //! These are the features of this crates:
 //! 
-//! - `"alloc"`: enable items that use anything from the `alloc` crate.
+//! - `"alloc"`: enable items that use anything from the standard `alloc` crate.
 //! 
 //! - `"mut_refs"`: turns functions that take mutable references into const fns.
 //! note: as of April 2023, 
@@ -209,6 +199,8 @@
 //! # No-std support
 //! 
 //! `typewit` is `#![no_std]`, it can be used anywhere Rust can be used.
+//! You need to enable the `"alloc"` feature to enable items that use anything 
+//! from the standard `alloc` crate.
 //! 
 //! # Minimum Supported Rust Version
 //! 
@@ -220,6 +212,7 @@
 //! 
 //! 
 //! [`TypeEq`]: crate::TypeEq
+//! [`TypeFn`]: crate::type_fn::TypeFn
 #![no_std]
 #![cfg_attr(feature = "nightly_mut_refs", feature(const_mut_refs))]
 #![cfg_attr(feature = "docsrs", feature(doc_cfg))]
