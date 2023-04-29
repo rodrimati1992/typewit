@@ -22,90 +22,62 @@ which can coerce between a type parameter and as many types as there are variant
 # Examples
 
 <span id="example0"></span>
-### Polymorphic branching
 
-This example demonstrates how type witnesses can be used to 
-choose between expressions of different types with a constant. 
+### Polymorphic function
+
+This demonstrates how one can write a return-type-polymorphic `const fn`
+(as of 2023-04-30, trait methods can't be called in const fns)
 
 ```rust
-use typewit::TypeEq;
+use typewit::{MakeTypeWitness, TypeEq};
 
-const fn main() {
-    assert!(matches!(choose!(0; b"a string", 2, panic!()), b"a string"));
+assert_eq!(returnal::<u8>(), 3);
+assert_eq!(returnal::<&str>(), "hello");
 
-    const UNO: u64 = 1;
-    assert!(matches!(choose!(UNO; loop{}, [3, 5], true), [3, 5]));
 
-    assert!(matches!(choose!(2 + 3; (), unreachable!(), ['5', '3']), ['5', '3']));
-}
-
-/// Evaluates the argument at position `$chosen % 3`, other arguments aren't evaluated.
-/// 
-/// The arguments can all be different types.
-/// 
-/// `$chosen` must be a `u64` constant.
-#[macro_export]
-macro_rules! choose {
-    ($chosen:expr; $arg_0: expr, $arg_1: expr, $arg_2: expr) => {
-        match Choice::<{$chosen % 3}>::VAL {
-            // `te` (a `TypeEq<T, X>`) allows us to safely go between 
-            // the type that the match returns (its `T` type argument)
-            // and the type of `$arg_0` (its `X` type argument).
-            Branch3::A(te) => {
-                // `to_left` goes from `X` to `T`
-                te.to_left($arg_0)
-            }
-            // same as the `A` branch, with a different type for the argument
-            Branch3::B(te) => te.to_left($arg_1),
-            // same as the `A` branch, with a different type for the argument
-            Branch3::C(te) => te.to_left($arg_2),
+const fn returnal<'a, R>() -> R
+where
+    RetWitness<'a, R>: MakeTypeWitness,
+{
+    match MakeTypeWitness::MAKE {
+        RetWitness::U8(te) => {
+            // `te` (a `TypeEq<R, u8>`) allows coercing between `R` and `u8`,
+            // because `TypeEq` is a value-level proof that both types are the same.
+            // `te.to_left(...)` goes from `u8` to `R`.
+            te.to_left(3u8)
+        }
+        RetWitness::Str(te) => {
+            // `te` is a `TypeEq<R, &'a str>`
+            // `te.to_left(...)` goes from `&'a str` to `R`.
+            te.to_left("hello")
         }
     }
 }
 
-// This is a type witness
-pub enum Branch3<T, X, Y, Z> {
-    // This variant requires `T == X`
-    A(TypeEq<T, X>),
-
-    // This variant requires `T == Y`
-    B(TypeEq<T, Y>),
-
-    // This variant requires `T == Z`
-    C(TypeEq<T, Z>),
+// This macro declares a type witness enum
+typewit::simple_type_witness! {
+    // Declares `enum RetWitness<'a, __Wit>` 
+    // (the `__Wit` type parameter is implicitly added after all generics)
+    enum RetWitness['a] {
+        // This variant requires `__Wit == u8`
+        U8 = u8,
+   
+        // This variant requires `__Wit == &'a str`
+        Str = &'a str,
+    }
 }
-
-// Used to get different values of `Branch3` depending on `N`
-pub trait Choice<const N: u64> {
-    const VAL: Self;
-}
-
-impl<X, Y, Z> Choice<0> for Branch3<X, X, Y, Z> {
-    // Because the first two type arguments of `Branch3` are `X`
-    // (as required by the `TypeEq<T, X>` field in Branch3's type definition),
-    // we can construct `TypeEq::NEW` here.
-    const VAL: Self = Self::A(TypeEq::NEW);
-}
-
-impl<X, Y, Z> Choice<1> for Branch3<Y, X, Y, Z> {
-    const VAL: Self = Self::B(TypeEq::NEW);
-}
-
-impl<X, Y, Z> Choice<2> for Branch3<Z, X, Y, Z> {
-    const VAL: Self = Self::C(TypeEq::NEW);
-}
-
 ```
 
-<span id="example0"></span>
+<span id="example1"></span>
 ### Indexing polymorphism
 
-This example demonstrates how one can emulate trait polymorphism in `const fn`s
+This function demonstrates const fn polymorphism
+and projecting [`TypeEq`] by implementing [`TypeFn`].
 
 ```rust
 use std::ops::Range;
 
-use typewit::{HasTypeWitness, MakeTypeWitness, TypeWitnessTypeArg, TypeEq};
+use typewit::{HasTypeWitness, TypeEq};
 
 fn main() {
     let array = [3, 5, 8, 13, 21, 34, 55, 89];
@@ -116,91 +88,69 @@ fn main() {
     assert_eq!(index(&array, 3..5), [13, 21]);
 }
 
-const fn index<T, I>(slice: &[T], idx: I) -> &I::Returns
+const fn index<T, I>(slice: &[T], idx: I) -> &SliceIndexRet<I, T>
 where
     I: SliceIndex<T>,
 {
-    // `WITNESS` comes from the `HasTypeWitness` trait
+    // `I::WITNESS` is `<I as HasTypeWitness<IndexWitness<I>>>::WITNESS`,
     match I::WITNESS {
         IndexWitness::Usize(arg_te) => {
             // `arg_te` (a `TypeEq<I, usize>`) allows coercing between `I` and `usize`,
             // because `TypeEq` is a value-level proof that both types are the same.
             let idx: usize = arg_te.to_right(idx);
 
-            // mapping the `TypeEq` from the argument's type to the return type.
-            let ret_te: TypeEq<I::Returns, T> = project_ret(arg_te);
-            // `.in_ref()` converts `TypeEq<L, R>` into `TypeEq<&L, &R>`
-            let ret_te: TypeEq<&I::Returns, &T> = ret_te.in_ref();
-
-            let ret: &T = &slice[idx];
-
-            ret_te.to_left(ret)
+            // using the `TypeFn` impl for `FnSliceIndexRet<T>` to 
+            // map `TypeEq<I, usize>` 
+            // to  `TypeEq<SliceIndexRet<I, T>, SliceIndexRet<usize, T>>`
+            arg_te.project::<FnSliceIndexRet<T>>()
+                // converts`TypeEq<SliceIndexRet<I, T>, T>` 
+                //      to `TypeEq<&SliceIndexRet<I, T>, &T>`
+                .in_ref()
+                .to_left(&slice[idx])
         }
         IndexWitness::Range(arg_te) => {
             let range: Range<usize> = arg_te.to_right(idx);
-
-            let ret_te: TypeEq<I::Returns, [T]> = project_ret(arg_te);
             let ret: &[T] = slice_range(slice, range);
-            ret_te.in_ref().to_left(ret)
+            arg_te.project::<FnSliceIndexRet<T>>().in_ref().to_left(ret)
         }
     }
 }
 
+// This macro declares a type witness enum
+typewit::simple_type_witness! {
+    // Declares `enum IndexWitness<__Wit>` 
+    // (the `__Wit` type parameter is implicitly added after all generics)
+    enum IndexWitness {
+        // This variant requires `__Wit == usize`
+        Usize = usize,
+   
+        // This variant requires `__Wit == Range<usize>`
+        Range = Range<usize>,
+    }
+}
+
 /// Trait for all types that can be used as slice indices
+/// 
+/// The `HasTypeWitness` supertrait allows getting a `IndexWitness<Self>`
+/// with its `WITNESS` associated constant.
 trait SliceIndex<T>: HasTypeWitness<IndexWitness<Self>> + Sized {
     type Returns: ?Sized;
 }
-
-// This is a type witness
-enum IndexWitness<I> {
-    // This variant requires `I == usize`
-    Usize(TypeEq<I, usize>),
-
-    // This variant requires `I == Range<usize>`
-    Range(TypeEq<I, Range<usize>>),
-}
-
-impl<I> TypeWitnessTypeArg for IndexWitness<I> {
-    type Arg = I;
-}
-
-//////
-
 impl<T> SliceIndex<T> for usize {
     type Returns = T;
 }
-
-impl MakeTypeWitness for IndexWitness<usize> {
-    const MAKE: Self = Self::Usize(TypeEq::NEW);
-}
-
-//////
-
 impl<T> SliceIndex<T> for Range<usize> {
     type Returns = [T];
 }
 
-impl MakeTypeWitness for IndexWitness<Range<usize>> {
-    const MAKE: Self = Self::Range(TypeEq::NEW);
-}
-
-//////
-
-const fn project_ret<L, R, T>(te: TypeEq<L, R>) -> TypeEq<L::Returns, R::Returns>
-where
-    L: SliceIndex<T>,
-    R: SliceIndex<T>,
-{
-    // using `SliceIndexRets`'s `TypeFn` impl to map the `TypeEq`
-    te.project::<SliceIndexRets<T>>()
-}
+type SliceIndexRet<I, T> = <I as SliceIndex<T>>::Returns;
 
 // This is a type-level function from `I` to `<I as SliceIndex<T>>::Returns`
-struct SliceIndexRets<T>(std::marker::PhantomData<fn() -> T>);
+struct FnSliceIndexRet<T>(std::marker::PhantomData<fn() -> T>);
 
-// What makes SliceIndexRets a type-level function
-impl<T, I: SliceIndex<T>> typewit::TypeFn<I> for SliceIndexRets<T>  {
-    type Output = I::Returns;
+// What makes FnSliceIndexRet a type-level function
+impl<T, I: SliceIndex<T>> typewit::TypeFn<I> for FnSliceIndexRet<T>  {
+    type Output = SliceIndexRet<I, T>;
 }
 ```
 
@@ -224,7 +174,7 @@ error[E0277]: the trait bound `RangeFull: SliceIndex<{integer}>` is not satisfie
 
 These are the features of this crates:
 
-- `"alloc"`: enable items that use anything from the alloc crate.
+- `"alloc"`: enable items that use anything from the standard `alloc` crate.
 
 - `"mut_refs"`: turns functions that take mutable references into const fns.
 note: as of April 2023, 
@@ -238,6 +188,8 @@ the `const_mut_refs` nightly feature.
 # No-std support
 
 `typewit` is `#![no_std]`, it can be used anywhere Rust can be used.
+You need to enable the `"alloc"` feature to enable items that use anything 
+from the standard `alloc` crate.
 
 # Minimum Supported Rust Version
 
@@ -248,4 +200,7 @@ need to be explicitly enabled with crate features.
 
 
 
-[`TypeEq`]: crate::TypeEq
+
+
+[`TypeEq`]: https://docs.rs/typewit/latest/typewit/struct.TypeEq.html
+[`TypeFn`]: https://docs.rs/typewit/latest/typewit/type_fn/trait.TypeFn.html

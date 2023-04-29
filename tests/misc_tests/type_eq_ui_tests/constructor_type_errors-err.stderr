@@ -5,7 +5,7 @@ error[E0599]: no associated item named `NEW` found for struct `TypeEq<(), u8>` i
   |                                   ^^^ associated item not found in `TypeEq<(), u8>`
   |
   = note: the associated item was found for
-          - `TypeEq<L, L>`
+          - `TypeEq<T, T>`
 
 error[E0308]: mismatched types
  --> tests/misc_tests/type_eq_ui_tests/constructor_type_errors-err.rs:6:5

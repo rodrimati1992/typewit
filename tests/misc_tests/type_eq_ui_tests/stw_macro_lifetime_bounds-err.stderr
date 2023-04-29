@@ -1,0 +1,37 @@
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_lifetime_bounds-err.rs:10:12
+   |
+9  | fn _foo<'a, 'b, 'c, 'd>() {
+   |         --  -- lifetime `'b` defined here
+   |         |
+   |         lifetime `'a` defined here
+10 |     let _: LifetimeBounds<'a, 'b, 'c, 'd, _> = MakeTypeWitness::MAKE;
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ requires that `'b` must outlive `'a`
+   |
+   = help: consider adding the following bound: `'b: 'a`
+
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_lifetime_bounds-err.rs:10:12
+   |
+9  | fn _foo<'a, 'b, 'c, 'd>() {
+   |         --      -- lifetime `'c` defined here
+   |         |
+   |         lifetime `'a` defined here
+10 |     let _: LifetimeBounds<'a, 'b, 'c, 'd, _> = MakeTypeWitness::MAKE;
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ requires that `'c` must outlive `'a`
+   |
+   = help: consider adding the following bound: `'c: 'a`
+
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_lifetime_bounds-err.rs:10:12
+   |
+9  | fn _foo<'a, 'b, 'c, 'd>() {
+   |                     -- lifetime `'d` defined here
+10 |     let _: LifetimeBounds<'a, 'b, 'c, 'd, _> = MakeTypeWitness::MAKE;
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ requires that `'d` must outlive `'static`
+
+help: the following changes may resolve your lifetime errors
+  |
+  = help: add bound `'b: 'a`
+  = help: add bound `'c: 'a`
+  = help: replace `'d` with `'static`

@@ -39,3 +39,14 @@ macro_rules! conditionally_const {
         $vis fn $fn_name $(<$($generics)*>)? ($($params)*) -> $ret $block
     )
 } pub(crate) use conditionally_const;
+
+
+// used to emulate type equality bounds
+#[doc(hidden)]
+pub trait TypeIdentity {
+    type Type: ?Sized;
+}
+
+impl<T: ?Sized> TypeIdentity for T {
+    type Type = T;
+}

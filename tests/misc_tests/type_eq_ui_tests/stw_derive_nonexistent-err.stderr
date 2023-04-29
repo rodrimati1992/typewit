@@ -1,0 +1,17 @@
+error: The `simple_type_witness` macro does not support deriving `Serialize`.
+       help: You could try using `#[derive(Serialize)]`.
+ --> tests/misc_tests/type_eq_ui_tests/stw_derive_nonexistent-err.rs:2:1
+  |
+2 | / typewit::simple_type_witness!{
+3 | |     derive(Serialize)
+4 | |     enum NoDerives {U8 = u8, U16 = u16}
+5 | | }
+  | |_^
+  |
+  = note: this error originates in the macro `$crate::__stw_single_derive` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0601]: `main` function not found in crate `$CRATE`
+ --> tests/misc_tests/type_eq_ui_tests/stw_derive_nonexistent-err.rs:5:2
+  |
+5 | }
+  |  ^ consider adding a `main` function to `$DIR/tests/misc_tests/type_eq_ui_tests/stw_derive_nonexistent-err.rs`

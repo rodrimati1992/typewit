@@ -1,6 +1,6 @@
 use typewit::{
     type_fn::{GRef, GRefMut, TypeFn},
-    TypeEq,
+    HasTypeWitness, MakeTypeWitness, TypeEq,
 };
 
 use crate::misc_tests::test_utils::{assert_type, assert_type_eq};
@@ -33,6 +33,19 @@ fn flip_method() {
 }
 
 #[test]
+fn join_method() {
+    fn joiner<A, B, C>(tea: TypeEq<A, B>, teb: TypeEq<B, C>) {
+        let _: TypeEq<A, C> = tea.join(teb);
+        assert_type::<_, TypeEq<A, C>>(tea.join(teb));
+    }
+    joiner(TypeEq::<u8, u8>::NEW, TypeEq::NEW);
+
+    const TE: TypeEq<String, String> = TypeEq::new();
+    assert_eq!(TE.join(TE).to_left("3".to_string()), "3");
+    assert_eq!(TE.join(TE).to_right("5".to_string()), "5");
+}
+
+#[test]
 fn to_left_to_right_unchecked() {
     const TE: TypeEq<Vec<u8>, Vec<u8>> = unsafe { TypeEq::new_unchecked() };
     assert_eq!(TE.to_left(vec![3]), [3]);
@@ -52,6 +65,24 @@ fn assert_type_eq_constructor_types() {
         assert_type::<_, TypeEq<(), bool>>(TypeEq::<(), bool>::new_unchecked());
     }
 }
+
+#[test]
+fn assert_type_eq_as_type_witness() {
+    assert_type::<_, TypeEq<bool, bool>>(<TypeEq<_, bool> as MakeTypeWitness>::MAKE);
+    assert_type::<_, TypeEq<bool, bool>>(<TypeEq<bool, _> as MakeTypeWitness>::MAKE);
+    assert_type::<_, TypeEq<bool, bool>>(<TypeEq<bool, bool> as MakeTypeWitness>::MAKE);
+
+    assert_type::<_, TypeEq<i8, i8>>(<i8 as HasTypeWitness<TypeEq<_, _>>>::WITNESS);
+    assert_type::<_, TypeEq<i8, i8>>(<_ as HasTypeWitness<TypeEq<i8, _>>>::WITNESS);
+
+    // does not work, unfortunately
+    // assert_type::<_, TypeEq<i8, i8>>(<_ as HasTypeWitness<TypeEq<_, i8>>>::WITNESS);
+
+    assert_type::<_, TypeEq<i8, i8>>(<_ as HasTypeWitness<TypeEq<i8, i8>>>::WITNESS);
+
+}
+
+
 
 #[test]
 fn map_test() {

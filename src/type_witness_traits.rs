@@ -19,7 +19,7 @@ use core::marker::PhantomData;
 /// This example shows how one can make a `const fn` that converts both 
 /// `&str` and `&[u8]` to `&str`
 /// 
-/// This test requires Rust 1.64.0
+/// This example requires Rust 1.64.0
 /// 
 #[cfg_attr(not(feature = "__rust_stable"), doc = "```ignore")]
 #[cfg_attr(feature = "__rust_stable", doc = "```rust")]
@@ -40,11 +40,10 @@ use core::marker::PhantomData;
 ///     T: StrTryFrom<'a, L>
 /// {
 ///     // `T::WITNESS` expands to 
-///     // `<T as HasTypeWitness<StrTryFromWitness<'a, T, L>>::WITNESS`
+///     // `<T as HasTypeWitness<StrTryFromWitness<'a, L, T>>::WITNESS`
 ///     match T::WITNESS {
 ///         StrTryFromWitness::Str(te) => {
-///             // `te` (a `TypeEq<T, &'a str>`) allows coercing between `T` and `&'a str`,
-///             // because `TypeEq` is a value-level proof that both types are the same.
+///             // `te` (a `TypeEq<T, &'a str>`) allows coercing between `T` and `&'a str`.
 ///             let string: &str = te.to_right(input);
 ///             Ok(string)
 ///         }
@@ -62,45 +61,38 @@ use core::marker::PhantomData;
 /// 
 /// // trait alias pattern
 /// pub trait StrTryFrom<'a, const L: usize>: 
-///     Copy + HasTypeWitness<StrTryFromWitness<'a, Self, L>> 
+///     Copy + HasTypeWitness<StrTryFromWitness<'a, L, Self>> 
 /// {}
 /// 
 /// impl<'a, T, const L: usize> StrTryFrom<'a, L> for T
 /// where
-///     T: Copy + HasTypeWitness<StrTryFromWitness<'a, T, L>>
+///     T: Copy + HasTypeWitness<StrTryFromWitness<'a, L, T>>
 /// {}
 /// 
-/// 
-/// // this enum is a type witness (term is explained in the root module)
-/// // `#[non_exhausitve]` allows adding more supported types.
-/// #[non_exhaustive]
-/// pub enum StrTryFromWitness<'a, T, const L: usize> {
-///     // This variant requires `T == &'a str`
-///     Str(TypeEq<T, &'a str>),
-///
-///     // This variant requires `T == &'a [u8]`
-///     Bytes(TypeEq<T, &'a [u8]>),
-///
-///     // This variant requires `T == &'a [u8; L]`
-///     Array(TypeEq<T, &'a [u8; L]>),
+/// // This macro declares a type witness enum
+/// typewit::simple_type_witness! {
+///     // Declares `enum StrTryFromWitness<'a, const L: usize, __Wit>` 
+///     // (the `__Wit` type parameter is implicitly added after all generics)
+///     // `#[non_exhausitve]` allows adding more supported types.
+///     #[non_exhaustive]
+///     pub enum StrTryFromWitness['a, const L: usize] {
+///         // This variant requires `__Wit == &'a str`
+///         // 
+///         // The `['a, 0]` here changes this macro from generating
+///         // `impl<'a, const L: usize> MakeTypeWitness for StrTryFromWitness<'a, L, &'a [u8]>`
+///         // to 
+///         // `impl<'a> MakeTypeWitness for StrTryFromWitness<'a, 0, &'a [u8]>`
+///         // which allows the compiler to infer generic arguments when
+///         // using the above `MakeTypeWitness` impl`
+///         Str['a, 0] = &'a str,
+///    
+///         // This variant requires `__Wit == &'a [u8]`
+///         Bytes['a, 0] = &'a [u8],
+///    
+///         // This variant requires `__Wit == &'a [u8; L]`
+///         Array = &'a [u8; L],
+///     }
 /// }
-/// 
-/// impl<'a, T, const L: usize> TypeWitnessTypeArg for StrTryFromWitness<'a, T, L> {
-///     type Arg = T;
-/// }
-/// 
-/// impl<'a> MakeTypeWitness for StrTryFromWitness<'a, &'a str, 0> {
-///     const MAKE: Self = Self::Str(TypeEq::NEW);
-/// }
-/// 
-/// impl<'a> MakeTypeWitness for StrTryFromWitness<'a, &'a [u8], 0> {
-///     const MAKE: Self = Self::Bytes(TypeEq::NEW);
-/// }
-/// 
-/// impl<'a, const L: usize> MakeTypeWitness for StrTryFromWitness<'a, &'a [u8; L], L> {
-///     const MAKE: Self = Self::Array(TypeEq::NEW);
-/// }
-/// 
 /// ```
 pub trait HasTypeWitness<W: TypeWitnessTypeArg<Arg = Self>> {
     /// A constant of the type witness
@@ -152,6 +144,9 @@ pub trait TypeWitnessTypeArg {
 /// 
 #[doc = explain_type_witness!()]
 /// 
+/// This trait can be automatically implemented for simple type witnesses
+/// by declaring the type witness with the [`simple_type_witness`] macro.
+/// 
 /// # Example
 /// 
 /// ```rust
@@ -159,12 +154,20 @@ pub trait TypeWitnessTypeArg {
 /// 
 /// const fn default<'a, T, const L: usize>() -> T 
 /// where
-///     Defaultable<'a, T, L>: MakeTypeWitness<Arg = T>
+///     Defaultable<'a, L, T>: MakeTypeWitness
 /// {
 ///     match MakeTypeWitness::MAKE {
+///         // `te` is a `TypeEq<T, i32>`, which allows coercing between `T` and `i32`.
+///         // `te.to_left(...)` goes from `i32` to `T`.
 ///         Defaultable::I32(te) => te.to_left(3),
+///
+///         // `te` is a `TypeEq<T, bool>`
 ///         Defaultable::Bool(te) => te.to_left(true),
+///
+///         // `te` is a `TypeEq<T, &'a str>`
 ///         Defaultable::Str(te) => te.to_left("empty"),
+///
+///         // `te` is a `TypeEq<T, [u32; L]>`
 ///         Defaultable::Array(te) => te.to_left([5; L]),
 ///     }
 /// }
@@ -184,7 +187,7 @@ pub trait TypeWitnessTypeArg {
 /// 
 /// // This enum is a type witness (documented in the root module)
 /// #[non_exhaustive]
-/// enum Defaultable<'a, T, const L: usize> {
+/// enum Defaultable<'a, const L: usize, T> {
 ///     // This variant requires `T == i32`
 ///     I32(TypeEq<T, i32>),
 ///
@@ -198,28 +201,59 @@ pub trait TypeWitnessTypeArg {
 ///     Array(TypeEq<T, [u32; L]>),
 /// }
 /// 
-/// impl<T, const L: usize> TypeWitnessTypeArg for Defaultable<'_, T, L> {
+/// impl<T, const L: usize> TypeWitnessTypeArg for Defaultable<'_, L, T> {
+///     // this aids type inference for what type parameter is witnessed 
 ///     type Arg = T;
 /// }
 /// 
-/// impl MakeTypeWitness for Defaultable<'_, i32, 0> {
+/// // Specifying dummy values for the generics that the `I32` variant doesn't use,
+/// // so that they don't have to be specified when this impl is used.
+/// impl MakeTypeWitness for Defaultable<'_, 0, i32> {
+///     // The `TypeEq<T, i32>` field can be constructed because `T == i32` here.
 ///     const MAKE: Self = Self::I32(TypeEq::NEW);
 /// }
 /// 
-/// impl MakeTypeWitness for Defaultable<'_, bool, 0> {
+/// impl MakeTypeWitness for Defaultable<'_, 0, bool> {
 ///     const MAKE: Self = Self::Bool(TypeEq::NEW);
 /// }
 /// 
-/// impl<'a> MakeTypeWitness for Defaultable<'a, &'a str, 0> {
+/// impl<'a> MakeTypeWitness for Defaultable<'a, 0, &'a str> {
 ///     const MAKE: Self = Self::Str(TypeEq::NEW);
 /// }
 /// 
-/// impl<const L: usize> MakeTypeWitness for Defaultable<'_, [u32; L], L> {
+/// impl<const L: usize> MakeTypeWitness for Defaultable<'_, L, [u32; L]> {
 ///     const MAKE: Self = Self::Array(TypeEq::NEW);
 /// }
 /// 
 /// ```
 /// 
+/// The `Defaultable` type definition and its impls can also be written using 
+/// the [`simple_type_witness`] macro:
+/// ```rust
+/// typewit::simple_type_witness!{
+///     // Declares `enum Defaultable<'a, const L: usize, __Wit>`
+///     // The `__Wit` type parameter is implicit and always the last generic parameter.
+///     #[non_exhaustive]
+///     enum Defaultable['a, const L: usize] {
+///         // `['a, 0]` is necessary to have 
+///         // `impl MakeTypeWitness for Defaultable<'_, 0, i32>` instead of 
+///         // `impl<'a, const L: u32> MakeTypeWitness for Defaultable<'a, L, i32>` 
+///         I32['a, 0] = i32,
+///
+///         Bool['a, 0] = bool,
+///
+///         Str['a, 0] = &'a str,
+///
+///         Array = [u32; L],
+///     }
+/// }
+/// ```
+/// note that [`simple_type_witness`] can't replace enums whose 
+/// witnessed type parameter is not the last, 
+/// or have variants with anything but one `TypeEq` field each.
+/// 
+/// 
+/// [`simple_type_witness`]: crate::simple_type_witness
 pub trait MakeTypeWitness: TypeWitnessTypeArg {
     /// A constant with the type witness
     const MAKE: Self;
