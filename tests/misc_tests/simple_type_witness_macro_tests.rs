@@ -157,7 +157,7 @@ fn replaced_args_const() {
 }
 
 typewit::simple_type_witness!{
-    enum ReplacedArgsMore['a, T, const N: usize] {
+    enum ReplacedArgsMore['a, T: 'a, const N: usize] {
         U8['a, (), 0] = u8,
         Opt['a, T, 1] = Option<T>,
         Array = [&'a T; N],

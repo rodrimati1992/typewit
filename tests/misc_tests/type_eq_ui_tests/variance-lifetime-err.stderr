@@ -1,0 +1,47 @@
+error: lifetime may not live long enough
+ --> tests/misc_tests/type_eq_ui_tests/variance-lifetime-err.rs:4:5
+  |
+3 | fn covariance_a<'a, T>(te: TypeEq<T, &'static ()>) -> TypeEq<T, &'a ()> {
+  |                 -- lifetime `'a` defined here
+4 |     te
+  |     ^^ returning this value requires that `'a` must outlive `'static`
+  |
+  = note: requirement occurs because of the type `TypeEq<T, &()>`, which makes the generic argument `T` invariant
+  = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+  = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+error: lifetime may not live long enough
+ --> tests/misc_tests/type_eq_ui_tests/variance-lifetime-err.rs:7:5
+  |
+6 | fn covariance_b<'a, T>(te: TypeEq<&'static (), T>) -> TypeEq<&'a (), T> {
+  |                 -- lifetime `'a` defined here
+7 |     te
+  |     ^^ returning this value requires that `'a` must outlive `'static`
+  |
+  = note: requirement occurs because of the type `TypeEq<&(), T>`, which makes the generic argument `&()` invariant
+  = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+  = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/variance-lifetime-err.rs:11:5
+   |
+10 | fn contravariance_a<'a, T>(te: TypeEq<&'a (), T>) -> TypeEq<&'static (), T> {
+   |                     -- lifetime `'a` defined here
+11 |     te
+   |     ^^ returning this value requires that `'a` must outlive `'static`
+   |
+   = note: requirement occurs because of the type `TypeEq<&(), T>`, which makes the generic argument `&()` invariant
+   = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+   = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance
+
+error: lifetime may not live long enough
+  --> tests/misc_tests/type_eq_ui_tests/variance-lifetime-err.rs:14:5
+   |
+13 | fn contravariance_b<'a, T>(te: TypeEq<T, &'a ()>) -> TypeEq<T, &'static ()> {
+   |                     -- lifetime `'a` defined here
+14 |     te
+   |     ^^ returning this value requires that `'a` must outlive `'static`
+   |
+   = note: requirement occurs because of the type `TypeEq<T, &()>`, which makes the generic argument `T` invariant
+   = note: the struct `TypeEq<L, R>` is invariant over the parameter `L`
+   = help: see <https://doc.rust-lang.org/nomicon/subtyping.html> for more information about variance

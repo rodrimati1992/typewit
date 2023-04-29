@@ -140,9 +140,9 @@
 ///     // Generic parameters go inside square brackets (these are optional),
 ///     // Declares an `enum Witness<'a, T, __Wit>`,
 ///     // the `__Wit` type parameter is added after all generics.
-///     enum Witness['a, T] 
+///     enum Witness['a, T: 'a] 
 ///     // the constraints in the where clause go inside square brackets 
-///     where[T: Debug] 
+///     where[T: 'a + Debug] 
 ///     {
 ///         // This variant requires `__Wit == T`.
 ///         // The `MakeTypeWitness` impl for this variant also requires `T: Copy`.
@@ -157,27 +157,27 @@
 /// # use std::fmt::Debug;
 /// enum Witness<'a, T, __Wit>
 /// where
-///     T: Debug,
+///     T: 'a + Debug,
 /// {
 ///     Value(typewit::TypeEq<__Wit, T>),
 ///     Ref(typewit::TypeEq<__Wit, &'a T>),
 /// }
 /// impl<'a, T, __Wit> typewit::TypeWitnessTypeArg for Witness<'a, T, __Wit>
 /// where
-///     T: Debug,
+///     T: 'a + Debug,
 /// {
 ///     type Arg = __Wit;
 /// }
 /// impl<'a, T> typewit::MakeTypeWitness for Witness<'a, T, T>
 /// where
-///     T: Debug,
+///     T: 'a + Debug,
 ///     T: Copy,
 /// {
 ///     const MAKE: Self = Self::Value(typewit::TypeEq::NEW);
 /// }
 /// impl<'a, T> typewit::MakeTypeWitness for Witness<'a, T, &'a T>
 /// where
-///     T: Debug,
+///     T: 'a + Debug,
 /// {
 ///     const MAKE: Self = Self::Ref(typewit::TypeEq::NEW);
 /// }
