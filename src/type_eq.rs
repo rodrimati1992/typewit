@@ -16,10 +16,23 @@ use alloc::boxed::Box;
 
 
 macro_rules! projected_type_eq {
-    ($type_eq:ident, $Left:ident, $Right:ident, $generic:ty) => {unsafe{
-        let _te: crate::TypeEq<$Left, $Right> = $type_eq;
-        crate::__ProjectedTypeEq::<$generic, $Left, $Right>::new_unchecked()
-    }}
+    // `$L` and `$R` are both identifiers,
+    // so that they are either concrete types or type parameters
+    // (this protects against type macros, 
+    // which can expand to different types on each use).
+    ($type_eq:expr, $L:ident, $R:ident, $F:ty) => ({
+        let _te: $crate::TypeEq<$L, $R> = $type_eq;
+
+        // safety: 
+        // This macro takes a `TypeEq<$L, $R>` value,
+        // which requires `$L == $R` to be constructed,
+        // therefore `CallFn<F, $L> == CallFn<F, $R>`
+        unsafe {
+            // using a type alias to protect against `$F` being a type macro,
+            // which can expand to different type-level functions on each use.
+            $crate::__ProjectedTypeEq::<$F, $L, $R>::new_unchecked()
+        }
+    })
 }
 
 /// A [`TypeEq`] whose type arguments are projected using the 
@@ -206,7 +219,7 @@ mod type_eq_ {
     /// impl<X, Y, Z> Choice<0> for Branch3<X, X, Y, Z> {
     ///     // Because the first two type arguments of `Branch3` are `X`
     ///     // (as required by the `TypeEq<T, X>` field in Branch3's type definition),
-    ///     // we can construct `TypeEq::NEW` here.
+    ///     // we can use `TypeEq::NEW` here.
     ///     const VAL: Self = Self::A(TypeEq::NEW);
     /// }
     /// 
@@ -227,6 +240,32 @@ mod type_eq_ {
 
     impl<T: ?Sized> TypeEq<T, T> {
         /// Constructs a `TypeEq<T, T>`.
+        /// 
+        /// # Example
+        /// 
+        /// ```rust
+        /// use typewit::TypeEq;
+        /// 
+        /// assert_eq!(mutate(5, Wit::U32(TypeEq::NEW)), 25);
+        /// 
+        /// assert_eq!(mutate(5, Wit::Other(TypeEq::NEW)), 5);
+        /// assert_eq!(mutate("hello", Wit::Other(TypeEq::NEW)), "hello");
+        /// 
+        /// const fn mutate<W>(val: W, wit: Wit<W>) -> W {
+        ///     match wit {
+        ///         Wit::U32(te) => te.to_left(te.to_right(val) + 20),
+        ///         Wit::Other(_) => val,
+        ///     }
+        /// }
+        /// 
+        /// // This can't be written using the `simple_type_witness` macro because the 
+        /// // type in the `Other` variant overlaps with the other ones.
+        /// enum Wit<W> {
+        ///     U32(TypeEq<W, u32>),
+        ///     Other(TypeEq<W, W>),
+        /// }
+        /// ```
+        /// 
         pub const NEW: Self = TypeEq(PhantomData);
     }
 
@@ -262,8 +301,8 @@ mod type_eq_ {
         /// // we get this absurd `TypeEq` from the `project` method.
         /// let absurd: TypeEq<(), Vec<usize>> = te.project::<Func>();
         /// 
-        /// // This casts from `()` to `Vec<usize>` (which is UB),
-        /// // it killed the test runner when uncommented.
+        /// // This casts from `()` to `Vec<usize>` (which is UB).
+        /// // Last time I tried uncommenting this, it killed the test runner.
         /// // absurd.to_right(()); 
         /// 
         /// struct Func;
@@ -373,8 +412,7 @@ impl<L, R> TypeEq<L, R> {
     #[inline(always)]
     pub const fn reachability_hint<T>(self, val: T) -> T {
         if let Amb::No = Self::ARE_SAME_TYPE {
-            // safety: it's impossible to have a `TypeEq<L, R>` value
-            // where `L` and `R` are not the same type
+            // safety: `TypeEq<L, R>` requires `L == R` to be constructed
             unsafe { core::hint::unreachable_unchecked() }
         }
 
@@ -417,6 +455,7 @@ impl<L, R> TypeEq<L, R> {
     pub const fn to_right(self, from: L) -> R {
         self.reachability_hint(());
 
+        // safety: `TypeEq<L, R>` requires `L == R` to be constructed
         unsafe { crate::__priv_transmute!(L, R, from) }
     }
     /// A no-op cast from `R` to `L`.
@@ -449,6 +488,7 @@ impl<L, R> TypeEq<L, R> {
     pub const fn to_left(self, from: R) -> L {
         self.reachability_hint(());
 
+        // safety: `TypeEq<L, R>` requires `L == R` to be constructed
         unsafe { crate::__priv_transmute!(R, L, from) }
     }
 }
