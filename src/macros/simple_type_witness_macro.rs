@@ -6,7 +6,7 @@
 /// 
 /// # Generated items
 /// 
-/// This macro generates:
+/// This macro always generates:
 /// 
 /// - An enum with tuple variants, each of which has a single [`TypeEq`] field.
 /// 
@@ -16,6 +16,20 @@
 /// 
 /// - An impl of [`MakeTypeWitness`](crate::MakeTypeWitness) for each variant of the enum.
 /// 
+/// ### Derivation
+/// 
+/// These impls are generated if you opt into them with the [`derive(...)`](#derive) syntax:
+/// 
+/// - `Debug`
+/// - `PartialEq`
+/// - `Eq`
+/// - `PartialOrd`
+/// - `Ord`
+/// - `Hash`
+/// 
+/// This macro always implements `Copy` and `Clone` for the declared type witness,
+/// `derive(Copy, Clone)` does nothing.
+/// 
 /// # Syntax
 /// 
 /// This macro uses square brackets to make parsing generics and where clauses easier.
@@ -23,6 +37,9 @@
 /// This macro takes an enum-like syntax:
 /// ```text
 ///     $(#[$enum_meta:meta])*
+///     // Allows deriving some traits without the bounds that 
+///     // standard derives add to type parameters.
+///     $(derive($($derive:ident),* $(,)?)))?
 ///     $vis:vis enum $enum:ident $([$($generics:tt)*])? 
 ///     // The where clause of the enum
 ///     $(where[$($where:tt)*])?
@@ -44,6 +61,10 @@
 /// `[$($var_gen_args:tt)*]`(optional parameter)[(example usage)](#var_gen_args-example): 
 /// this parameter overrides the generic arguments of the enum in its 
 /// [`MakeTypeWitness`] implementation.
+/// 
+/// <span id = "derive"></span>
+/// `derive($($derive:ident),* $(,)?)`(optional parameter)[(example)](#derive-example):
+/// supports deriving the traits listed in the [derivation](#derivation) section
 /// 
 /// ### Limitations
 /// 
@@ -205,6 +226,35 @@
 /// ```
 /// (consult the [generated items] section for all the generated impls)
 /// 
+/// <span id = "derive-example"></span>
+/// ### Derives
+/// 
+/// This example demonstrates derivation of all the supported traits 
+/// using the `derive(...)` syntax (as opposed to the `#[derive(...)]` attribute).
+/// 
+/// ```rust
+/// use typewit::{MakeTypeWitness, TypeEq};
+/// 
+/// struct NoImpls;
+///
+/// assert_eq!(Witness::<u8>::MAKE, Witness::<u8>::MAKE);
+/// 
+/// // Witness doesn't require its type parameters to impl any traits in its derives.
+/// // (the standard derives require type parameters to impl the derived trait)
+/// assert_eq!(Witness::<NoImpls>::MAKE, Witness::NoImp(TypeEq::NEW));
+/// 
+/// typewit::simple_type_witness! {
+///     // Declares an `enum Witness<__Wit>`,
+///     // the `__Wit` type parameter is added after all generics.
+///     derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)
+///     enum Witness {
+///         U8 = u8,
+///         NoImp = NoImpls,
+///     }
+/// }
+/// ```
+/// 
+/// 
 /// [`TypeEq`]: crate::TypeEq
 /// [`TypeWitnessTypeArg`]: crate::TypeWitnessTypeArg
 /// [`MakeTypeWitness`]: crate::MakeTypeWitness
@@ -213,7 +263,9 @@
 macro_rules! simple_type_witness {
     (
         $(#[$enum_meta:meta])*
-        $vis:vis enum $enum:ident $([$($generics:tt)*])? 
+        $(derive($($derive:ident),* $(,)?))?
+        $(pub $(($($pub:tt)*))?)? 
+        enum $enum:ident $([$($generics:tt)*])? 
         $(where[$($where:tt)*])?
         {
             $(
@@ -228,10 +280,12 @@ macro_rules! simple_type_witness {
         $crate::__stw_parse_generics!{
             (
                 $(#[$enum_meta])*
-                $vis enum $enum {
+                derive($($($derive)*)?)
+                $(pub $(($($pub)*))? )? 
+                enum $enum {
                     $((
-                        $(#[$variant_meta])*
                         $variant $([$($var_gen_args)*])?
+                        $(#[$variant_meta])*
                         where[$($($vari_where)*)?]
                         = $witnessed_ty
                     ))*
@@ -251,6 +305,7 @@ macro_rules! __stw_parse_generics {
     (
         (
             $(# $enum_meta:tt)*
+            derive $derive:tt
             $vis:vis enum $enum:ident $variants:tt
             $generics:tt
             where $where:tt
@@ -261,6 +316,7 @@ macro_rules! __stw_parse_generics {
         $crate::__stw_where_clause_trailing_comma! {
             (
                 $(# $enum_meta)*
+                derive $derive
                 $vis enum $enum $generics $gen_args
                 $variants
             )
@@ -271,6 +327,7 @@ macro_rules! __stw_parse_generics {
     (
         (
             $(# $enum_meta:tt)*
+            derive $derive:tt
             $vis:vis enum $enum:ident $variants:tt
             [$($($generics:tt)+)?]
             where $where:tt
@@ -281,6 +338,7 @@ macro_rules! __stw_parse_generics {
         $crate::__stw_where_clause_trailing_comma! {
             (
                 $(# $enum_meta)*
+                derive $derive
                 $vis enum $enum [$($($generics)+ ,)?] $gen_args
                 $variants
             )
@@ -378,6 +436,7 @@ macro_rules! __stw_with_parsed_args {
     (
         (
             $(# $enum_meta:tt)*
+            derive $derive:tt
             $vis:vis enum $enum:ident $generics:tt $gen_args:tt
             { $($variant_args:tt)* }
         )
@@ -388,6 +447,13 @@ macro_rules! __stw_with_parsed_args {
             $vis enum $enum $generics $gen_args
             where $where
 
+            { $($variant_args)* }
+        }
+
+        $crate::__stw_derive_dispatcher!{
+            derive $derive
+            enum $enum $generics $gen_args
+            where $where
             { $($variant_args)* }
         }
 
@@ -412,8 +478,8 @@ macro_rules! __stw_top_items {
 
         {
             $((
-                $(#[$variant_meta:meta])*
                 $variant:ident
+                $(#[$variant_meta:meta])*
                 $([$($var_gen_args:tt)*])?
                 where $vari_where:tt
                 = $witnessed_ty:ty
@@ -452,6 +518,134 @@ macro_rules! __stw_top_items {
     }
 }
 
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __stw_derive_dispatcher {
+    (
+        derive($($trait:ident)*)
+        enum $enum:ident $generics:tt $gen_args:tt
+        where $where:tt
+        $variant_args:tt
+    ) => {
+        $(
+            $crate::__stw_derive_dispatcher_inner!{
+                $trait
+                $enum $generics $gen_args
+                where $where
+                $variant_args
+            }
+        )*
+    }
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __stw_derive_dispatcher_inner {
+    (
+        $trait:ident $enum:ident[$($generics:tt)*] [$($gen_args:tt)*]
+        where [$($where:tt)*]
+        {$(($variant:ident $($rem:tt)*))*}
+    ) => {
+        $crate::__stw_single_derive!{
+            (
+                impl<$($generics)* __Wit: ?Sized> $enum<$($gen_args)* __Wit> 
+                where
+                    $($where)*
+            )
+            (
+                impl<$($generics)* __Wit: ?Sized> 
+                    $crate::__::$trait 
+                for $enum<$($gen_args)* __Wit> 
+                where
+                    $($where)*
+            )
+            $trait
+            [$($variant)*]
+        }
+    }
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __stw_single_derive {
+    ($inh_header:tt ($($impl_header:tt)*) Debug [$($variant:ident)*]) => {
+        $($impl_header)*
+        {
+            fn fmt(&self, f: &mut $crate::__::Formatter<'_>) -> $crate::__::FmtResult {
+                f.write_str(match self {
+                    $(Self::$variant{..} => stringify!($variant),)*
+                })
+            }
+        }
+    };
+    ($inh_header:tt ($($impl_header:tt)*) PartialEq [$($variant:ident)*]) => {
+        $($impl_header)*
+        {
+            fn eq(&self, other: &Self) -> $crate::__::bool {
+                $crate::__::discriminant(self) == $crate::__::discriminant(other)
+            }
+        }
+    };
+    (($($inh_header:tt)*) ($($impl_header:tt)*) PartialOrd [$($variant:ident)*]) => {
+        $($inh_header)* {
+            const fn __variant_number(&self) -> usize {
+                mod number {
+                    enum __Number__ {
+                        $($variant,)*
+                    }
+                    $( pub const $variant: $crate::__::usize = __Number__::$variant as _; )*
+                }
+
+                match self {
+                    $(Self::$variant{..} => number::$variant,)*
+                }
+            }
+        }
+
+        $($impl_header)* {
+            fn partial_cmp(&self, other: &Self) -> $crate::__::Option<$crate::__::Ordering> {
+                $crate::__::PartialOrd::partial_cmp(
+                    &self.__variant_number(),
+                    &other.__variant_number(),
+                )
+            }
+        }
+    };
+    ($inh_header:tt ($($impl_header:tt)*) Ord [$($variant:ident)*]) => {
+        $($impl_header)* {
+            fn cmp(&self, other: &Self) -> $crate::__::Ordering {
+                $crate::__::Ord::cmp(
+                    &self.__variant_number(),
+                    &other.__variant_number(),
+                )
+            }
+        }
+    };
+    ($inh_header:tt ($($impl_header:tt)*) Eq [$($variant:ident)*]) => {
+        $($impl_header)* { }
+    };
+    ($inh_header:tt ($($impl_header:tt)*) Hash [$($variant:ident)*]) => {
+        $($impl_header)* {
+            fn hash<H: $crate::__::Hasher>(&self, state: &mut H) {
+                $crate::__::Hash::hash(&$crate::__::discriminant(self), state)
+            }
+        }
+    };
+    // this is always implemented
+    ($inh_header:tt $impl_header:tt Copy $variants:tt) => {};
+    // this is always implemented
+    ($inh_header:tt $impl_header:tt Clone $variants:tt) => {};
+    ($inh_header:tt $impl_header:tt $derive:ident $variants:tt) => {
+        $crate::__::compile_error!{$crate::__::concat!{
+            "The `simple_type_witness` macro does not support deriving `",
+            $crate::__::stringify!($derive),
+            "`.\n",
+            "help: You could try using `#[derive(", 
+            $crate::__::stringify!($derive),
+            ")]`.",
+        }}
+    };
+}
 
 #[doc(hidden)]
 #[macro_export]
@@ -461,8 +655,8 @@ macro_rules! __stw_make_type_witness_impl {
         where [$($where:tt)*]
 
         (
-            $(#[$variant_meta:meta])*
             $variant:ident
+            $(#[$variant_meta:meta])*
             $([$($var_gen_args:tt),* $(,)?])?
             where[$($vari_where:tt)*]
             = $witnessed_ty:ty

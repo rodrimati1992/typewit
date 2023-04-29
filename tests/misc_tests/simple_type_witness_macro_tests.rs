@@ -240,11 +240,32 @@ fn full_ex_test() {
     }
 }
 
+//////////////////////////////
 
 
+typewit::simple_type_witness!{
+    derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)
+    enum AllDerives {U8 = u8, U16 = u16}
+}
 
+struct NoImpls;
 
+#[test]
+fn test_all_derives() {
+    use std::{
+        cmp::{PartialEq, Eq, PartialOrd, Ord},
+        fmt::Debug,
+        hash::Hash,
+    };
 
+    fn assert_impld<T>()
+    where 
+        T: Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash
+    {}
+
+    assert_impld::<AllDerives<NoImpls>>()
+    
+}
 
 
 

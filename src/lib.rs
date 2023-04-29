@@ -253,8 +253,13 @@ pub use crate::type_fn::{CallFn, TypeFn};
 pub mod __ {
     pub use core::{
         clone::Clone,
+        cmp::{PartialEq, Eq, PartialOrd, Ord, Ordering},
+        fmt::{Debug, Formatter, Result as FmtResult},
+        hash::{Hash, Hasher},
         marker::Copy,
-        mem::ManuallyDrop,
+        mem::{ManuallyDrop, discriminant},
+        option::Option,
+        primitive::{bool, usize},
         assert, compile_error, concat, stringify,
     };
 
