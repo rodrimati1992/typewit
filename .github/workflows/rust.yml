@@ -26,12 +26,13 @@ jobs:
       run: echo "rustv=rust_1_61" >> $GITHUB_ENV
 
     - name: enable-rust-stable
-      if: matrix.rust != '1.61.0' && matrix.rust != '1.57.0'
+      if: matrix.rust == 'stable' || matrix.rust == 'beta' || matrix.rust == 'nightly'
       run: echo "rustv=rust_stable" >> $GITHUB_ENV
 
     - uses: actions/checkout@v2
     - name: ci-all-versions
       run: |
+        echo "rustv = ${{env.rustv}}"
         set -ex
         rustup override set ${{ matrix.rust }}
         cargo update
@@ -52,10 +53,8 @@ jobs:
         cd "${{github.workspace}}/"
         cargo build
         
-        cargo test --no-default-features 
-        cargo test --no-default-features --features "rust_stable"
-        cargo test --no-default-features --features "rust_stable alloc"
         cargo test --no-default-features --features "rust_stable nightly_mut_refs"
+        cargo test --no-default-features --features "rust_stable alloc nightly_mut_refs"
         cargo test --no-default-features --features "rust_stable __ui_tests alloc nightly_mut_refs"
 
         MIRI_NIGHTLY=nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)

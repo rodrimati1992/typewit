@@ -19,7 +19,7 @@ use core::marker::PhantomData;
 /// This example shows how one can make a `const fn` that converts both 
 /// `&str` and `&[u8]` to `&str`
 /// 
-/// This example requires Rust 1.64.0
+/// (this example requires Rust 1.64.0)
 /// 
 #[cfg_attr(not(feature = "rust_stable"), doc = "```ignore")]
 #[cfg_attr(feature = "rust_stable", doc = "```rust")]
@@ -149,6 +149,7 @@ pub trait TypeWitnessTypeArg {
 /// 
 /// # Example
 /// 
+/// (this example requires Rust 1.61.0)
 #[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
 #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
 /// use typewit::{TypeWitnessTypeArg, MakeTypeWitness, TypeEq};

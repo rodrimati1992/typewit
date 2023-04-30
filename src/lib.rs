@@ -70,6 +70,7 @@
 //! This function demonstrates const fn polymorphism
 //! and projecting [`TypeEq`] by implementing [`TypeFn`].
 //! 
+//! (this example requires Rust 1.61.0)
 #![cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
 #![cfg_attr(feature = "rust_1_61", doc = "```rust")]
 //! use std::ops::Range;
@@ -211,9 +212,6 @@
 //! # Minimum Supported Rust Version
 //! 
 //! `typewit` supports Rust 1.57.0.
-//! Note that a few doc examples require Rust 1.61.0 to work unmodified.
-//! (You'll need to rust `cargo doc` locally to see which ones don't work in 
-//! Rust 1.57.0)
 //! 
 //! Features that require newer versions of Rust, or the nightly compiler,
 //! need to be explicitly enabled with crate features.

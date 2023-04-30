@@ -643,6 +643,8 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
         /// 
         /// # Example
         /// 
+        /// Because this example calls `in_mut` inside a `const fn`,
+        /// it requires either of the `"mut_refs"` or `"nightly_mut_refs"` crate features.
         #[cfg_attr(not(feature = "mut_refs"), doc = "```ignore")]
         #[cfg_attr(feature = "mut_refs", doc = "```rust")]
         #[cfg_attr(feature = "nightly_mut_refs", doc = "# #![feature(const_mut_refs)]")]
