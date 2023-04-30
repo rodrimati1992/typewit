@@ -74,6 +74,7 @@ typewit::simple_type_witness! {
 This function demonstrates const fn polymorphism
 and projecting [`TypeEq`] by implementing [`TypeFn`].
 
+(this example requires Rust 1.61.0, because of the `I: SliceIndex<T>,` bound)
 ```rust
 use std::ops::Range;
 
@@ -174,7 +175,7 @@ error[E0277]: the trait bound `RangeFull: SliceIndex<{integer}>` is not satisfie
 
 These are the features of this crates:
 
-- `"rust_1_61"`: allows the `typewit` crate to use Rust 1.61.0.
+- `"rust_1_61"`: allows the `typewit` crate to use Rust 1.61.0 features.
 
 - `"rust_stable"`: enables all the `"rust_1_*"` features.
 

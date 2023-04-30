@@ -70,7 +70,7 @@
 //! This function demonstrates const fn polymorphism
 //! and projecting [`TypeEq`] by implementing [`TypeFn`].
 //! 
-//! (this example requires Rust 1.61.0)
+//! (this example requires Rust 1.61.0, because of the `I: SliceIndex<T>,` bound)
 #![cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
 #![cfg_attr(feature = "rust_1_61", doc = "```rust")]
 //! use std::ops::Range;
@@ -187,7 +187,7 @@
 //! 
 //! These are the features of this crates:
 //! 
-//! - `"rust_1_61"`: allows the `typewit` crate to use Rust 1.61.0.
+//! - `"rust_1_61"`: allows the `typewit` crate to use Rust 1.61.0 features.
 //! 
 //! - `"rust_stable"`: enables all the `"rust_1_*"` features.
 //! 
