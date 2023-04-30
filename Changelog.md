@@ -1,8 +1,18 @@
 This is the changelog, summarising changes in each version(some minor changes may be ommited).
 
-# 0.1
+# 1.0
 
-### 0.1.0
+### 1.1.0
+
+Reduced Minimum Supported Rust Version to 1.57.0
+
+Added `"rust_stable"` and `"rust_1_61"` features
+
+Added `type_fn::Invoke` struct, which implements `TypeFn`.
+
+Removed blanket impl of `TypeFn` for `Fn`(minor breaking change)
+
+### 1.0.0
 
 Declared `TypeEq` struct, with these associated items:
 - `NEW` (associated constant)
