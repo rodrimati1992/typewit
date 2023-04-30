@@ -72,6 +72,11 @@
 /// doing so would either require procedural macros or 
 /// a very complex `macro_rules!` macro.
 /// 
+/// <span id = "const-parameter-limitation"></span>
+/// When used in Rust versions prior to 1.59.0,
+/// type witnesses declared with this macro cannot have const parameters,
+/// because this macro always adds a `__Wit` type parameter after all generic parameters,
+/// and those old versions don't allow type parameters after const parameters.
 /// 
 /// # Examples
 /// 
@@ -188,8 +193,10 @@
 /// ### `$var_gen_args` parameter
 /// 
 /// This example shows what the `$var_gen_args` parameter does.
+/// ([it also requires Rust 1.59.0](#const-parameter-limitation))
 /// 
-/// ```rust
+#[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
+#[cfg_attr(feature = "rust_1_61", doc = "```rust")]
 /// typewit::simple_type_witness! {
 ///     // Generic parameters go inside square brackets (these are optional),
 ///     // Declares an `enum Foo<T, const N: usize, __Wit>`,
@@ -209,7 +216,8 @@
 /// }
 /// ```
 /// the above effectively expands to this:
-/// ```rust
+#[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
+#[cfg_attr(feature = "rust_1_61", doc = "```rust")]
 /// enum Foo<T, const N: usize, __Wit> {
 ///     U64(typewit::TypeEq<__Wit, u64>),
 ///     Array(typewit::TypeEq<__Wit, [T; N]>),

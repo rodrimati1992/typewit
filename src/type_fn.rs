@@ -38,18 +38,6 @@ pub trait TypeFn<T: ?Sized> {
     type Output: ?Sized;
 }
 
-/// Allows functions to be used as `TypeFn`s.
-/// 
-/// Not too useful until a single closure value can 
-/// take many different types as arguments,
-/// e.g: `a_closure("bar"); a_closure(3);`.
-impl<F, T, R> TypeFn<T> for F 
-where
-    F: Fn(T) -> R
-{
-    type Output = R;
-}
-
 /// Calls the `F` [type-level function](TypeFn) with `T` as its argument.
 /// 
 /// # Example
@@ -119,3 +107,32 @@ impl<T: ?Sized> TypeFn<T> for GBox {
     type Output = alloc::boxed::Box<T>;
 }
 
+////////////////
+
+/// Type-level function which implements `TypeFn` by delegating to `F` 
+/// 
+/// This is mostly a workaround to write `F: TypeFn<T>` bounds in Rust 1.57.0
+/// (trait bounds in `const fn`s were stabilized in Rust 1.61.0).
+///
+/// Because `Foo<F>: Trait`-style bounds unintentionally work in 1.57.0,
+/// this crate uses `Invoke<F>: TypeFn<T>` 
+/// when the `"rust_1_61"` feature is disabled,
+/// and `F: TypeFn<T>` when it is enabled.
+/// 
+pub struct Invoke<F>(PhantomData<fn() -> F>);
+
+impl<F, T: ?Sized> TypeFn<T> for Invoke<F> 
+where
+    F: TypeFn<T>
+{
+    type Output = CallFn<F, T>;
+}
+
+
+// This type alias makes it so that docs for newer Rust versions don't
+// show `Invoke<F>`, keeping the method bounds the same as in 1.0.0.
+#[cfg(not(feature = "rust_1_61"))]
+pub(crate) type InvokeAlias<F> = Invoke<F>;
+
+#[cfg(feature = "rust_1_61")]
+pub(crate) type InvokeAlias<F> = F;
