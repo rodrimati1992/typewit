@@ -63,17 +63,20 @@ fn type_params() {
     }
 }
 
+#[cfg(feature = "rust_1_61")]
 typewit::simple_type_witness!{
     enum ConstParamsA['a, const X: usize] {
         U8 = &'a u8 
     }
 }
+#[cfg(feature = "rust_1_61")]
 typewit::simple_type_witness!{
     enum ConstParamsB[const X: usize] {
         U8 = u8 
     }
 }
 
+#[cfg(feature = "rust_1_61")]
 #[test]
 fn const_params() {
     fn _foo<'a, const X: usize>() {
@@ -139,6 +142,7 @@ fn test_where_clause() {
 
 //////////////////////////////
 
+#[cfg(feature = "rust_1_61")]
 typewit::simple_type_witness!{
     enum ReplacedArgsConst[const N: usize] {
         U8[0] = u8,
@@ -146,6 +150,7 @@ typewit::simple_type_witness!{
     }
 }
 
+#[cfg(feature = "rust_1_61")]
 #[test]
 fn replaced_args_const() {
     let te = ReplacedArgsConst::MAKE;
@@ -156,6 +161,7 @@ fn replaced_args_const() {
     assert_type::<_, ReplacedArgsConst<0, u8>>(te);
 }
 
+#[cfg(feature = "rust_1_61")]
 typewit::simple_type_witness!{
     enum ReplacedArgsMore['a, T: 'a, const N: usize] {
         U8['a, (), 0] = u8,
@@ -164,6 +170,7 @@ typewit::simple_type_witness!{
     }
 }
 
+#[cfg(feature = "rust_1_61")]
 #[test]
 fn replaced_args_more() {
     {
@@ -199,6 +206,7 @@ fn enum_attr() {
 
 //////////////////////////////
 
+#[cfg(feature = "rust_1_61")]
 typewit::simple_type_witness!{
     enum FullEx['a, T, const N: usize] 
     where[ T: Copy ]
@@ -209,7 +217,7 @@ typewit::simple_type_witness!{
     }
 }
 
-
+#[cfg(feature = "rust_1_61")]
 #[test]
 fn full_ex_test() {
     const fn func<'a, T, const N: usize, W>() -> W

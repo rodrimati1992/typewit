@@ -1,5 +1,5 @@
 use crate::{
-    type_fn::{self, CallFn, TypeFn}, 
+    type_fn::{self, CallFn, InvokeAlias}, 
     MakeTypeWitness, TypeWitnessTypeArg,
 };
 
@@ -8,7 +8,6 @@ use core::{
     default::Default,
     hash::{Hash, Hasher},
     fmt::{self, Debug},
-    mem::forget,
 };
 
 #[cfg(feature = "alloc")]
@@ -233,10 +232,15 @@ mod type_eq_ {
     /// 
     /// ```
     /// 
-    pub struct TypeEq<L: ?Sized, R: ?Sized>(PhantomData<(
+    pub struct TypeEq<L: ?Sized, R: ?Sized>(PhantomData<TypeEqHelper<L, R>>);
+
+    // Declared to work around this error in old Rust versions:
+    // > error[E0658]: function pointers cannot appear in constant functions
+    struct TypeEqHelper<L: ?Sized, R: ?Sized>(
         fn(PhantomData<L>) -> PhantomData<L>,
         fn(PhantomData<R>) -> PhantomData<R>,
-    )>);
+    );
+
 
     impl<T: ?Sized> TypeEq<T, T> {
         /// Constructs a `TypeEq<T, T>`.
@@ -542,12 +546,17 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// 
     /// ```
     /// 
-    pub const fn map<F>(self, func: F) -> TypeEq<CallFn<F, L>, CallFn<F, R>>
+    // #[cfg(feature = "project")]
+    // #[cfg_attr(feature = "docsrs", doc(cfg(feature = "project")))]
+    pub const fn map<F>(
+        self,
+        func: F,
+    ) -> TypeEq<CallFn<InvokeAlias<F>, L>, CallFn<InvokeAlias<F>, R>>
     where
-        F: TypeFn<L> + TypeFn<R>
+        InvokeAlias<F>: crate::TypeFn<L> + crate::TypeFn<R>
     {
-        forget(func);
-        projected_type_eq!{self, L, R, F}
+        core::mem::forget(func);
+        projected_type_eq!{self, L, R, InvokeAlias<F>}
     }
 
     /// Maps the type arguments of this `TypeEq`
@@ -576,11 +585,11 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// 
     /// ```
     /// 
-    pub const fn project<F>(self) -> TypeEq<CallFn<F, L>, CallFn<F, R>>
+    pub const fn project<F>(self) -> TypeEq<CallFn<InvokeAlias<F>, L>, CallFn<InvokeAlias<F>, R>>
     where
-        F: TypeFn<L> + TypeFn<R>
+        InvokeAlias<F>: crate::TypeFn<L> + crate::TypeFn<R>
     {
-        projected_type_eq!{self, L, R, F}
+        projected_type_eq!{self, L, R, InvokeAlias<F>}
     }
 
     /// Converts a `TypeEq<L, R>` to `TypeEq<&L, &R>`

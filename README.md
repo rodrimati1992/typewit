@@ -174,6 +174,10 @@ error[E0277]: the trait bound `RangeFull: SliceIndex<{integer}>` is not satisfie
 
 These are the features of this crates:
 
+- `"rust_1_61"`: allows the `typewit` crate to use Rust 1.61.0.
+
+- `"rust_stable"`: enables all the `"rust_1_*"` features.
+
 - `"alloc"`: enable items that use anything from the standard `alloc` crate.
 
 - `"mut_refs"`: turns functions that take mutable references into const fns.
@@ -184,6 +188,7 @@ this crate feature requires a stable compiler from the future.
 Enables the `"mut_refs"` crate feature and 
 the `const_mut_refs` nightly feature.
 
+None of the crate features are enabled by default.
 
 # No-std support
 
@@ -193,10 +198,14 @@ from the standard `alloc` crate.
 
 # Minimum Supported Rust Version
 
-`typewit` requires Rust 1.61.0.
+`typewit` supports Rust 1.57.0.
+Note that a few doc examples require Rust 1.61.0 to work unmodified.
+(You'll need to rust `cargo doc` locally to see which ones don't work in 
+Rust 1.57.0)
 
 Features that require newer versions of Rust, or the nightly compiler,
 need to be explicitly enabled with crate features.
+
 
 
 
