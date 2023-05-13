@@ -109,6 +109,15 @@ impl<T: ?Sized> TypeFn<T> for GBox {
 
 ////////////////
 
+/// Type-level identity function
+pub struct FnIdentity;
+
+impl<T: ?Sized> TypeFn<T> for FnIdentity {
+    type Output = T;
+}
+
+////////////////
+
 /// Type-level function which implements `TypeFn` by delegating to `F` 
 /// 
 /// This is mostly a workaround to write `F: TypeFn<T>` bounds in Rust 1.57.0

@@ -22,6 +22,7 @@ include = [
 version = "1.0"
 
 [features]
+default = ["const_marker"]
 rust_1_61 = []
 rust_stable = ["rust_1_61"]
 const_marker = []
