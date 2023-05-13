@@ -243,13 +243,20 @@ macro_rules! explain_type_witness {
 
 #[macro_use]
 pub mod type_fn;
+
+#[cfg(feature = "const_marker")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "const_marker")))]
+pub mod const_param;
+
 mod utils;
 mod macros;
 mod type_eq;
+mod type_ne;
 mod type_witness_traits;
 
 pub use crate::{
     type_eq::*,
+    type_ne::*,
     type_witness_traits::*,
 };
 
