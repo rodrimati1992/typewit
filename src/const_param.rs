@@ -1,4 +1,37 @@
 //! Marker types for passing constants as type arguments.
+//! 
+//! # Example
+//! 
+//! Implementing fallible cross-array-size casting.
+//! 
+//! ```rust
+//! use typewit::{const_param::Usize, TypeEq};
+//! 
+//! let arr = [3u8, 5, 8];
+//! 
+//! assert_eq!(try_cast_size::<_, 3, 0>(arr), Err(arr));
+//! assert_eq!(try_cast_size::<_, 3, 1>(arr), Err(arr));
+//! assert_eq!(try_cast_size::<_, 3, 2>(arr), Err(arr));
+//! assert_eq!(try_cast_size::<_, 3, 3>(arr), Ok([3, 5, 8]));
+//! assert_eq!(try_cast_size::<_, 3, 4>(arr), Err(arr));
+//! 
+//! 
+//! fn try_cast_size<T, const IN: usize, const OUT: usize>(
+//!     arr: [T; IN]
+//! ) -> Result<[T; OUT], [T; IN]> {
+//!     match Usize::<OUT>.eq(Usize::<IN>) {
+//!         // `te_len` ìs a `TypeEq<Usize<OUT>, Usize<IN>>`
+//!         Ok(te_len) => Ok(
+//!             TypeEq::new::<T>() // returns `TypeEq<T, T>`
+//!                 .in_array(te_len) // returns `TypeEq<[T; OUT], [T; IN]>`
+//!                 .to_left(arr) // goes from `[T; IN]` to `[T; OUT]`
+//!         ),
+//!         Err(_) => Err(arr),
+//!     }
+//! }
+//! ```
+//! 
+//! 
 
 use crate::{
     TypeEq,

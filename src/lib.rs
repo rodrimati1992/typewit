@@ -193,6 +193,9 @@
 //! 
 //! - `"alloc"`: enable items that use anything from the standard `alloc` crate.
 //! 
+//! - `"const_marker"`(enabled by default): Enables the [`const_param`] module,
+//! and all items that depend on it.
+//! 
 //! - `"mut_refs"`: turns functions that take mutable references into const fns.
 //! note: as of April 2023, 
 //! this crate feature requires a stable compiler from the future.
@@ -220,6 +223,7 @@
 //! 
 //! [`TypeEq`]: crate::TypeEq
 //! [`TypeFn`]: crate::type_fn::TypeFn
+//! [`const_param`]: crate::const_param
 #![no_std]
 #![cfg_attr(feature = "nightly_mut_refs", feature(const_mut_refs))]
 #![cfg_attr(feature = "docsrs", feature(doc_cfg))]
