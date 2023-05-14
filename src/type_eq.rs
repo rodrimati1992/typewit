@@ -1,5 +1,5 @@
 use crate::{
-    type_fn::{self, CallFn, FnIdentity, InvokeAlias}, 
+    type_fn::{self, CallFn, InvokeAlias}, 
     MakeTypeWitness, TypeWitnessTypeArg,
 };
 
@@ -48,6 +48,24 @@ where
     //         TypeEq<L, R> 
     // implies TypeEq<CallFn<F, L>, CallFn<F, R>>
     projected_te: TypeEq<CallFn<InvokeAlias<F>, L>, CallFn<InvokeAlias<F>, R>>,
+}
+
+
+macro_rules! __zip_impl {
+    // Using `:ident` to prevent usage of macros,
+    // which can expand to different values on each use
+    ($( $type_eq:ident [$L:ident, $R:ident] ),* $(,)*) => {
+        $(
+            let _te: $crate::TypeEq<$L, $R> = $type_eq;
+        )*
+
+        // SAFETY: 
+        // `$L == $R` for every passed `$type_eq`
+        // implies `(L0, L1, ...) == (R0, R1, ...)`
+        unsafe {
+            $crate::TypeEq::<($($L,)*), ($($R,)*)>::new_unchecked()
+        }
+    }
 }
 
 
@@ -448,37 +466,20 @@ impl<L: ?Sized, R: ?Sized> Clone for TypeEq<L, R> {
     }
 }
 
-impl<L, R> TypeEq<L, R> {
-    /// Whether `L` is the same type as `R`.
-    /// 
-    /// False positive equality is fine for this associated constant,
-    /// since it's used to optimize out definitely unequal types.
-    const ARE_SAME_TYPE: Amb = {
-        // hacky way to emulate a lifetime-unaware
-        // `TypeId::of<L>() == TypeId::of<R>()`
-        let approx_same_type = {
-            core::mem::size_of::<L>() == core::mem::size_of::<R>()
-                && core::mem::align_of::<L>() == core::mem::align_of::<R>()
-                && core::mem::size_of::<Option<L>>() == core::mem::size_of::<Option<R>>()
-                && core::mem::align_of::<Option<L>>() == core::mem::align_of::<Option<R>>()
-        };
-
-        if approx_same_type {
-            Amb::Indefinite
-        } else {
-            Amb::No
-        }
-    };
-
-    /// Combines this `TypeEq<L, R>` with a `TypeEq<U, D>`, 
-    /// producing a `TypeEq<(L, U), (R, D)>`.
+impl<L0, R0> TypeEq<L0, R0> {
+    /// Combines this `TypeEq<L0, R0>` with a `TypeEq<L1, R1>`, 
+    /// producing a `TypeEq<(L0, L1), (R0, R1)>`.
     /// 
     /// # Example
     /// 
     /// This example demonstrates how one can combine two `TypeEq`s to use
     /// with a multi-parameter type.
     /// 
-    /// ```rust
+    /// This example requires the `"const_marker"` feature (enabled by default)
+    /// because it uses [`Usize`](crate::const_param::Usize)
+    /// 
+    #[cfg_attr(not(feature = "const_marker"), doc = "```ignore")]
+    #[cfg_attr(feature = "const_marker", doc = "```rust")]
     /// use typewit::{const_param::Usize, TypeEq, TypeFn};
     /// 
     /// assert_eq!(make_foo(TypeEq::NEW, TypeEq::NEW), Foo("hello", [3, 5, 8]));
@@ -508,12 +509,111 @@ impl<L, R> TypeEq<L, R> {
     /// ```
     /// 
     #[inline(always)]
-    pub const fn zip<U, D>(
-        self: TypeEq<L, R>,
-        other: TypeEq<U, D>,
-    ) -> TypeEq<(L, U), (R, D)> {
-        zip_project!(self, other, FnIdentity, (L, R), (U, D),)
+    pub const fn zip<L1, R1>(
+        self: TypeEq<L0, R0>,
+        other: TypeEq<L1, R1>,
+    ) -> TypeEq<(L0, L1), (R0, R1)> {
+        __zip_impl!{self[L0, R0], other[L1, R1]}
     }
+
+    /// Combines three `TypeEq<L*, R*>` to produce a
+    /// `TypeEq<(L0, L1, L2), (R0, R1, R2)>`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeEq, type_eq};
+    /// 
+    /// use std::cmp::Ordering::{self, Less};
+    /// 
+    /// assert_eq!(make_tuple(type_eq(), type_eq(), type_eq()), (3, "foo", Less));
+    /// 
+    /// fn make_tuple<A, B, C>(
+    ///     te0: TypeEq<A, u8>,
+    ///     te1: TypeEq<B, &str>,
+    ///     te2: TypeEq<C, Ordering>,
+    /// ) -> (A, B, C) {
+    ///     te0.zip3(te1, te2) // returns `TypeEq<(A, B, C), (u8, &str, Ordering)>`
+    ///         .to_left((3, "foo", Less))
+    /// }
+    /// 
+    /// ```
+    pub const fn zip3<L1, R1, L2, R2>(
+        self: TypeEq<L0, R0>,
+        other1: TypeEq<L1, R1>,
+        other2: TypeEq<L2, R2>,
+    ) -> TypeEq<(L0, L1, L2), (R0, R1, R2)> {
+        __zip_impl!{
+            self[L0, R0],
+            other1[L1, R1],
+            other2[L2, R2],
+        }
+    }
+
+    /// Combines four `TypeEq<L*, R*>` to produce a
+    /// `TypeEq<(L0, L1, L2, L3), (R0, R1, R2, L3)>`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeEq, type_eq};
+    /// 
+    /// use std::cmp::Ordering::{self, Less};
+    /// 
+    /// assert_eq!(
+    ///     make_tuple(type_eq(), type_eq(), type_eq(), type_eq()), 
+    ///     (3, "foo", Less, true),
+    /// );
+    /// 
+    /// fn make_tuple<A, B, C, D>(
+    ///     te0: TypeEq<A, u8>,
+    ///     te1: TypeEq<B, &str>,
+    ///     te2: TypeEq<C, Ordering>,
+    ///     te3: TypeEq<D, bool>,
+    /// ) -> (A, B, C, D) {
+    ///     let te: TypeEq<(A, B, C, D), (u8, &str, Ordering, bool)> = te0.zip4(te1, te2, te3);
+    ///     te.to_left((3, "foo", Less, true))
+    /// }
+    /// 
+    /// ```
+    pub const fn zip4<L1, R1, L2, R2, L3, R3>(
+        self: TypeEq<L0, R0>,
+        other1: TypeEq<L1, R1>,
+        other2: TypeEq<L2, R2>,
+        other3: TypeEq<L3, R3>,
+    ) -> TypeEq<(L0, L1, L2, L3), (R0, R1, R2, R3)> {
+        __zip_impl!{
+            self[L0, R0],
+            other1[L1, R1],
+            other2[L2, R2],
+            other3[L3, R3],
+        }
+    }
+
+}
+
+impl<L, R> TypeEq<L, R> {
+    /// Whether `L` is the same type as `R`.
+    /// 
+    /// False positive equality is fine for this associated constant,
+    /// since it's used to optimize out definitely unequal types.
+    const ARE_SAME_TYPE: Amb = {
+        // hacky way to emulate a lifetime-unaware
+        // `TypeId::of<L>() == TypeId::of<R>()`
+        let approx_same_type = {
+            core::mem::size_of::<L>() == core::mem::size_of::<R>()
+                && core::mem::align_of::<L>() == core::mem::align_of::<R>()
+                && core::mem::size_of::<Option<L>>() == core::mem::size_of::<Option<R>>()
+                && core::mem::align_of::<Option<L>>() == core::mem::align_of::<Option<R>>()
+        };
+
+        if approx_same_type {
+            Amb::Indefinite
+        } else {
+            Amb::No
+        }
+    };
+
 
     /// Hints to the compiler that a `TypeEq<L, R>`
     /// can only be constructed if `L == R`.
