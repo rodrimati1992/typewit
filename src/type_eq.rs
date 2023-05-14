@@ -472,6 +472,41 @@ impl<L, R> TypeEq<L, R> {
 
     /// Combines this `TypeEq<L, R>` with a `TypeEq<U, D>`, 
     /// producing a `TypeEq<(L, U), (R, D)>`.
+    /// 
+    /// # Example
+    /// 
+    /// This example demonstrates how one can combine two `TypeEq`s to use
+    /// with a multi-parameter type.
+    /// 
+    /// ```rust
+    /// use typewit::{const_param::Usize, TypeEq, TypeFn};
+    /// 
+    /// assert_eq!(make_foo(TypeEq::NEW, TypeEq::NEW), Foo("hello", [3, 5, 8]));
+    /// 
+    /// const fn make_foo<T, const N: usize>(
+    ///     te_ty: TypeEq<T, &'static str>,
+    ///     te_len: TypeEq<Usize<N>, Usize<3>>,
+    /// ) -> Foo<T, N> {
+    ///     // the type annotations are just for the reader, they can be inferred.
+    ///     let te_pair: TypeEq<(T, Usize<N>), (&str, Usize<3>)> = te_ty.zip(te_len);
+    /// 
+    ///     let te: TypeEq<Foo<T, N>, Foo<&str, 3>> = te_pair.project::<GFoo>();
+    /// 
+    ///     // `te.to_left(...)` here goes from `Foo<&str, 3>` to `Foo<T, N>`
+    ///     te.to_left(Foo("hello", [3, 5, 8]))
+    /// }
+    /// 
+    /// #[derive(Debug, PartialEq)]
+    /// struct Foo<T, const N: usize>(T, [u8; N]);
+    /// 
+    /// // Type-level function from `(T, Usize<N>)` to `Foo<T, N>`
+    /// struct GFoo;
+    /// 
+    /// impl<T, const N: usize> TypeFn<(T, Usize<N>)> for GFoo {
+    ///     type Output = Foo<T, N>;
+    /// }
+    /// ```
+    /// 
     #[inline(always)]
     pub const fn zip<U, D>(
         self: TypeEq<L, R>,
