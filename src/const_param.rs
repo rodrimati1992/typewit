@@ -2,31 +2,31 @@
 //! 
 //! # Example
 //! 
-//! Implementing fallible cross-array-size casting.
+//! This example emulates specialization,
+//! eliding a `.clone()` call when the created array is only one element long.
 //! 
 //! ```rust
 //! use typewit::{const_param::Usize, TypeEq};
 //! 
 //! let arr = [3u8, 5, 8];
 //! 
-//! assert_eq!(try_cast_size::<_, 3, 0>(arr), Err(arr));
-//! assert_eq!(try_cast_size::<_, 3, 1>(arr), Err(arr));
-//! assert_eq!(try_cast_size::<_, 3, 2>(arr), Err(arr));
-//! assert_eq!(try_cast_size::<_, 3, 3>(arr), Ok([3, 5, 8]));
-//! assert_eq!(try_cast_size::<_, 3, 4>(arr), Err(arr));
+//! assert_eq!(repeat(3), []);
+//! assert_eq!(repeat(3), [3]);
+//! assert_eq!(repeat(3), [3, 3]);
+//! assert_eq!(repeat(3), [3, 3, 3]);
+//! assert_eq!(repeat(3), [3, 3, 3, 3]);
 //! 
 //! 
-//! fn try_cast_size<T, const IN: usize, const OUT: usize>(
-//!     arr: [T; IN]
-//! ) -> Result<[T; OUT], [T; IN]> {
-//!     match Usize::<OUT>.eq(Usize::<IN>) {
-//!         // `te_len` ìs a `TypeEq<Usize<OUT>, Usize<IN>>`
-//!         Ok(te_len) => Ok(
-//!             TypeEq::new::<T>() // returns `TypeEq<T, T>`
-//!                 .in_array(te_len) // returns `TypeEq<[T; OUT], [T; IN]>`
-//!                 .to_left(arr) // goes from `[T; IN]` to `[T; OUT]`
-//!         ),
-//!         Err(_) => Err(arr),
+//! fn repeat<T: Clone, const OUT: usize>(val: T) -> [T; OUT] {
+//!     // `te_len` ìs a `TypeEq<Usize<OUT>, Usize<1>>`
+//!     if let Ok(te_len) = Usize::<OUT>.eq(Usize::<1>) {
+//!         // This branch is ran when `OUT == 1`
+//!         TypeEq::new::<T>()    // returns `TypeEq<T, T>`
+//!             .in_array(te_len) // returns `TypeEq<[T; OUT], [T; 1]>`
+//!             .to_left([val])   // goes from `[T; 1]` to `[T; OUT]`
+//!     } else {
+//!         // This branch is ran when `OUT != 1`
+//!         std::array::from_fn(|_| val.clone()),
 //!     }
 //! }
 //! ```
