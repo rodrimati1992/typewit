@@ -8,32 +8,74 @@ use typewit::const_marker::{
 fn test_integer_const_marker() {
 
     macro_rules! shared_test_case {
-        ($ty:ident) => ({
-            match $ty::<0>.eq($ty::<1>) {
-                Ok(typewit::TypeEq::<$ty<0>, $ty<1>>{..}) => panic!("OH NO"),
-                Err(typewit::TypeNe::<$ty<0>, $ty<1>>{..}) => (),
+        ($ty:ident, $prim:ty) => ({
+            const N: $prim = {
+                let n: $prim = 0;
+                n.wrapping_sub(1)
+            };
+            const Z: $prim = 0;
+            const P: $prim = 1;
+
+            match $ty::<N>.eq($ty::<Z>) {
+                Ok(typewit::TypeEq::<$ty<N>, $ty<Z>>{..}) => panic!("OH NO"),
+                Err(typewit::TypeNe::<$ty<N>, $ty<Z>>{..}) => (),
             }
 
-            match $ty::<1>.eq($ty::<1>) {
-                Ok(typewit::TypeEq::<$ty<1>, $ty<1>>{..}) => (),
-                Err(typewit::TypeNe::<$ty<1>, $ty<1>>{..}) => panic!("OH NO"),
+            match $ty::<Z>.eq($ty::<N>) {
+                Ok(typewit::TypeEq::<$ty<Z>, $ty<N>>{..}) => panic!("OH NO"),
+                Err(typewit::TypeNe::<$ty<Z>, $ty<N>>{..}) => (),
+            }
+
+            match $ty::<P>.eq($ty::<N>) {
+                Ok(typewit::TypeEq::<$ty<P>, $ty<N>>{..}) => panic!("OH NO"),
+                Err(typewit::TypeNe::<$ty<P>, $ty<N>>{..}) => (),
+            }
+
+            match $ty::<N>.eq($ty::<P>) {
+                Ok(typewit::TypeEq::<$ty<N>, $ty<P>>{..}) => panic!("OH NO"),
+                Err(typewit::TypeNe::<$ty<N>, $ty<P>>{..}) => (),
+            }
+
+            match $ty::<P>.eq($ty::<Z>) {
+                Ok(typewit::TypeEq::<$ty<P>, $ty<Z>>{..}) => panic!("OH NO"),
+                Err(typewit::TypeNe::<$ty<P>, $ty<Z>>{..}) => (),
+            }
+
+            match $ty::<Z>.eq($ty::<P>) {
+                Ok(typewit::TypeEq::<$ty<Z>, $ty<P>>{..}) => panic!("OH NO"),
+                Err(typewit::TypeNe::<$ty<Z>, $ty<P>>{..}) => (),
+            }
+
+            match $ty::<N>.eq($ty::<N>) {
+                Ok(typewit::TypeEq::<$ty<N>, $ty<N>>{..}) => (),
+                Err(typewit::TypeNe::<$ty<N>, $ty<N>>{..}) => panic!("OH NO"),
+            }
+
+            match $ty::<Z>.eq($ty::<Z>) {
+                Ok(typewit::TypeEq::<$ty<Z>, $ty<Z>>{..}) => (),
+                Err(typewit::TypeNe::<$ty<Z>, $ty<Z>>{..}) => panic!("OH NO"),
+            }
+
+            match $ty::<P>.eq($ty::<P>) {
+                Ok(typewit::TypeEq::<$ty<P>, $ty<P>>{..}) => (),
+                Err(typewit::TypeNe::<$ty<P>, $ty<P>>{..}) => panic!("OH NO"),
             }
         });
     }
 
-    shared_test_case!{U8}
-    shared_test_case!{U16}
-    shared_test_case!{U32}
-    shared_test_case!{U64}
-    shared_test_case!{U128}
-    shared_test_case!{Usize}
+    shared_test_case!{U8, u8}
+    shared_test_case!{U16, u16}
+    shared_test_case!{U32, u32}
+    shared_test_case!{U64, u64}
+    shared_test_case!{U128, u128}
+    shared_test_case!{Usize, usize}
 
-    shared_test_case!{I8}
-    shared_test_case!{I16}
-    shared_test_case!{I32}
-    shared_test_case!{I64}
-    shared_test_case!{I128}
-    shared_test_case!{Isize}
+    shared_test_case!{I8, i8}
+    shared_test_case!{I16, i16}
+    shared_test_case!{I32, i32}
+    shared_test_case!{I64, i64}
+    shared_test_case!{I128, i128}
+    shared_test_case!{Isize, isize}
 }
 
 #[test]
