@@ -26,7 +26,7 @@
 //!             .to_left([val])   // goes from `[T; 1]` to `[T; OUT]`
 //!     } else {
 //!         // This branch is ran when `OUT != 1`
-//!         std::array::from_fn(|_| val.clone()),
+//!         std::array::from_fn(|_| val.clone())
 //!     }
 //! }
 //! ```

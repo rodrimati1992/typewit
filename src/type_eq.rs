@@ -1,13 +1,10 @@
 use crate::{
-    type_fn::{self, CallFn, InvokeAlias}, 
+    type_fn::{self, CallFn, InvokeAlias, TypeFn}, 
     MakeTypeWitness, TypeWitnessTypeArg,
 };
 
 #[cfg(feature = "const_marker")]
-use crate::{
-    const_marker::Usize,
-    TypeFn,
-};
+use crate::const_marker::Usize;
 
 
 use core::{

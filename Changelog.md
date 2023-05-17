@@ -24,7 +24,8 @@ Added `const_marker` module, conditional on `"const_marker"` feature, with these
 
 Every type in `const_marker` defines an `eq` method, and implement `Copy + Clone + Debug`.
 
-Added `TypeNe` type, with only a `new_unchecked` constructor function.
+Added `TypeNe` type, with a `new_unchecked` constructor function.
+`TypeNe` implements `Clone`, `Copy`, `Debug`, `Eq`, `Hash`, `Ord`, `PartialEq`, `PartialOrd`.
 
 Added `TypeEq::{in_array, zip, zip3, zip4}` methods
     

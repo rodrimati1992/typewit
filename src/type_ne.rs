@@ -1,3 +1,10 @@
+use core::{
+    cmp::{Ordering, Eq, Ord, PartialEq, PartialOrd},
+    hash::{Hash, Hasher},
+    fmt::{self, Debug},
+};
+
+
 pub use self::type_ne_::TypeNe;
 
 mod type_ne_ {
@@ -34,3 +41,46 @@ mod type_ne_ {
     }
 
 }
+
+impl<L: ?Sized, R: ?Sized> Copy for TypeNe<L, R> {}
+
+impl<L: ?Sized, R: ?Sized> Clone for TypeNe<L, R> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<L: ?Sized, R: ?Sized> Debug for TypeNe<L, R> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("TypeNe")
+    }
+}
+
+impl<L: ?Sized, R: ?Sized> PartialEq for TypeNe<L, R> {
+    fn eq(&self, _: &Self) -> bool {
+        true
+    }
+}
+
+impl<L: ?Sized, R: ?Sized> PartialOrd for TypeNe<L, R> {
+    fn partial_cmp(&self, _: &Self) -> Option<Ordering> {
+        Some(Ordering::Equal)
+    }
+}
+
+impl<L: ?Sized, R: ?Sized> Ord for TypeNe<L, R> {
+    fn cmp(&self, _: &Self) -> Ordering {
+        Ordering::Equal
+    }
+}
+
+impl<L: ?Sized, R: ?Sized> Eq for TypeNe<L, R> {}
+
+impl<L: ?Sized, R: ?Sized> Hash for TypeNe<L, R> {
+    fn hash<H>(&self, _state: &mut H)
+    where H: Hasher
+    {}
+}
+
+
+

@@ -1,11 +1,11 @@
 error[E0308]: mismatched types
- --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:5:5
+ --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:4:5
   |
-4 | fn flipper<L, R>(te: TypeEq<L, R>) -> TypeEq<L, R> {
+3 | fn flipper<L, R>(te: TypeEq<L, R>) -> TypeEq<L, R> {
   |            -  - found type parameter  ------------ expected `TypeEq<L, R>` because of return type
   |            |
   |            expected type parameter
-5 |     te.flip()
+4 |     te.flip()
   |     ^^^^^^^^^ expected `TypeEq<L, R>`, found `TypeEq<R, L>`
   |
   = note: expected struct `TypeEq<L, R>`
@@ -14,18 +14,18 @@ error[E0308]: mismatched types
   = note: for more information, visit https://doc.rust-lang.org/book/ch10-02-traits.html#traits-as-parameters
 help: try removing the method call
   |
-5 -     te.flip()
-5 +     te
+4 -     te.flip()
+4 +     te
   |
 
 error[E0308]: mismatched types
- --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:9:16
+ --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:8:16
   |
-8 | fn joiner_a<A, B, C>(first: TypeEq<A, B>, second: TypeEq<B, C>) -> TypeEq<A, B> {
+7 | fn joiner_a<A, B, C>(first: TypeEq<A, B>, second: TypeEq<B, C>) -> TypeEq<A, B> {
   |                -  - found type parameter
   |                |
   |                expected type parameter
-9 |     first.join(second)
+8 |     first.join(second)
   |           ---- ^^^^^^ expected `TypeEq<B, B>`, found `TypeEq<B, C>`
   |           |
   |           arguments to this method are incorrect
@@ -41,13 +41,13 @@ note: method defined here
   |                      ^^^^
 
 error[E0308]: mismatched types
-  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:13:24
+  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:12:24
    |
-12 | fn joiner_b<A, B, C>(first: TypeEq<A, B>, second: TypeEq<C, B>) {
+11 | fn joiner_b<A, B, C>(first: TypeEq<A, B>, second: TypeEq<C, B>) {
    |                -  - found type parameter
    |                |
    |                expected type parameter
-13 |     let _ = first.join(second);
+12 |     let _ = first.join(second);
    |                   ---- ^^^^^^ expected `TypeEq<B, _>`, found `TypeEq<C, B>`
    |                   |
    |                   arguments to this method are incorrect
@@ -63,45 +63,75 @@ note: method defined here
    |                      ^^^^
 
 error[E0308]: mismatched types
-  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:17:5
+  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:16:5
    |
-16 | fn in_ref_to_different_type<L, R>(te: TypeEq<L, R>) -> TypeEq<&'static u8, &'static u16> {
+15 | fn in_ref_to_different_type<L, R>(te: TypeEq<L, R>) -> TypeEq<&'static u8, &'static u16> {
    |                             - this type parameter      --------------------------------- expected `TypeEq<&'static u8, &'static u16>` because of return type
-17 |     te.in_ref()
+16 |     te.in_ref()
    |     ^^^^^^^^^^^ expected `TypeEq<&u8, &u16>`, found `TypeEq<&L, &R>`
    |
    = note: expected struct `TypeEq<&'static u8, &'static u16>`
               found struct `TypeEq<&L, &R>`
 
 error[E0308]: mismatched types
-  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:21:5
+  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:20:5
    |
-20 | fn in_mut_to_different_type<'a, L, R>(te: TypeEq<L, R>) -> TypeEq<&'a mut u8, &'a mut u16> {
+19 | fn in_mut_to_different_type<'a, L, R>(te: TypeEq<L, R>) -> TypeEq<&'a mut u8, &'a mut u16> {
    |                                 - this type parameter      ------------------------------- expected `TypeEq<&'a mut u8, &'a mut u16>` because of return type
-21 |     te.in_mut()
+20 |     te.in_mut()
    |     ^^^^^^^^^^^ expected `TypeEq<&mut u8, &mut u16>`, found `TypeEq<&mut L, &mut R>`
    |
    = note: expected struct `TypeEq<&'a mut u8, &'a mut u16>`
               found struct `TypeEq<&mut L, &mut R>`
 
 error[E0308]: mismatched types
-  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:25:5
+  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:24:5
    |
-24 | fn map_to_different_type<'a, L, R>(te: TypeEq<L, R>) -> TypeEq<u8, u16> {
+23 | fn map_to_different_type<'a, L, R>(te: TypeEq<L, R>) -> TypeEq<u8, u16> {
    |                                                         --------------- expected `TypeEq<u8, u16>` because of return type
-25 |     te.map(Mapper)
+24 |     te.map(Mapper)
    |     ^^^^^^^^^^^^^^ expected `TypeEq<u8, u16>`, found `TypeEq<[L; 1], [R; 1]>`
    |
    = note: expected struct `TypeEq<u8, u16>`
               found struct `TypeEq<[L; 1], [R; 1]>`
 
 error[E0308]: mismatched types
-  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:28:5
+  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:27:5
    |
-27 | fn project_to_different_type<'a, L, R>(te: TypeEq<L, R>) -> TypeEq<u8, u16> {
+26 | fn project_to_different_type<'a, L, R>(te: TypeEq<L, R>) -> TypeEq<u8, u16> {
    |                                                             --------------- expected `TypeEq<u8, u16>` because of return type
-28 |     te.project::<Mapper>()
+27 |     te.project::<Mapper>()
    |     ^^^^^^^^^^^^^^^^^^^^^^ expected `TypeEq<u8, u16>`, found `TypeEq<[L; 1], [R; 1]>`
    |
    = note: expected struct `TypeEq<u8, u16>`
               found struct `TypeEq<[L; 1], [R; 1]>`
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:44:5
+   |
+41 | fn in_array_to_different_type<'a, L, R>(
+   |                                   - this type parameter
+42 |     te: TypeEq<L, R>
+43 | ) -> TypeEq<[u8; 1], [u16; 1]> {
+   |      ------------------------- expected `TypeEq<[u8; 1], [u16; 1]>` because of return type
+44 |     te.in_array(TypeEq::new::<Usize<1>>())
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `TypeEq<[u8; 1], [u16; 1]>`, found `TypeEq<[L; 1], [R; 1]>`
+   |
+   = note: expected struct `TypeEq<[u8; 1], [u16; 1]>`
+              found struct `TypeEq<[L; 1], [R; 1]>`
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:52:17
+   |
+52 |     te.in_array(te_len)
+   |        -------- ^^^^^^ expected `1`, found `A`
+   |        |
+   |        arguments to this method are incorrect
+   |
+   = note: expected struct `TypeEq<Usize<1>, Usize<1>>`
+              found struct `TypeEq<Usize<A>, Usize<B>>`
+note: method defined here
+  --> src/type_eq.rs
+   |
+   |     pub const fn in_array<const UL: usize, const UR: usize>(
+   |                  ^^^^^^^^

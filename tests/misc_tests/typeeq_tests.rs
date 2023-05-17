@@ -145,3 +145,62 @@ fn in_box_test() {
     assert_eq!(TypeEq::new::<u8>().in_box().to_right(Box::new(5u8)), Box::new(5u8));
 }
 
+
+#[test]
+fn zip_test() {
+    const fn do_zip<A, B>(
+        left: TypeEq<A, u8>,
+        right: TypeEq<B, &'static str>,
+    ) -> TypeEq<(A, B), (u8, &'static str)> {
+        left.zip(right)
+    }
+
+    let te = do_zip(TypeEq::NEW, TypeEq::NEW);
+    assert_eq!(te.to_left((3, "foo")), (3, "foo"));
+}
+
+#[test]
+fn zip3_test() {
+    const fn do_zip<A, B, C>(
+        a: TypeEq<A, u8>,
+        b: TypeEq<B, &'static str>,
+        c: TypeEq<C, Vec<u8>>,
+    ) -> TypeEq<(A, B, C), (u8, &'static str, Vec<u8>)> {
+        a.zip3(b, c)
+    }
+
+    let te = do_zip(TypeEq::NEW, TypeEq::NEW, TypeEq::NEW);
+    assert_eq!(te.to_left((3, "foo", vec![5, 8])), (3, "foo", vec![5, 8]));
+}
+
+#[test]
+fn zip4_test() {
+    const fn do_zip<A, B, C, D>(
+        a: TypeEq<A, u8>,
+        b: TypeEq<B, &'static str>,
+        c: TypeEq<C, Vec<u8>>,
+        d: TypeEq<D, [u8; 2]>,
+    ) -> TypeEq<(A, B, C, D), (u8, &'static str, Vec<u8>, [u8; 2])> {
+        a.zip4(b, c, d)
+    }
+
+    let te = do_zip(TypeEq::NEW, TypeEq::NEW, TypeEq::NEW, TypeEq::NEW);
+    assert_eq!(
+        te.to_left((3, "foo", vec![5, 8], [13, 21])), 
+        (3, "foo", vec![5, 8], [13, 21]),
+    );
+}
+
+
+
+#[cfg(feature = "const_marker")]
+#[test]
+fn test_in_array() {
+    use typewit::const_marker::Usize;
+
+    Usize::<0>.eq(Usize::<1>).unwrap_err();
+
+    let te = TypeEq::new::<Vec<u8>>().in_array(Usize::<1>.eq(Usize::<1>).unwrap());
+    assert_type::<_, TypeEq<[Vec<u8>; 1], [Vec<u8>; 1]>>(te);
+    assert_eq!(te.to_left([vec![3, 5, 8]]), [vec![3, 5, 8]]);
+}
