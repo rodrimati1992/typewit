@@ -120,27 +120,36 @@ declare_const_param_type!{
     /// ### Array
     /// 
     /// This example demonstrates how `Usize` can be used to 
-    /// fallibly return a 2 element long array
-    /// in a function that returns an array of any length.
+    /// specialize behavior on array length.
     /// 
     /// ```rust
     /// use typewit::{const_marker::Usize, TypeEq};
     /// 
-    /// assert_eq!(try_from_pair::<_, 0>((3, 5)), Err((3, 5)));
-    /// assert_eq!(try_from_pair::<_, 1>((3, 5)), Err((3, 5)));
+    /// assert_eq!(try_from_pair::<_, 0>((3, 5)), Ok([]));
+    /// assert_eq!(try_from_pair::<_, 1>((3, 5)), Ok([3]));
     /// assert_eq!(try_from_pair::<_, 2>((3, 5)), Ok([3, 5]));
     /// assert_eq!(try_from_pair::<_, 3>((3, 5)), Err((3, 5)));
     /// 
     /// 
     /// const fn try_from_pair<T: Copy, const LEN: usize>(pair: (T, T)) -> Result<[T; LEN], (T, T)> {
-    ///     match Usize::<LEN>.eq(Usize::<2>) {
-    ///         // `te_len` is a `TypeEq<Usize<LEN>, Usize<2>>`
-    ///         Ok(te_len) => Ok(
-    ///             TypeEq::new::<T>() // `TypeEq<T, T>`
-    ///                 .in_array(te_len) // `TypeEq<[T; LEN], [T; 2]>`
-    ///                 .to_left([pair.0, pair.1]) // Goes from `[T; 2]` to `[T; LEN]`
-    ///         ),
-    ///         Err(_) => Err(pair),
+    ///     if let Ok(te_len) = Usize::<LEN>.eq(Usize::<0>) {
+    ///         // this branch is ran on `LEN == 0`
+    ///         // `te_len` is a `TypeEq<Usize<LEN>, Usize<0>>`
+    ///         Ok(
+    ///             TypeEq::new::<T>()    // `TypeEq<T, T>`
+    ///                 .in_array(te_len) // `TypeEq<[T; LEN], [T; 0]>`
+    ///                 .to_left([])      // Goes from `[T; 0]` to `[T; LEN]`
+    ///         )
+    ///     } else if let Ok(te_len) = Usize.eq(Usize) {
+    ///         // this branch is ran on `LEN == 1`
+    ///         // `te_len` is inferred to be `TypeEq<Usize<LEN>, Usize<1>>`
+    ///         Ok(TypeEq::NEW.in_array(te_len).to_left([pair.0]))
+    ///     } else if let Ok(te_len) = Usize.eq(Usize) {
+    ///         // this branch is ran on `LEN == 2`
+    ///         // `te_len` is inferred to be `TypeEq<Usize<LEN>, Usize<2>>`
+    ///         Ok(TypeEq::NEW.in_array(te_len).to_left([pair.0, pair.1]))
+    ///     } else {
+    ///         Err(pair)
     ///     }
     /// }
     /// 
@@ -167,6 +176,7 @@ declare_const_param_type!{
     /// const fn mutate<const LEN: usize>(arr: Array<LEN>) -> Array<LEN> {
     ///     match Usize::<LEN>.eq(Usize::<3>) {
     ///         // `te_len` is a `TypeEq<Usize<LEN>, Usize<3>>`
+    ///         // this branch is ran on `LEN == 3`
     ///         Ok(te_len) => {
     ///             // `te` is a `TypeEq<Array<LEN>, Array<3>>`
     ///             let te = te_len.project::<GArray>();
