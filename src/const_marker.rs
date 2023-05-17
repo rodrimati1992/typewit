@@ -6,7 +6,7 @@
 //! eliding a `.clone()` call when the created array is only one element long.
 //! 
 //! ```rust
-//! use typewit::{const_param::Usize, TypeEq};
+//! use typewit::{const_marker::Usize, TypeEq};
 //! 
 //! let arr = [3u8, 5, 8];
 //! 
@@ -124,7 +124,7 @@ declare_const_param_type!{
     /// in a function that returns an array of any length.
     /// 
     /// ```rust
-    /// use typewit::{const_param::Usize, TypeEq};
+    /// use typewit::{const_marker::Usize, TypeEq};
     /// 
     /// assert_eq!(try_from_pair::<_, 0>((3, 5)), Err((3, 5)));
     /// assert_eq!(try_from_pair::<_, 1>((3, 5)), Err((3, 5)));
@@ -152,7 +152,7 @@ declare_const_param_type!{
     /// const-generic struct to a function expecting a concrete type of that struct.
     /// 
     /// ```rust
-    /// use typewit::{const_param::Usize, TypeEq, TypeFn};
+    /// use typewit::{const_marker::Usize, TypeEq, TypeFn};
     /// 
     /// assert_eq!(mutate(Array([])), Array([]));
     /// assert_eq!(mutate(Array([3])), Array([3]));

@@ -5,7 +5,7 @@ use crate::{
 
 #[cfg(feature = "const_marker")]
 use crate::{
-    const_param::Usize,
+    const_marker::Usize,
     TypeFn,
 };
 
@@ -476,11 +476,11 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// with a multi-parameter type.
     /// 
     /// This example requires the `"const_marker"` feature (enabled by default)
-    /// because it uses [`Usize`](crate::const_param::Usize)
+    /// because it uses [`Usize`](crate::const_marker::Usize)
     /// 
     #[cfg_attr(not(feature = "const_marker"), doc = "```ignore")]
     #[cfg_attr(feature = "const_marker", doc = "```rust")]
-    /// use typewit::{const_param::Usize, TypeEq, TypeFn};
+    /// use typewit::{const_marker::Usize, TypeEq, TypeFn};
     /// 
     /// assert_eq!(make_foo(TypeEq::NEW, TypeEq::NEW), Foo("hello", [3, 5, 8]));
     /// 
@@ -984,7 +984,7 @@ impl<L: Sized, R: Sized> TypeEq<L, R> {
     /// 
     /// This example demonstrates how `in_array` allows one to return an empty array:
     /// ```rust
-    /// use typewit::{const_param::Usize, TypeEq};
+    /// use typewit::{const_marker::Usize, TypeEq};
     /// 
     /// use std::num::Wrapping;
     /// 
