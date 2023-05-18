@@ -63,6 +63,9 @@ note: required by a bound in `MAKE`
    |
    | pub trait MakeTypeWitness: TypeWitnessTypeArg {
    |                            ^^^^^^^^^^^^^^^^^^ required by this bound in `MakeTypeWitness::MAKE`
+   |     /// A constant with the type witness
+   |     const MAKE: Self;
+   |           ---- required by a bound in this associated constant
    = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 help: consider restricting type parameter `T`
     |
@@ -116,6 +119,9 @@ note: required by a bound in `MAKE`
    |
    | pub trait MakeTypeWitness: TypeWitnessTypeArg {
    |                            ^^^^^^^^^^^^^^^^^^ required by this bound in `MakeTypeWitness::MAKE`
+   |     /// A constant with the type witness
+   |     const MAKE: Self;
+   |           ---- required by a bound in this associated constant
    = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 help: consider restricting type parameter `T`
     |
