@@ -111,18 +111,18 @@ macro_rules! __parse_generics {
 
 #[doc(hidden)]
 #[macro_export]
-macro_rules! __where_clause_trailing_comma {
+macro_rules! __trailing_comma {
     (($($macro:ident)::* !($($args:tt)*)) [$($prev:tt)*] [] ) => {
-        $($macro)::* !{$($args)* where [$($prev)*] }
+        $($macro)::* !{$($args)* [$($prev)*] }
     };
     (($($macro:ident)::* !($($args:tt)*)) [$($prev:tt)*] [,]) => {
-        $($macro)::* !{$($args)* where [$($prev)*,] }
+        $($macro)::* !{$($args)* [$($prev)*,] }
     };
     (($($macro:ident)::* !($($args:tt)*)) [$($prev:tt)*] [$t0:tt]) => {
-        $($macro)::* !{$($args)* where [$($prev)* $t0,] }
+        $($macro)::* !{$($args)* [$($prev)* $t0,] }
     };
     ($fixed:tt [$($prev:tt)*] [$t0:tt $($rem:tt)+]) => {
-        $crate::__where_clause_trailing_comma!{
+        $crate::__trailing_comma!{
             $fixed [$($prev)* $t0] [$($rem)*]
         }
     };

@@ -325,7 +325,7 @@ macro_rules! __stw_with_parsed_generics {
         $phantom_args:tt
         $generics:tt
     ) => {
-        $crate::__where_clause_trailing_comma! {
+        $crate::__trailing_comma! {
             (
                 $crate::__stw_with_parsed_args ! (
                     $(# $enum_meta)*
@@ -348,7 +348,7 @@ macro_rules! __stw_with_parsed_args {
         derive $derive:tt
         $vis:vis enum $enum:ident $generics:tt $gen_args:tt
         { $($variant_args:tt)* }
-        where $where:tt
+        $where:tt
     ) => {
         $crate::__stw_top_items!{
             $(# $enum_meta)*
