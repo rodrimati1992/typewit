@@ -26,7 +26,7 @@
 //!             .to_left([val])   // goes from `[T; 1]` to `[T; OUT]`
 //!     } else {
 //!         // This branch is ran when `OUT != 1`
-//!         std::array::from_fn(|_| val.clone())
+//!         [(); OUT].map(|_| val.clone())
 //!     }
 //! }
 //! ```
@@ -122,7 +122,9 @@ declare_const_param_type!{
     /// This example demonstrates how `Usize` can be used to 
     /// specialize behavior on array length.
     /// 
-    /// ```rust
+    /// (this example requires Rust 1.61.0, because it uses trait bounds in const fns)
+    #[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
+    #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
     /// use typewit::{const_marker::Usize, TypeEq};
     /// 
     /// assert_eq!(try_from_pair::<_, 0>((3, 5)), Ok([]));

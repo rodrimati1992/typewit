@@ -980,7 +980,9 @@ impl<L: Sized, R: Sized> TypeEq<L, R> {
     /// </details>
     /// 
     /// This example demonstrates how `in_array` allows one to return an empty array:
-    /// ```rust
+    /// (this example requires Rust 1.61.0, because it uses trait bounds in const fns)
+    #[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
+    #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
     /// use typewit::{const_marker::Usize, TypeEq};
     /// 
     /// use std::num::Wrapping;
