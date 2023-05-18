@@ -2,6 +2,37 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.2.0
+
+Added `"const_marker"` feature, enabled by the default feature.
+
+Added `const_marker` module, conditional on `"const_marker"` feature, with these items: 
+- `Bool` (unit struct)
+- `Char` (unit struct)
+- `I128` (unit struct)
+- `I16` (unit struct)
+- `I32` (unit struct)
+- `I64` (unit struct)
+- `I8` (unit struct)
+- `Isize` (unit struct)
+- `U128` (unit struct)
+- `U16` (unit struct)
+- `U32` (unit struct)
+- `U64` (unit struct)
+- `U8` (unit struct)
+- `Usize` (unit struct)
+
+Every type in `const_marker` defines an `eq` method, and implement `Copy + Clone + Debug`.
+
+Added `TypeNe` type, with a `new_unchecked` constructor function.
+`TypeNe` implements `Clone`, `Copy`, `Debug`, `Eq`, `Hash`, `Ord`, `PartialEq`, `PartialOrd`.
+
+Added `TypeEq::{in_array, zip, zip3, zip4}` methods
+    
+Added `typewit::type_fn::FnIdentity` type-level function.
+
+
+
 ### 1.1.0
 
 Reduced Minimum Supported Rust Version to 1.57.0

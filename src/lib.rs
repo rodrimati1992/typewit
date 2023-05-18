@@ -193,6 +193,9 @@
 //! 
 //! - `"alloc"`: enable items that use anything from the standard `alloc` crate.
 //! 
+//! - `"const_marker"`(enabled by default): Enables the [`const_marker`] module,
+//! and all items that depend on it.
+//! 
 //! - `"mut_refs"`: turns functions that take mutable references into const fns.
 //! note: as of April 2023, 
 //! this crate feature requires a stable compiler from the future.
@@ -220,6 +223,7 @@
 //! 
 //! [`TypeEq`]: crate::TypeEq
 //! [`TypeFn`]: crate::type_fn::TypeFn
+//! [`const_marker`]: crate::const_marker
 #![no_std]
 #![cfg_attr(feature = "nightly_mut_refs", feature(const_mut_refs))]
 #![cfg_attr(feature = "docsrs", feature(doc_cfg))]
@@ -243,13 +247,20 @@ macro_rules! explain_type_witness {
 
 #[macro_use]
 pub mod type_fn;
+
+#[cfg(feature = "const_marker")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "const_marker")))]
+pub mod const_marker;
+
 mod utils;
 mod macros;
 mod type_eq;
+mod type_ne;
 mod type_witness_traits;
 
 pub use crate::{
     type_eq::*,
+    type_ne::*,
     type_witness_traits::*,
 };
 

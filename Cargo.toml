@@ -1,6 +1,6 @@
 [package]
 name = "typewit"
-version = "1.1.1"
+version = "1.2.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 rust-version = "1.57.0"
 edition = "2021"
@@ -22,8 +22,10 @@ include = [
 version = "1.0"
 
 [features]
+default = ["const_marker"]
 rust_1_61 = []
 rust_stable = ["rust_1_61"]
+const_marker = []
 alloc = []
 mut_refs = []
 nightly_mut_refs = ["mut_refs"]
@@ -31,5 +33,5 @@ docsrs = []
 __ui_tests = []
 
 [package.metadata.docs.rs]
-features = ["alloc", "rust_stable", "nightly_mut_refs", "docsrs"]
+features = ["alloc", "rust_stable", "nightly_mut_refs", "const_marker", "docsrs"]
 

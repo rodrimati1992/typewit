@@ -1,7 +1,11 @@
 use crate::{
-    type_fn::{self, CallFn, InvokeAlias}, 
+    type_fn::{self, CallFn, InvokeAlias, TypeFn}, 
     MakeTypeWitness, TypeWitnessTypeArg,
 };
+
+#[cfg(feature = "const_marker")]
+use crate::const_marker::Usize;
+
 
 use core::{
     cmp::{Ordering, Eq, Ord, PartialEq, PartialOrd},
@@ -15,24 +19,99 @@ use alloc::boxed::Box;
 
 
 macro_rules! projected_type_eq {
-    // `$L` and `$R` are both identifiers,
-    // so that they are either concrete types or type parameters
-    // (this protects against type macros, 
-    // which can expand to different types on each use).
-    ($type_eq:expr, $L:ident, $R:ident, $F:ty) => ({
-        let _te: $crate::TypeEq<$L, $R> = $type_eq;
-
+    // Since `$L` and `$R` are used only onces
+    // it's safe to declare them as `:ty` (safe against malicious type macros).
+    ($type_eq:expr, $L:ty, $R:ty, $F:ty) => ({
         // safety: 
         // This macro takes a `TypeEq<$L, $R>` value,
         // which requires `$L == $R` to be constructed,
         // therefore `CallFn<F, $L> == CallFn<F, $R>`
         unsafe {
-            // using a type alias to protect against `$F` being a type macro,
-            // which can expand to different type-level functions on each use.
-            $crate::__ProjectedTypeEq::<$F, $L, $R>::new_unchecked()
+            $crate::type_eq::__ProjectVars::<$F, $L, $R> {
+                te: $type_eq,
+                projected_te: $crate::TypeEq::new_unchecked(),
+            }.projected_te
         }
     })
 }
+
+struct __ProjectVars<F, L: ?Sized, R: ?Sized> 
+where
+    InvokeAlias<F>: TypeFn<L> + TypeFn<R>
+{
+    #[allow(dead_code)]
+    te: TypeEq<L, R>,
+
+    //         TypeEq<L, R> 
+    // implies TypeEq<CallFn<F, L>, CallFn<F, R>>
+    projected_te: TypeEq<CallFn<InvokeAlias<F>, L>, CallFn<InvokeAlias<F>, R>>,
+}
+
+
+macro_rules! __zip_impl {
+    // Using `:ident` to prevent usage of macros,
+    // which can expand to different values on each use
+    ($( $type_eq:ident [$L:ident, $R:ident] ),* $(,)*) => {
+        $(
+            let _te: $crate::TypeEq<$L, $R> = $type_eq;
+        )*
+
+        // SAFETY: 
+        // `$L == $R` for every passed `$type_eq`
+        // implies `(L0, L1, ...) == (R0, R1, ...)`
+        unsafe {
+            $crate::TypeEq::<($($L,)*), ($($R,)*)>::new_unchecked()
+        }
+    }
+}
+
+
+// Equivalent to `type_eq.zip(other_type_eq).project::<Func>()`,
+// defined to ensure that methods which do zip+project have 0 overhead in debug builds.
+macro_rules! zip_project {
+    // Since `$L0`, `$L1`,`$R0`, and `$R1` are all used only once,
+    // it's safe to declare them as `:ty` (safe against malicious type macros).
+    (
+        $left_type_eq:expr,
+        $right_type_eq:expr,
+        $F: ty,
+        ($L0:ty, $R0:ty),
+        ($L1:ty, $R1:ty),
+    ) => ({
+        $crate::type_eq::__ZipProjectVars::<$F, $L0, $R0, $L1, $R1> {
+            left_te: $left_type_eq,
+            right_te: $right_type_eq,
+            projected_te: {
+                // SAFETY: 
+                // `$L0 == $R0` and `$L1 == $R1` implies `($L0, $L1) == ($R0, $R1)`,
+                // 
+                // Using `$F` only once, as a type argument,
+                // to protect against type-position macros that expand to 
+                // different types on each use.
+                unsafe {
+                    $crate::TypeEq::new_unchecked()
+                }
+            }
+        }.projected_te
+    });
+}
+
+struct __ZipProjectVars<F, L0, R0, L1, R1> 
+where
+    F: TypeFn<(L0, L1)> + TypeFn<(R0, R1)>
+{
+    #[allow(dead_code)]
+    left_te: TypeEq<L0, R0>,
+
+    #[allow(dead_code)]
+    right_te: TypeEq<L1, R1>,
+
+    //         (TypeEq<L0, R0>, TypeEq<L1, R1>) 
+    // implies TypeEq<(L0, L1), (R0, R1)> 
+    // implies TypeEq<CallFn<F, (L0, L1)>, CallFn<F, (R0, R1)>>
+    projected_te: TypeEq<CallFn<F, (L0, L1)>, CallFn<F, (R0, R1)>>,
+}
+
 
 /// A [`TypeEq`] whose type arguments are projected using the 
 /// `F` [type-level function](crate::type_fn::TypeFn).
@@ -384,6 +463,132 @@ impl<L: ?Sized, R: ?Sized> Clone for TypeEq<L, R> {
     }
 }
 
+impl<L0, R0> TypeEq<L0, R0> {
+    /// Combines this `TypeEq<L0, R0>` with a `TypeEq<L1, R1>`, 
+    /// producing a `TypeEq<(L0, L1), (R0, R1)>`.
+    /// 
+    /// # Example
+    /// 
+    /// This example demonstrates how one can combine two `TypeEq`s to use
+    /// with a multi-parameter type.
+    /// 
+    /// This example requires the `"const_marker"` feature (enabled by default)
+    /// because it uses [`Usize`](crate::const_marker::Usize)
+    /// 
+    #[cfg_attr(not(feature = "const_marker"), doc = "```ignore")]
+    #[cfg_attr(feature = "const_marker", doc = "```rust")]
+    /// use typewit::{const_marker::Usize, TypeEq, TypeFn};
+    /// 
+    /// assert_eq!(make_foo(TypeEq::NEW, TypeEq::NEW), Foo("hello", [3, 5, 8]));
+    /// 
+    /// const fn make_foo<T, const N: usize>(
+    ///     te_ty: TypeEq<T, &'static str>,
+    ///     te_len: TypeEq<Usize<N>, Usize<3>>,
+    /// ) -> Foo<T, N> {
+    ///     // the type annotations are just for the reader, they can be inferred.
+    ///     let te_pair: TypeEq<(T, Usize<N>), (&str, Usize<3>)> = te_ty.zip(te_len);
+    /// 
+    ///     let te: TypeEq<Foo<T, N>, Foo<&str, 3>> = te_pair.project::<GFoo>();
+    /// 
+    ///     // `te.to_left(...)` here goes from `Foo<&str, 3>` to `Foo<T, N>`
+    ///     te.to_left(Foo("hello", [3, 5, 8]))
+    /// }
+    /// 
+    /// #[derive(Debug, PartialEq)]
+    /// struct Foo<T, const N: usize>(T, [u8; N]);
+    /// 
+    /// // Type-level function from `(T, Usize<N>)` to `Foo<T, N>`
+    /// struct GFoo;
+    /// 
+    /// impl<T, const N: usize> TypeFn<(T, Usize<N>)> for GFoo {
+    ///     type Output = Foo<T, N>;
+    /// }
+    /// ```
+    /// 
+    #[inline(always)]
+    pub const fn zip<L1, R1>(
+        self: TypeEq<L0, R0>,
+        other: TypeEq<L1, R1>,
+    ) -> TypeEq<(L0, L1), (R0, R1)> {
+        __zip_impl!{self[L0, R0], other[L1, R1]}
+    }
+
+    /// Combines three `TypeEq<L*, R*>` to produce a
+    /// `TypeEq<(L0, L1, L2), (R0, R1, R2)>`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeEq, type_eq};
+    /// 
+    /// use std::cmp::Ordering::{self, Less};
+    /// 
+    /// assert_eq!(make_tuple(type_eq(), type_eq(), type_eq()), (3, "foo", Less));
+    /// 
+    /// fn make_tuple<A, B, C>(
+    ///     te0: TypeEq<A, u8>,
+    ///     te1: TypeEq<B, &str>,
+    ///     te2: TypeEq<C, Ordering>,
+    /// ) -> (A, B, C) {
+    ///     te0.zip3(te1, te2) // returns `TypeEq<(A, B, C), (u8, &str, Ordering)>`
+    ///         .to_left((3, "foo", Less))
+    /// }
+    /// 
+    /// ```
+    pub const fn zip3<L1, R1, L2, R2>(
+        self: TypeEq<L0, R0>,
+        other1: TypeEq<L1, R1>,
+        other2: TypeEq<L2, R2>,
+    ) -> TypeEq<(L0, L1, L2), (R0, R1, R2)> {
+        __zip_impl!{
+            self[L0, R0],
+            other1[L1, R1],
+            other2[L2, R2],
+        }
+    }
+
+    /// Combines four `TypeEq<L*, R*>` to produce a
+    /// `TypeEq<(L0, L1, L2, L3), (R0, R1, R2, L3)>`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeEq, type_eq};
+    /// 
+    /// use std::cmp::Ordering::{self, Less};
+    /// 
+    /// assert_eq!(
+    ///     make_tuple(type_eq(), type_eq(), type_eq(), type_eq()), 
+    ///     (3, "foo", Less, true),
+    /// );
+    /// 
+    /// fn make_tuple<A, B, C, D>(
+    ///     te0: TypeEq<A, u8>,
+    ///     te1: TypeEq<B, &str>,
+    ///     te2: TypeEq<C, Ordering>,
+    ///     te3: TypeEq<D, bool>,
+    /// ) -> (A, B, C, D) {
+    ///     let te: TypeEq<(A, B, C, D), (u8, &str, Ordering, bool)> = te0.zip4(te1, te2, te3);
+    ///     te.to_left((3, "foo", Less, true))
+    /// }
+    /// 
+    /// ```
+    pub const fn zip4<L1, R1, L2, R2, L3, R3>(
+        self: TypeEq<L0, R0>,
+        other1: TypeEq<L1, R1>,
+        other2: TypeEq<L2, R2>,
+        other3: TypeEq<L3, R3>,
+    ) -> TypeEq<(L0, L1, L2, L3), (R0, R1, R2, R3)> {
+        __zip_impl!{
+            self[L0, R0],
+            other1[L1, R1],
+            other2[L2, R2],
+            other3[L3, R3],
+        }
+    }
+
+}
+
 impl<L, R> TypeEq<L, R> {
     /// Whether `L` is the same type as `R`.
     /// 
@@ -405,6 +610,7 @@ impl<L, R> TypeEq<L, R> {
             Amb::No
         }
     };
+
 
     /// Hints to the compiler that a `TypeEq<L, R>`
     /// can only be constructed if `L == R`.
@@ -727,6 +933,102 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     }
 }
 
+#[cfg(feature = "const_marker")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "const_marker")))]
+impl<L: Sized, R: Sized> TypeEq<L, R> {
+    /// Combines `TypeEq<L, R>` and `TypeEq<Usize<UL>, Usize<UR>>`
+    /// into `TypeEq<[L; UL], [R; UR]>`
+    /// 
+    /// # Example
+    /// 
+    /// <details>
+    /// <summary><b>motivation</b></summary>
+    /// <p>
+    /// The safe way to map an array in const fns(on stable Rust in 2023)
+    /// is to create an array of the returned type with some dummy value,
+    /// and then fill it in with the desired values.
+    /// 
+    /// Because the function in this example takes a `[T; LEN]` where the `T` is generic,
+    /// it copies the first element of the input array to initialize the returned array,
+    /// so we must handle empty arrays, 
+    /// but trying to return an empty array the naive way
+    /// ```compile_fail
+    /// # use std::num::Wrapping;
+    /// # const fn map_wrapping<T: Copy, const LEN: usize>(arr: [T; LEN]) -> [Wrapping<T>; LEN] {
+    ///     if LEN == 0 {
+    ///         return [];
+    ///     }
+    /// #   unimplemented!()
+    /// # }
+    /// ```
+    /// does not work
+    /// ```text
+    /// error[E0308]: mismatched types
+    ///  --> src/type_eq.rs:827:16
+    ///   |
+    /// 4 | const fn map_wrapping<T: Copy, const LEN: usize>(arr: [T; LEN]) -> [Wrapping<T>; LEN] {
+    ///   |                                                                    ------------------ expected `[Wrapping<T>; LEN]` because of return type
+    /// 5 |     if LEN == 0 {
+    /// 6 |         return [];
+    ///   |                ^^ expected `LEN`, found `0`
+    ///   |
+    ///   = note: expected array `[Wrapping<T>; LEN]`
+    ///              found array `[_; 0]`
+    /// 
+    /// ```
+    /// </p>
+    /// </details>
+    /// 
+    /// This example demonstrates how `in_array` allows one to return an empty array:
+    /// (this example requires Rust 1.61.0, because it uses trait bounds in const fns)
+    #[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
+    #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
+    /// use typewit::{const_marker::Usize, TypeEq};
+    /// 
+    /// use std::num::Wrapping;
+    /// 
+    /// assert_eq!(map_wrapping([""; 0]), []);
+    /// assert_eq!(map_wrapping([3, 5, 8]), [Wrapping(3), Wrapping(5), Wrapping(8)]);
+    /// 
+    /// const fn map_wrapping<T: Copy, const LEN: usize>(arr: [T; LEN]) -> [Wrapping<T>; LEN] {
+    ///     // `teq` is a `TypeEq<Usize<LEN>, Usize<0>>`
+    ///     if let Ok(teq) = Usize::<LEN>.eq(Usize::<0>) {
+    ///         return TypeEq::new::<Wrapping<T>>()
+    ///             .in_array(teq) // `TypeEq<[Wrapping<T>; LEN], [Wrapping<T>; 0]>`
+    ///             .to_left([]);
+    ///     }
+    ///     
+    ///     let mut ret = [Wrapping(arr[0]); LEN];
+    ///     let mut i = 1;
+    ///     
+    ///     while i < LEN {
+    ///         ret[i] = Wrapping(arr[i]);
+    ///         i += 1;
+    ///     }
+    ///     
+    ///     ret
+    /// }
+    /// ```
+    #[inline(always)]
+    pub const fn in_array<const UL: usize, const UR: usize>(
+        self,
+        other: TypeEq<Usize<UL>, Usize<UR>>,
+    ) -> TypeEq<[L; UL], [R; UR]> {
+        struct PairToArray;
+
+        impl<T, const N: usize> TypeFn<(T, Usize<N>)> for PairToArray {
+            type Output = [T; N];
+        }
+
+        zip_project!{
+            self,
+            other,
+            PairToArray,
+            (L, R),
+            (Usize<UL>, Usize<UR>),
+        }
+    }
+}
 
 enum Amb {
     // indefinitely false/true

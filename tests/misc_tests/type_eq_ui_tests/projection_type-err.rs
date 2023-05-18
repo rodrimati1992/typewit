@@ -1,6 +1,5 @@
 use typewit::{TypeEq, TypeFn};
 
-
 fn flipper<L, R>(te: TypeEq<L, R>) -> TypeEq<L, R> {
     te.flip()
 }
@@ -35,5 +34,22 @@ impl<T> TypeFn<T> for Mapper {
 }
 
 
+#[cfg(feature = "const_marker")]
+use typewit::const_marker::Usize;
+
+#[cfg(feature = "const_marker")]
+fn in_array_to_different_type<'a, L, R>(
+    te: TypeEq<L, R>
+) -> TypeEq<[u8; 1], [u16; 1]> {
+    te.in_array(TypeEq::new::<Usize<1>>())
+}
+
+#[cfg(feature = "const_marker")]
+fn in_array_to_different_len<'a, L, R, const A: usize, const B: usize>(
+    te: TypeEq<L, R>,
+    te_len: TypeEq<Usize<A>, Usize<B>>,
+) -> TypeEq<[L; 1], [R; 1]> {
+    te.in_array(te_len)
+}
 
 fn main() {}
