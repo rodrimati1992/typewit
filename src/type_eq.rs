@@ -497,11 +497,9 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// #[derive(Debug, PartialEq)]
     /// struct Foo<T, const N: usize>(T, [u8; N]);
     /// 
-    /// // Type-level function from `(T, Usize<N>)` to `Foo<T, N>`
-    /// struct GFoo;
-    /// 
-    /// impl<T, const N: usize> TypeFn<(T, Usize<N>)> for GFoo {
-    ///     type Output = Foo<T, N>;
+    /// typewit::type_fn!{
+    ///     // Type-level function from `(T, Usize<N>)` to `Foo<T, N>`
+    ///     fn GFoo[T, const N: usize]((T, Usize<N>)) { Foo<T, N> }
     /// }
     /// ```
     /// 
@@ -738,18 +736,11 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     ///     map_te.to_right((false, 5u32))
     /// }
     /// 
-    /// // `GPair<A>` is a type-level function from `B` to `(A, B)` 
-    /// struct GPair<A>(std::marker::PhantomData<fn() -> A>);
-    /// 
-    /// impl<A> GPair<A> { 
-    ///     const NEW: Self = Self(std::marker::PhantomData); 
-    /// }
-    /// 
-    /// // what makes GPair a type-level function
-    /// impl<A, B> TypeFn<B> for GPair<A> {
-    ///     type Output = (A, B);
-    /// }
-    /// 
+    /// // Declares `struct GPair<A>`, a type-level function from `B` to `(A, B)` 
+    /// typewit::type_fn! {
+    ///      captures(A)
+    ///      fn GPair[B](B) { (A, B) }
+    /// } 
     /// ```
     /// 
     // #[cfg(feature = "project")]
@@ -783,10 +774,9 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     ///     vec_te.to_right(vec![3, 5, 8])
     /// }
     /// 
-    /// struct GVec;
-    /// 
-    /// impl<T> TypeFn<T> for GVec {
-    ///     type Output = Vec<T>;
+    /// typewit::type_fn!{
+    ///     // Declares `GVec`, a type-level function from `T` to `Vec<T>`
+    ///     fn GVec[T](T) { Vec<T> }
     /// }
     /// 
     /// ```
