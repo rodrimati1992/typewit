@@ -1,1 +1,2 @@
+mod generics_parsing;
 mod simple_type_witness_macro;

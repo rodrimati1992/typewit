@@ -285,169 +285,69 @@ macro_rules! simple_type_witness {
             $(,)?
         }
     ) => {
-        $crate::__stw_parse_generics!{
+        $crate::__parse_generics!{
             (
-                $(#[$enum_meta])*
-                derive($($($derive)*)?)
-                $(pub $(($($pub)*))? )? 
-                enum $enum {
-                    $((
-                        $variant $([$($var_gen_args)*])?
-                        $(#[$variant_meta])*
-                        where[$($($vari_where)*)?]
-                        = $witnessed_ty
-                    ))*
-                }
+                $crate::__stw_with_parsed_generics!(
+                    $(#[$enum_meta])*
+                    derive($($($derive)*)?)
+                    $(pub $(($($pub)*))? )? 
+                    enum $enum {
+                        $((
+                            $variant $([$($var_gen_args)*])?
+                            $(#[$variant_meta])*
+                            where[$($($vari_where)*)?]
+                            = $witnessed_ty
+                        ))*
+                    }
+                    where[$($($where)*)?]
+                )
+
                 [$($($generics)*)?]
-                where[$($($where)*)?]
             )
+
             []
-            [$($($generics)*)?] 
+            []
+            [$($($generics)*)?]
         }
     };
 }
 
 #[doc(hidden)]
 #[macro_export]
-macro_rules! __stw_parse_generics {
+macro_rules! __stw_with_parsed_generics {
     (
-        (
-            $(# $enum_meta:tt)*
-            derive $derive:tt
-            $vis:vis enum $enum:ident $variants:tt
-            $generics:tt
-            where $where:tt
-        )
+        $(# $enum_meta:tt)*
+        derive $derive:tt
+        $vis:vis enum $enum:ident $variants:tt
+        where $where:tt
+
         $gen_args:tt
-        [$(,)+]
+        $phantom_args:tt
+        $generics:tt
     ) => {
-        $crate::__stw_where_clause_trailing_comma! {
+        $crate::__where_clause_trailing_comma! {
             (
-                $(# $enum_meta)*
-                derive $derive
-                $vis enum $enum $generics $gen_args
-                $variants
+                $crate::__stw_with_parsed_args ! (
+                    $(# $enum_meta)*
+                    derive $derive
+                    $vis enum $enum $generics $gen_args
+                    $variants
+                )
             )
             []
             $where
         }
     };
-    (
-        (
-            $(# $enum_meta:tt)*
-            derive $derive:tt
-            $vis:vis enum $enum:ident $variants:tt
-            [$($($generics:tt)+)?]
-            where $where:tt
-        )
-        $gen_args:tt
-        []
-    ) => {
-        $crate::__stw_where_clause_trailing_comma! {
-            (
-                $(# $enum_meta)*
-                derive $derive
-                $vis enum $enum [$($($generics)+ ,)?] $gen_args
-                $variants
-            )
-            []
-            $where
-        }
-    };
-    (
-        $fixed:tt
-        [$($prev_gen_args:tt)*]
-        [
-            $(
-                $lt:lifetime $(:
-                    $($lt_bound0:lifetime $( + $lt_bound1:lifetime)*)?
-                )?
-            ),+
-            $(, $($ident:ident $($rem:tt)*)?)?
-        ]
-    ) => {
-        $crate::__stw_parse_generics!{
-            $fixed 
-            [$($prev_gen_args)* $($lt,)*]
-            [$(, $($ident $($rem)*)? )?]
-        }
-    };
-    (
-        $fixed:tt
-        [$($prev_gen_args:tt)*]
-        [
-            $(,)? $ty:ident $(:
-                $($ty_bound0:lifetime $( + $ty_bound1:lifetime)*)?
-            )?
-            $(, $($rem:tt)*)?
-        ]
-    ) => {
-        $crate::__stw_parse_generics!{
-            $fixed 
-            [$($prev_gen_args)* $ty,]
-            [$(, $($rem)*)?]
-        }
-    };
-    (
-        $fixed:tt
-        [$($prev_gen_args:tt)*]
-        [
-            $(,)? $ty:ident: $ty_bound2:ty
-            $(, $($rem:tt)*)?
-        ]
-    ) => {
-        $crate::__stw_parse_generics!{
-            $fixed 
-            [$($prev_gen_args)* $ty,]
-            [$(, $($rem)*)?]
-        }
-    };
-    (
-        $fixed:tt
-        [$($prev_gen_args:tt)*]
-        [
-            $(,)? const $const:ident: $const_ty:ty
-            $(, $($rem:tt)*)?
-        ]
-    ) => {
-        $crate::__stw_parse_generics!{
-            $fixed 
-            [$($prev_gen_args)* $const,]
-            [$(, $($rem)*)?]
-        }
-    };
 }
-
-#[doc(hidden)]
-#[macro_export]
-macro_rules! __stw_where_clause_trailing_comma {
-    ( $fixed:tt [$($prev:tt)*] [] ) => {
-        $crate::__stw_with_parsed_args!{ $fixed where [$($prev)*] }
-    };
-    ( $fixed:tt [$($prev:tt)*] [,]) => {
-        $crate::__stw_with_parsed_args!{ $fixed where [$($prev)*,] }
-    };
-    ( $fixed:tt [$($prev:tt)*] [$t0:tt]) => {
-        $crate::__stw_with_parsed_args!{ $fixed where [$($prev)* $t0,] }
-    };
-    ($fixed:tt [$($prev:tt)*] [$t0:tt $($rem:tt)+]) => {
-        $crate::__stw_where_clause_trailing_comma!{
-            $fixed [$($prev)* $t0] [$($rem)*]
-        }
-    };
-}
-
 
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __stw_with_parsed_args {
     (
-        (
-            $(# $enum_meta:tt)*
-            derive $derive:tt
-            $vis:vis enum $enum:ident $generics:tt $gen_args:tt
-            { $($variant_args:tt)* }
-        )
+        $(# $enum_meta:tt)*
+        derive $derive:tt
+        $vis:vis enum $enum:ident $generics:tt $gen_args:tt
+        { $($variant_args:tt)* }
         where $where:tt
     ) => {
         $crate::__stw_top_items!{
