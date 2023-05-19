@@ -2,41 +2,100 @@
 #[macro_export]
 macro_rules! type_fn {
     (
-        $(
-            captures($($capture_generics:tt)*)
-            $(where[$($captures_where:tt)*])?
-        )?
+        $(#[$attrs:meta])*
+        $vis:vis struct $struct_name:ident $([$($capture_generics:tt)*])?
+        $(where[$($captures_where:tt)*])?;
 
-        $(
-            $(#[$attrs:meta])*
-            $(pub $(($($vis:tt)*))?)? 
-            fn $function:ident $([$($gen_params:tt)*])? ($type_fn_arg:ty)
-            $(where[ $($where_fn:tt)* ])?
-            { $ret_ty:ty }
-        )+
+        $($fns:tt)+
+    ) => {
+        $crate::__tyfn_parse_fns! {
+            (
+                [$($($capture_generics)*)?]
+                (
+                    $(#[$attrs])*
+                    $vis struct $struct_name
+                )
+                captures_where[$($($captures_where)*)?]
+            )
+            []
+            [$($fns)+]
+        }
+    }
+}
+
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __tyfn_parse_fns {
+    (
+        ( $capture_generics:tt $($struct_stuff:tt)+ )
+
+        [$($fns:tt)+]
+        []
     ) => {
         $crate::__parse_generics!{
             (
                 $crate::__tyfn_parsed_capture_generics! (
-                    [
-                        $((
-                            $(#[$attrs])*
-                            $(pub $(($($vis)*))?)? 
-                            fn $function[$($($gen_params)*)?] ($type_fn_arg)
-                            where[ $($($where_fn)*)? ]
-                            { $ret_ty }
-                        ))+
-                    ]
-                    captures_where[$($($($captures_where)*)?)?]
+                    [$($fns)+]
+                    $($struct_stuff)+
                 )
 
-                [$($($capture_generics)*)?]
+                $capture_generics
             )
 
             []
             []
-            [$($($capture_generics)*)?]
+            $capture_generics
         }
+    };
+    (
+        $fixed:tt
+        [$($fns:tt)*]
+        [
+            $(#[$impl_attrs:meta])*
+            for[$($gen_params:tt)*] $type_fn_arg:ty => $ret_ty:ty
+            $(where[ $($where_fn:tt)* ])?
+            $(; $($rem:tt)*)?
+        ]
+    ) => {
+        $crate::__tyfn_parse_fns!{
+            $fixed
+            [
+                $($fns)*
+                (
+                    $(#[$impl_attrs])*
+                    for[$($gen_params)*] $type_fn_arg => $ret_ty
+                    where[ $($($where_fn)*)? ]
+                )
+            ]
+            [$($($rem)*)?]
+        }
+    };
+    (
+        $fixed:tt
+        [$($fns:tt)*]
+        [
+            $(#[$impl_attrs:meta])*
+            $type_fn_arg:ty => $ret_ty:ty
+            $(where[ $($where_fn:tt)* ])?
+            $(; $($rem:tt)*)?
+        ]
+    ) => {
+        $crate::__tyfn_parse_fns!{
+            $fixed
+            [
+                $($fns)*
+                (
+                    $(#[$impl_attrs])*
+                    for[] $type_fn_arg => $ret_ty
+                    where[ $($($where_fn)*)? ]
+                )
+            ]
+            [$($($rem)*)?]
+        }
+    };
+    ( $fixed:tt [] [] ) => {
+        $crate::__::compile_error!{"At least one TypeFn impl must be written"}
     };
 }
 
@@ -47,6 +106,7 @@ macro_rules! type_fn {
 macro_rules! __tyfn_parsed_capture_generics {
     (
         [$first_fn:tt $($functions:tt)*]
+        $struct_stuff:tt
         captures_where $captures_where:tt
         $capt_gen_args:tt
         $capt_phantom_args:tt
@@ -63,7 +123,7 @@ macro_rules! __tyfn_parsed_capture_generics {
         $crate::__trailing_comma !{
             (
                 $crate::__tyfn_parsed!(
-                    $first_fn
+                    $struct_stuff
                     [$first_fn $($functions)*]
                     $capt_gen_args
                     $capt_phantom_args
@@ -85,7 +145,7 @@ macro_rules! __tyfn_parsed {
     (
         (
             $(#[$attrs:meta])*
-            $vis:vis fn $function_name:ident $($rem:tt)*
+            $vis:vis struct $function_name:ident
         )
         [$($functions:tt)+]
         $capt_gen_args:tt
@@ -98,7 +158,7 @@ macro_rules! __tyfn_parsed {
         $crate::__tyfn_declare_struct!{
             (
                 $(#[$attrs])*
-                $vis fn $function_name
+                $vis struct $function_name
             )
             $capt_gen_args
             [$(($($capt_phantom_args)+))?]
@@ -132,7 +192,7 @@ macro_rules! __tyfn_declare_struct {
     (
         (
             $(#[$attrs:meta])*
-            $vis:vis fn $function_name:ident
+            $vis:vis struct $function_name:ident
         )
         [$($capt_gen_args:tt)*]
         [$($(@$has_phantom:tt)? ($($lt_arg:lifetime,)* $($ty_arg:ident,)*))?]
@@ -144,7 +204,7 @@ macro_rules! __tyfn_declare_struct {
         $vis struct $function_name<$($lt_param)* $($ty_const_param)*> $((
             $crate::__::PhantomData<(
                 ($(fn() -> &$lt_arg (),)*),
-                ($(fn() -> $ty_arg,)*),
+                ($(fn() -> $crate::__::PhantomData<$ty_arg>,)*),
             )>
         ))?
         $(where $($where)+)?;
@@ -166,7 +226,7 @@ macro_rules! __tyfn_typefn_impl_outer {
     (
         (
             $(#[$attrs:meta])*
-            $vis:vis fn $function:ident [$($gen_params:tt)*] $($rem_fn:tt)*
+            for[$($gen_params:tt)*] $($rem_fn:tt)*
         )
         $($rem_params:tt)+
     ) => {
@@ -189,11 +249,8 @@ macro_rules! __tyfn_typefn_impl {
     (
         (
             $(#[$attrs:meta])*
-            $vis:vis fn $function:ident $gen_params:tt ($ty_arg:ty)
+            for $gen_params:tt $ty_arg:ty => $ret_ty:ty
             where[ $($where_preds:tt)* ] 
-            {
-                $ret_ty:ty
-            }
         )
 
         $function_name:ident
@@ -207,6 +264,7 @@ macro_rules! __tyfn_typefn_impl {
 
         [$($fn_gen_param:tt)*]
     ) => {
+        $(#[$attrs])*
         impl<$($capt_lt_param)* $($fn_gen_param)* $($capt_ty_const_param)*>
             $crate::TypeFn<$ty_arg>
         for $function_name<$($capt_gen_args)*>

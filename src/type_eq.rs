@@ -499,7 +499,8 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// 
     /// typewit::type_fn!{
     ///     // Type-level function from `(T, Usize<N>)` to `Foo<T, N>`
-    ///     fn GFoo[T, const N: usize]((T, Usize<N>)) { Foo<T, N> }
+    ///     struct GFoo;
+    ///     for[T, const N: usize] (T, Usize<N>) => Foo<T, N>
     /// }
     /// ```
     /// 
@@ -738,8 +739,8 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// 
     /// // Declares `struct GPair<A>`, a type-level function from `B` to `(A, B)` 
     /// typewit::type_fn! {
-    ///      captures(A)
-    ///      fn GPair[B](B) { (A, B) }
+    ///      struct GPair[A];
+    ///      for[B] B => (A, B)
     /// } 
     /// ```
     /// 
@@ -776,7 +777,8 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// 
     /// typewit::type_fn!{
     ///     // Declares `GVec`, a type-level function from `T` to `Vec<T>`
-    ///     fn GVec[T](T) { Vec<T> }
+    ///     struct GVec;
+    ///     for[T] T => Vec<T>
     /// }
     /// 
     /// ```

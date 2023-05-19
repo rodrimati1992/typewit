@@ -43,7 +43,8 @@ pub trait TypeFn<T: ?Sized> {
 /// # Example
 /// 
 /// ```rust
-/// use typewit::type_fn::CallFn;
+/// use typewit::CallFn;
+/// use core::ops::Mul;
 /// 
 /// assert_eq!(mul(3u8, &5u8), 15u8);
 /// 
@@ -55,13 +56,12 @@ pub trait TypeFn<T: ?Sized> {
 /// }
 /// 
 /// // Declares `struct MulOutput<Lhs>`,
-/// // a type-level function from `Rhs` to the return type of `Lhs + Rhs`.
+/// // a type-level function from `Rhs` to the return type of `Lhs * Rhs`.
 /// typewit::type_fn! {
-///     captures(Lhs)
+///     struct MulOutput[Lhs];
 ///
-///     pub fn MulOutput[Rhs](Rhs) 
+///     for[Rhs] Rhs => <Lhs as Mul<Rhs>>::Output
 ///     where[ Lhs: core::ops::Mul<Rhs> ]
-///     { Lhs::Output }
 /// }
 /// ```
 /// 

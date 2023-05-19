@@ -146,12 +146,13 @@
 //! // Declares `struct FnSliceIndexRet<T>`,
 //! // a type-level function from `I` to `<I as SliceIndex<T>>::Returns`
 //! typewit::type_fn! {
-//!     captures(T)
-//!     fn FnSliceIndexRet[I: SliceIndex<T>](I) { SliceIndexRet<I, T> }
+//!     struct FnSliceIndexRet[T];
+//!
+//!     for[I: SliceIndex<T>] I => SliceIndexRet<I, T>
 //! }
 //! 
 //! # // would use `konst::slice::slice_range`,
-//! # // but it would become a cyclic dependency once `konst` depends on this crate.
+//! # // but it would become a cyclic dependency.
 //! # const fn slice_range<T>(mut slice: &[T], Range{mut start, end}: Range<usize>) -> &[T] {
 //! #     assert!(start <= end && end <= slice.len());
 //! #     let mut removed_end = slice.len() - end;
