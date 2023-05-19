@@ -9,4 +9,5 @@ mod misc_tests {
     mod typeeq_tests;
     mod simple_type_witness_macro_tests;
     mod test_utils;
+    mod type_fn_macro_tests;
 }

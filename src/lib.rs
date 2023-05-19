@@ -143,14 +143,13 @@
 //! 
 //! type SliceIndexRet<I, T> = <I as SliceIndex<T>>::Returns;
 //! 
-//! // Declares `struct FnSliceIndexRet<T>`,
-//! // a type-level function from `I` to `<I as SliceIndex<T>>::Returns`
+//! // Declares `struct FnSliceIndexRet<T>`
+//! // a type-level function (TypeFn implementor) from `I` to `SliceIndexRet<I, T>`
 //! typewit::type_fn! {
 //!     struct FnSliceIndexRet[T];
 //!
 //!     for[I: SliceIndex<T>] I => SliceIndexRet<I, T>
 //! }
-//! 
 //! # // would use `konst::slice::slice_range`,
 //! # // but it would become a cyclic dependency.
 //! # const fn slice_range<T>(mut slice: &[T], Range{mut start, end}: Range<usize>) -> &[T] {

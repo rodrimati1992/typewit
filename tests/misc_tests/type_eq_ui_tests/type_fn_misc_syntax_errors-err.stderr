@@ -1,0 +1,20 @@
+error: expected type-level function definitions
+ --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:1:1
+  |
+1 | / typewit::type_fn!{
+2 | |     struct Unit;
+3 | | }
+  | |_^
+  |
+  = note: this error originates in the macro `$crate::__tyfn_parse_fns` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: invalid argument for `type_fn` macro
+       expected struct declaration followed by type-level function definitions
+ --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:5:1
+  |
+5 | / typewit::type_fn!{
+6 | |     u8 => u16;
+7 | | }
+  | |_^
+  |
+  = note: this error originates in the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)

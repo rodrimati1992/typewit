@@ -6,7 +6,7 @@ macro_rules! type_fn {
         $vis:vis struct $struct_name:ident $([$($capture_generics:tt)*])?
         $(where[$($captures_where:tt)*])?;
 
-        $($fns:tt)+
+        $($fns:tt)*
     ) => {
         $crate::__tyfn_parse_fns! {
             (
@@ -18,9 +18,33 @@ macro_rules! type_fn {
                 captures_where[$($($captures_where)*)?]
             )
             []
-            [$($fns)+]
+            [$($fns)*]
         }
-    }
+    };
+
+    (
+        $(#[$attrs:meta])*
+        $vis:vis struct $struct_name:ident < $($rem:tt)*
+    ) => {
+        $crate::__::compile_error!{$crate::__::concat!{
+            "struct declaration must use square brackets for generics\n",
+            "help: use `", $crate::__::stringify!($struct_name),"[...]`",
+        }}
+    };
+
+    (
+        $(#[$attrs:meta])*
+        $vis:vis struct $struct_name:ident $([$($capture_generics:tt)*])?
+        where $($rem:tt)*
+    ) => {
+        $crate::__tyfn_where_clause_error!{}
+    };
+    ($($rem:tt)*) => {
+        $crate::__::compile_error!{
+            "invalid argument for `type_fn` macro\n\
+             expected struct declaration followed by type-level function definitions"
+        }
+    };
 }
 
 
@@ -73,6 +97,20 @@ macro_rules! __tyfn_parse_fns {
     };
     (
         $fixed:tt
+        $fns:tt
+        [ $(#[$attrs:meta])* for[$($gens:tt)*] $arg:ty => $ret:ty where $($rem:tt)* ]
+    ) => {
+        $crate::__tyfn_where_clause_error!{}
+    };
+    (
+        $fixed:tt
+        $fns:tt
+        [ $(#[$attrs:meta])* for<$($rem:tt)* ]
+    ) => {
+        $crate::__::compile_error!{"`for<...> ...` parameters must be parenthesized"}
+    };
+    (
+        $fixed:tt
         [$($fns:tt)*]
         [
             $(#[$impl_attrs:meta])*
@@ -94,11 +132,35 @@ macro_rules! __tyfn_parse_fns {
             [$($($rem)*)?]
         }
     };
+    (
+        $fixed:tt
+        $fns:tt
+        [ $(#[$attrs:meta])* $arg:ty => $ret:ty where $($rem:tt)* ]
+    ) => {
+        $crate::__tyfn_where_clause_error!{}
+    };
+    (
+        $fixed:tt
+        $fns:tt
+        [ $(#[$attrs:meta])* $arg:ty  where $($rem:tt)* ]
+    ) => {
+        compile_error!{"where clauses for functions go after the return type"}
+    };
     ( $fixed:tt [] [] ) => {
-        $crate::__::compile_error!{"At least one TypeFn impl must be written"}
+        $crate::__::compile_error!{"expected type-level function definitions"}
     };
 }
 
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __tyfn_where_clause_error {
+    () => {
+        $crate::__::compile_error!{$crate::__::concat!(
+            "`where` clauses in `type_fn` macro take constraints inside brackets,\n",
+            "syntax: `where[ contraints here ]`",
+        )}
+    }
+}
 
 
 #[doc(hidden)]
@@ -265,6 +327,7 @@ macro_rules! __tyfn_typefn_impl {
         [$($fn_gen_param:tt)*]
     ) => {
         $(#[$attrs])*
+        #[allow(unused_parens)]
         impl<$($capt_lt_param)* $($fn_gen_param)* $($capt_ty_const_param)*>
             $crate::TypeFn<$ty_arg>
         for $function_name<$($capt_gen_args)*>

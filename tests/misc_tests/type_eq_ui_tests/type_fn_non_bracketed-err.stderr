@@ -1,0 +1,64 @@
+error: `where` clauses in `type_fn` macro take constraints inside brackets,
+       syntax: `where[ contraints here ]`
+ --> tests/misc_tests/type_eq_ui_tests/type_fn_non_bracketed-err.rs:1:1
+  |
+1 | / typewit::type_fn!{
+2 | |     struct Foo where u8:;
+3 | |
+4 | |     () => ()
+5 | | }
+  | |_^
+  |
+  = note: this error originates in the macro `$crate::__tyfn_where_clause_error` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: `where` clauses in `type_fn` macro take constraints inside brackets,
+       syntax: `where[ contraints here ]`
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_non_bracketed-err.rs:7:1
+   |
+7  | / typewit::type_fn!{
+8  | |     struct Bar;
+9  | |
+10 | |     () => ()
+11 | |     where u8:;
+12 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__tyfn_where_clause_error` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: `where` clauses in `type_fn` macro take constraints inside brackets,
+       syntax: `where[ contraints here ]`
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_non_bracketed-err.rs:14:1
+   |
+14 | / typewit::type_fn!{
+15 | |     struct Baz;
+16 | |
+17 | |     for[T] T => T
+18 | |     where T:;
+19 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__tyfn_where_clause_error` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: struct declaration must use square brackets for generics
+       help: use `WithTypeParam[...]`
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_non_bracketed-err.rs:21:1
+   |
+21 | / typewit::type_fn!{
+22 | |     struct WithTypeParam<T>;
+23 | |     () => ()
+24 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: `for<...> ...` parameters must be parenthesized
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_non_bracketed-err.rs:26:1
+   |
+26 | / typewit::type_fn!{
+27 | |     struct NakedForBinder;
+28 | |
+29 | |     for<'a> fn(&'a ()) => ()
+30 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__tyfn_parse_fns` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
