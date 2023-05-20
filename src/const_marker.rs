@@ -200,7 +200,7 @@ declare_const_param_type!{
     /// typewit::type_fn!{
     ///     // Type-level function from `Usize<LEN>` to `Array<LEN>`
     ///     struct GArray;
-    ///     for[const LEN: usize] Usize<LEN> => Array<LEN>
+    ///     impl[const LEN: usize] Usize<LEN> => Array<LEN>
     /// }
     /// ```
     fn eq;

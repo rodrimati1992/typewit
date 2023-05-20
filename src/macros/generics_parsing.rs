@@ -127,3 +127,24 @@ macro_rules! __trailing_comma {
         }
     };
 }
+
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __trailing_comma_until_semicolon {
+    // fallback case
+    (($($macro:ident)::* !($($args:tt)*)) [$($prev:tt)*] [] ) => {
+        $($macro)::* !{$($args)* [$($prev)*] }
+    };
+    (($($macro:ident)::* !($($args:tt)*)) [$($prev:tt)*] [; $($rem:tt)*] ) => {
+        $($macro)::* !{$($args)* [$($prev)*] $($rem)* }
+    };
+    (($($macro:ident)::* !($($args:tt)*)) [$($prev:tt)*] [, ; $($rem:tt)*]) => {
+        $($macro)::* !{$($args)* [$($prev)*,] $($rem)* }
+    };
+    ($fixed:tt [$($prev:tt)*] [$t0:tt $($rem:tt)*]) => {
+        $crate::__trailing_comma_until_semicolon!{
+            $fixed [$($prev)* $t0] [$($rem)*]
+        }
+    };
+}

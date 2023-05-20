@@ -148,7 +148,7 @@
 //! typewit::type_fn! {
 //!     struct FnSliceIndexRet[T];
 //!
-//!     for[I: SliceIndex<T>] I => SliceIndexRet<I, T>
+//!     impl[I: SliceIndex<T>] I => SliceIndexRet<I, T>
 //! }
 //! # // would use `konst::slice::slice_range`,
 //! # // but it would become a cyclic dependency.

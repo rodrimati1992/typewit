@@ -16,7 +16,7 @@ fn test_nested_for_binder() {
     typewit::type_fn!{
         struct NestedForBinder;
 
-        for[T] (for<'a> fn(&'a T)) => T
+        impl[T] (for<'a> fn(&'a T)) => T
     }
 
     let _: AssertEq<CallFn<NestedForBinder, fn(&u8)>, u8>;
@@ -35,10 +35,10 @@ fn test_trailing_commas() {
         ) => ({
             type_fn!{
                 struct Func[T $($comma_struct_generics)?]
-                where[T: Copy $($comma_struct_where)?];
+                where T: Copy $($comma_struct_where)?;
 
-                for[U $($comma_fn_generics)?] U => (T, U)
-                where[T: Clone $($comma_fn_where)?]
+                impl[U $($comma_fn_generics)?] U => (T, U)
+                where T: Clone $($comma_fn_where)?
             }
 
             let _: AssertEq<CallFn<Func<u8>, u16>, (u8, u16)>;
@@ -74,7 +74,7 @@ fn test_all_generics_are_usable() {
     type_fn!{
         struct AllGenerics['a, T, const N: usize];
 
-        for['b, U, const M: usize] ([&'a T; N], [&'b U; M]) => [&'b U; N]
+        impl['b, U, const M: usize] ([&'a T; N], [&'b U; M]) => [&'b U; N]
     }
 
     fn _with_lifetimes<'a, 'b>() {
@@ -104,7 +104,7 @@ fn test_that_bounds_are_included() {
     {
         type_fn!{
             struct StructWhereBound[T]
-            where[T: IntoIterator];
+            where T: IntoIterator;
 
             () => T::Item
         }
@@ -114,7 +114,7 @@ fn test_that_bounds_are_included() {
         type_fn!{
             struct FnBound;
 
-            for[T: IntoIterator] T => T::Item
+            impl[T: IntoIterator] T => T::Item
         }
         let _: AssertEq<CallFn<FnBound, Vec<u16>>, u16>;
     }
@@ -122,8 +122,8 @@ fn test_that_bounds_are_included() {
         type_fn!{
             struct FnWhereBound;
 
-            for[T] T => T::Item
-            where[T: IntoIterator]
+            impl[T] T => T::Item
+            where T: IntoIterator
         }
         let _: AssertEq<CallFn<FnWhereBound, Vec<u16>>, u16>;
     }
@@ -149,7 +149,7 @@ fn test_multifunc() {
                     struct WitFor;
 
                     () => u8;
-                    for[T] (T,) => Vec<T> $($semi)?
+                    impl[T] (T,) => Vec<T> $($semi)?
                 }
 
                 let _: AssertEq<CallFn<WitFor, ()>, u8>;
@@ -172,11 +172,11 @@ fn test_attributes() {
         () => u8;
 
         #[cfg(all())]
-        for[T] (T,) => T;
+        impl[T] (T,) => T;
 
         // If this was included, it would error due to being an overlapping impl
         #[cfg(any())]
-        for[T] T => Vec<T>;
+        impl[T] T => Vec<T>;
     }
 
     assert!(Foo == Foo);

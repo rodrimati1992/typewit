@@ -60,8 +60,8 @@ pub trait TypeFn<T: ?Sized> {
 /// typewit::type_fn! {
 ///     struct MulOutput[Lhs];
 ///
-///     for[Rhs] Rhs => <Lhs as Mul<Rhs>>::Output
-///     where[ Lhs: core::ops::Mul<Rhs> ]
+///     impl[Rhs] Rhs => <Lhs as Mul<Rhs>>::Output
+///     where Lhs: core::ops::Mul<Rhs>
 /// }
 /// ```
 /// 
