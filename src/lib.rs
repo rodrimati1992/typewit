@@ -64,7 +64,7 @@
 //! }
 //! ```
 //! 
-//! <span id="example1"></span>
+//! <span id="example-uses-type-fn"></span>
 //! ### Indexing polymorphism
 //! 
 //! This function demonstrates const fn polymorphism
@@ -148,7 +148,7 @@
 //! typewit::type_fn! {
 //!     struct FnSliceIndexRet<T>;
 //!
-//!     impl[I: SliceIndex<T>] I => SliceIndexRet<I, T>
+//!     impl<I: SliceIndex<T>> I => SliceIndexRet<I, T>
 //! }
 //! # // would use `konst::slice::slice_range`,
 //! # // but it would become a cyclic dependency.

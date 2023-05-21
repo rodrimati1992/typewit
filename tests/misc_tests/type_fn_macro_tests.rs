@@ -294,6 +294,20 @@ fn test_empty_everything() {
     }
 }
 
+
+#[test]
+fn test_multiple_lifetimes() {
+    type_fn!{
+        struct WithLts<'a, 'b: 'a, 'c: 'a + 'static, T>;
+
+        impl () => ()
+    }
+
+    fn _with_lifetime<'a, 'b: 'a>() {
+        let _: WithLts<'a, 'b, 'static, ()>;
+    }
+}
+
 #[test]
 fn test_comma_between_generic_kinds() {
     {

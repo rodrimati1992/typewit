@@ -45,7 +45,7 @@ macro_rules! declare_parse_generics_macros {($_:tt [$($sep:tt)*] [$($err_token:t
             ) => {
                 $crate::__::__parse_in_generics!{
                     $fixed 
-                    [$_($prev_gen_args)* ($lt (fn() -> &'a (),) )]
+                    [$_($prev_gen_args)* ($lt (fn() -> &$lt (),) )]
                     [$_($prev_gen)* ($lt $_(: $_($lt_bound0 $_( + $lt_bound1 )* )?)?)]
                     [$_($sep  $_($rem)*)?]
                 }

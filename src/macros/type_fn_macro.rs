@@ -1,4 +1,6 @@
-/// Declares a type-level function (struct that implements [`TypeFn`])
+/// Declares a type-level function (struct that implements [`TypeFn`](crate::TypeFn))
+/// 
+/// [**examples below**](#examples)
 /// 
 /// # Syntax
 /// 
@@ -23,6 +25,107 @@
 /// `:generic_params` is a list of generic parameter declarations.
 /// e.g: `'a, T, const N: usize`.
 /// 
+/// # Generated code 
+/// 
+/// This macro generates:
+/// 
+/// - The struct declaration passed to the macro
+/// 
+/// - A `NEW` associated constant for constructing the struct
+/// 
+/// - Impls of [`TypeFn`] for the generated struct corresponding to 
+/// each `... => ...` argument.
+/// 
+/// If the struct has any lifetime or type parameters, it has a private field,
+/// and requires using its `NEW` associated constant to be instantiated.
+/// If it has no type or lifetime parameters, the struct is a unit struct.
+/// 
+/// # Examples
+/// 
+/// This macro is also demonstrated in [`TypeEq::project`], [`TypeEq::map`],
+/// and the [Indexing polymorphism](crate#example-uses-type-fn) root module example.
+/// 
+/// ### Basic
+/// 
+/// ```rust
+/// use typewit::CallFn;
+/// 
+/// let item: CallFn<FnIterItem, Vec<&'static str>> = "hello";
+/// let _: &'static str = item;
+/// assert_eq!(item, "hello");
+/// 
+/// // Declares `struct FnIterItem`,
+/// // a type-level function from `I` to `<I as IntoIterator>::IntoIter`
+/// typewit::type_fn!{
+///     struct FnIterItem;
+/// 
+///     impl<I: IntoIterator> I => I::Item
+/// }
+/// ```
+/// 
+/// ### All syntax
+/// 
+/// Demonstrates all the syntax that this macro accepts and what it expands into:
+/// 
+/// ```rust
+/// typewit::type_fn! {
+///     /// Hello
+///     pub struct Foo<'a, T: IntoIterator = Vec<u8>, const N: usize = 3>
+///     where T: Clone;
+///     
+///     /// docs for impl
+///     impl<'b: 'a, U, const M: usize> [&'b U; M] => ([&'b U; M], T::IntoIter)
+///     where 
+///         U: 'static,
+///         u32: From<U>;
+/// 
+///     /// docs for another impl
+///     impl () => T::Item
+/// }
+/// ```
+/// the above macro invocation generates code equivalent to this:
+/// ```rust
+/// use typewit::TypeFn;
+/// 
+/// use core::marker::PhantomData;
+/// 
+/// /// Hello
+/// pub struct Foo<'a, T: IntoIterator = Vec<u8>, const N: usize = 3>(
+///     PhantomData<(&'a (), fn() -> T)>
+/// ) where T: Clone;
+/// 
+/// impl<'a, T: IntoIterator, const N: usize> Foo<'a, T, N>
+/// where
+///     T: Clone,
+/// {
+///     pub const NEW: Self = Self(PhantomData);
+/// }
+/// 
+/// /// docs for impl
+/// impl<'a, 'b: 'a, U, const M: usize, T: IntoIterator, const N: usize> 
+///     TypeFn<[&'b U; M]> 
+/// for Foo<'a, T, N>
+/// where
+///     T: Clone,
+///     U: 'static,
+///     u32: From<U>
+/// {
+///     type Output = ([&'b U; M], T::IntoIter);
+/// }
+/// 
+/// /// docs for another impl
+/// impl<'a, T: IntoIterator, const N: usize> TypeFn<()> for Foo<'a, T, N>
+/// where
+///     T: Clone,
+/// {
+///     type Output = T::Item;
+/// }
+/// 
+/// ```
+/// 
+/// [`TypeFn`]: crate::TypeFn
+/// [`TypeEq::project`]: crate::TypeEq::project
+/// [`TypeEq::map`]: crate::TypeEq::map
 #[macro_export]
 macro_rules! type_fn {
     (
