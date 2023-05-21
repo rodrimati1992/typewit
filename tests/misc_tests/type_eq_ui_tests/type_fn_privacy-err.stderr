@@ -10,7 +10,7 @@ note: the struct `Unit` is defined here
 2  | /     typewit::type_fn!{
 3  | |         struct Unit;
 4  | |
-5  | |         u8 => u16;
+5  | |         impl u8 => u16;
 6  | |     }
    | |_____^
    = note: this error originates in the macro `$crate::__tyfn_declare_struct` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
@@ -25,9 +25,9 @@ note: the struct `WithParams` is defined here
   --> tests/misc_tests/type_eq_ui_tests/type_fn_privacy-err.rs:8:5
    |
 8  | /     typewit::type_fn!{
-9  | |         struct WithParams['a, T, const N: usize];
+9  | |         struct WithParams<'a, T, const N: usize>;
 10 | |
-11 | |         u8 => T;
+11 | |         impl u8 => T;
 12 | |     }
    | |_____^
    = note: this error originates in the macro `$crate::__tyfn_declare_struct` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)

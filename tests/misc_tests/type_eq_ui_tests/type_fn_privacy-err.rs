@@ -2,13 +2,13 @@ mod private {
     typewit::type_fn!{
         struct Unit;
 
-        u8 => u16;
+        impl u8 => u16;
     }
 
     typewit::type_fn!{
-        struct WithParams['a, T, const N: usize];
+        struct WithParams<'a, T, const N: usize>;
 
-        u8 => T;
+        impl u8 => T;
     }
 }
 
