@@ -136,8 +136,8 @@ macro_rules! __trailing_comma_until_semicolon {
     (($($macro:ident)::* !($($args:tt)*)) [$($prev:tt)*] [] ) => {
         $($macro)::* !{$($args)* [$($prev)*] }
     };
-    (($($macro:ident)::* !($($args:tt)*)) [$($prev:tt)*] [; $($rem:tt)*] ) => {
-        $($macro)::* !{$($args)* [$($prev)*] $($rem)* }
+    (($($macro:ident)::* !($($args:tt)*)) [$($($prev:tt)+)?] [; $($rem:tt)*] ) => {
+        $($macro)::* !{$($args)* [$($($prev)+,)?] $($rem)* }
     };
     (($($macro:ident)::* !($($args:tt)*)) [$($prev:tt)*] [, ; $($rem:tt)*]) => {
         $($macro)::* !{$($args)* [$($prev)*,] $($rem)* }

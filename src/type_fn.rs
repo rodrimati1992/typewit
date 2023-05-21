@@ -58,9 +58,9 @@ pub trait TypeFn<T: ?Sized> {
 /// // Declares `struct MulOutput<Lhs>`,
 /// // a type-level function from `Rhs` to the return type of `Lhs * Rhs`.
 /// typewit::type_fn! {
-///     struct MulOutput[Lhs];
+///     struct MulOutput<Lhs>;
 ///
-///     impl[Rhs] Rhs => <Lhs as Mul<Rhs>>::Output
+///     impl<Rhs> Rhs => <Lhs as Mul<Rhs>>::Output
 ///     where Lhs: core::ops::Mul<Rhs>
 /// }
 /// ```

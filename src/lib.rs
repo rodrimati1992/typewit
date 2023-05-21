@@ -146,7 +146,7 @@
 //! // Declares `struct FnSliceIndexRet<T>`
 //! // a type-level function (TypeFn implementor) from `I` to `SliceIndexRet<I, T>`
 //! typewit::type_fn! {
-//!     struct FnSliceIndexRet[T];
+//!     struct FnSliceIndexRet<T>;
 //!
 //!     impl[I: SliceIndex<T>] I => SliceIndexRet<I, T>
 //! }
@@ -281,5 +281,13 @@ pub mod __ {
         assert, compile_error, concat, stringify,
     };
 
-    pub use crate::utils::TypeIdentity;
+    pub use crate::{
+        utils::TypeIdentity,
+        macros::generics_parsing_2::{
+            __parse_in_generics,
+            __pg_parsed_ty_bounds,
+            __parse_ty_bounds,
+        },
+    };
+
 }
