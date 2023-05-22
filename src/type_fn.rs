@@ -7,7 +7,12 @@ use core::marker::PhantomData;
 /// These can be used in `typewit` to 
 /// [map the type arguments of `TypeEq`](crate::TypeEq::project).
 /// 
-/// # Example
+/// Type-level functions can also be declared with the 
+/// [`type_fn`](macro@crate::type_fn) macro.
+/// 
+/// # Examples
+/// 
+/// ### Manual Implementation
 /// 
 /// ```rust
 /// use typewit::{TypeFn, CallFn};
@@ -31,8 +36,29 @@ use core::marker::PhantomData;
 /// {
 ///     type Output = Lhs::Output;
 /// }
-/// 
 /// ```
+/// 
+/// ### Macro-based Implementation
+/// 
+/// This example uses the [`type_fn`](macro@crate::type_fn) macro
+/// to declare the type-level function,
+/// and is otherwise equivalent to the manual one.
+/// 
+/// ```rust
+/// use typewit::CallFn;
+/// 
+/// let string: CallFn<AddOutput<String>, &str> = "foo".to_string() +  ", bar";
+/// let _: String = string;
+/// assert_eq!(string, "foo, bar");
+/// 
+/// typewit::type_fn! {
+///     struct AddOutput<Lhs>;
+/// 
+///     impl<Rhs> Rhs => Lhs::Output
+///     where Lhs: core::ops::Add<Rhs>
+/// }
+/// ```
+/// 
 pub trait TypeFn<T: ?Sized> {
     /// The return value of the function
     type Output: ?Sized;
