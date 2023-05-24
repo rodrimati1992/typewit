@@ -100,6 +100,7 @@ fn test_trailing_commas() {
 
 }
 
+#[cfg(feature = "rust_1_61")]
 #[test]
 fn test_all_generics_are_usable() {
     type_fn!{
@@ -324,6 +325,7 @@ fn test_comma_between_generic_kinds() {
             >;
         }
     }
+    #[cfg(feature = "rust_1_61")]
     {
         type_fn!{
             struct WithTy<T, const S: usize>;
@@ -374,6 +376,7 @@ fn test_defaulted_params() {
         let _: AssertEq<CallFn<TyWithoutBound<>, ()>, (u8, u8)>;
         let _: AssertEq<CallFn<TyWithoutBound<isize>, ()>, (isize, isize)>;
     }
+    #[cfg(feature = "rust_1_61")]
     {
         type_fn!{
             struct WithConst<const N: usize = 3>;

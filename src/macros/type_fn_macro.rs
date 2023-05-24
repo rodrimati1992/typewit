@@ -68,7 +68,8 @@
 /// 
 /// Demonstrates all the syntax that this macro accepts and what it expands into:
 /// 
-/// ```rust
+#[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
+#[cfg_attr(feature = "rust_1_61", doc = "```rust")]
 /// typewit::type_fn! {
 ///     /// Hello
 ///     pub struct Foo<'a, T: IntoIterator = Vec<u8>, const N: usize = 3>
@@ -85,7 +86,8 @@
 /// }
 /// ```
 /// the above macro invocation generates code equivalent to this:
-/// ```rust
+#[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
+#[cfg_attr(feature = "rust_1_61", doc = "```rust")]
 /// use typewit::TypeFn;
 /// 
 /// use core::marker::PhantomData;
@@ -103,7 +105,7 @@
 /// }
 /// 
 /// /// docs for impl
-/// impl<'a, 'b: 'a, U, const M: usize, T: IntoIterator, const N: usize> 
+/// impl<'a, 'b: 'a, U, T: IntoIterator, const M: usize, const N: usize> 
 ///     TypeFn<[&'b U; M]> 
 /// for Foo<'a, T, N>
 /// where
