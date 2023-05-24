@@ -4,7 +4,8 @@
 /// 
 /// # Syntax
 /// 
-/// This section a `macro_rules!`-like syntax for the parameters that `type_fn` takes
+/// This section uses a `macro_rules!`-like syntax for 
+/// the parameters that `type_fn` takes
 /// ```text
 /// $(#[$attrs:meta])*
 /// $vis:vis struct $struct_name:ident $(< $struct_generics:generic_params >)?
@@ -55,7 +56,7 @@
 /// assert_eq!(item, "hello");
 /// 
 /// // Declares `struct FnIterItem`,
-/// // a type-level function from `I` to `<I as IntoIterator>::IntoIter`
+/// // a type-level function from `I` to `<I as IntoIterator>::Item`
 /// typewit::type_fn!{
 ///     struct FnIterItem;
 /// 
