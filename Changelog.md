@@ -2,6 +2,10 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.3.0
+
+Added `type_fn` macro.
+
 ### 1.2.0
 
 Added `"const_marker"` feature, enabled by the default feature.

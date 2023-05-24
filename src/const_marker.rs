@@ -163,7 +163,7 @@ declare_const_param_type!{
     /// const-generic struct to a function expecting a concrete type of that struct.
     /// 
     /// ```rust
-    /// use typewit::{const_marker::Usize, TypeEq, TypeFn};
+    /// use typewit::const_marker::Usize;
     /// 
     /// assert_eq!(mutate(Array([])), Array([]));
     /// assert_eq!(mutate(Array([3])), Array([3]));
@@ -197,11 +197,11 @@ declare_const_param_type!{
     ///     Array([c, b, a])
     /// }
     /// 
-    /// // Type-level function to project `Usize<LEN>` to `Array<LEN>`
-    /// struct GArray;
+    /// typewit::type_fn!{
+    ///     // Type-level function from `Usize<LEN>` to `Array<LEN>`
+    ///     struct GArray;
     /// 
-    /// impl<const LEN: usize> TypeFn<Usize<LEN>> for GArray {
-    ///     type Output = Array<LEN>;
+    ///     impl<const LEN: usize> Usize<LEN> => Array<LEN>
     /// }
     /// ```
     fn eq;

@@ -1,0 +1,119 @@
+error: expected at least one type-level function definition
+ --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:1:1
+  |
+1 | / typewit::type_fn!{
+2 | |     struct Unit;
+3 | | }
+  | |_^
+  |
+  = note: this error originates in the macro `$crate::__tyfn_parsed_capture_where` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: invalid argument for `type_fn` macro
+       expected struct declaration followed by type-level function definitions
+ --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:5:1
+  |
+5 | / typewit::type_fn!{
+6 | |     impl u8 => u16;
+7 | | }
+  | |_^
+  |
+  = note: this error originates in the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected `impl`, found `() =>`
+       helo: `impl () =>` is likely to work.
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:9:1
+   |
+9  | / typewit::type_fn!{
+10 | |     struct NoImplToken;
+11 | |
+12 | |     () => ()
+13 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__tyfn_parse_fns` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected at least one type-level function definition
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:16:1
+   |
+16 | / typewit::type_fn!{
+17 | |     struct NoSemicolon
+18 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__tyfn_parsed_capture_where` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected `;` after struct declaration, found `impl`
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:20:1
+   |
+20 | / typewit::type_fn!{
+21 | |     struct ImplAfterNoSemicolon
+22 | |
+23 | |     impl () => ()
+24 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__tyfn_parsed_capture_where` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected `;` in generic parameter list
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:27:1
+   |
+27 | / typewit::type_fn!{
+28 | |     struct UnfinishedGenericParams0<;
+29 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__::__parse_in_generics` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected `;` in generic parameter list
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:31:1
+   |
+31 | / typewit::type_fn!{
+32 | |     struct UnfinishedGenericParams1<T,;
+33 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__::__parse_in_generics` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected end of bound: `Add < Type < u16 >> ;`
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:35:1
+   |
+35 | / typewit::type_fn!{
+36 | |     struct UnfinishedGenericParams2Impl<T: Add<Type<u16>>;
+37 | |
+38 | |     impl () => T::Output
+39 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__::__parse_ty_bounds` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected `impl` in generic parameter list
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:42:1
+   |
+42 | / typewit::type_fn!{
+43 | |     struct UnfinishedGenericParams0Impl<impl
+44 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__::__parse_in_generics` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected `impl` in generic parameter list
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:46:1
+   |
+46 | / typewit::type_fn!{
+47 | |     struct UnfinishedGenericParams1Impl<T,impl
+48 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__::__parse_in_generics` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected end of bound: `Add < Type < u16 >> impl`
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:50:1
+   |
+50 | / typewit::type_fn!{
+51 | |     struct UnfinishedGenericParams2Impl<T: Add<Type<u16>> impl
+52 | |
+53 | |     impl () => T::Output
+54 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__::__parse_ty_bounds` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)

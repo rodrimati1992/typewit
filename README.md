@@ -146,12 +146,12 @@ impl<T> SliceIndex<T> for Range<usize> {
 
 type SliceIndexRet<I, T> = <I as SliceIndex<T>>::Returns;
 
-// This is a type-level function from `I` to `<I as SliceIndex<T>>::Returns`
-struct FnSliceIndexRet<T>(std::marker::PhantomData<fn() -> T>);
+// Declares `struct FnSliceIndexRet<T>`
+// a type-level function (TypeFn implementor) from `I` to `SliceIndexRet<I, T>`
+typewit::type_fn! {
+    struct FnSliceIndexRet<T>;
 
-// What makes FnSliceIndexRet a type-level function
-impl<T, I: SliceIndex<T>> typewit::TypeFn<I> for FnSliceIndexRet<T>  {
-    type Output = SliceIndexRet<I, T>;
+    impl<I: SliceIndex<T>> I => SliceIndexRet<I, T>
 }
 ```
 

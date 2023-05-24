@@ -64,7 +64,7 @@
 //! }
 //! ```
 //! 
-//! <span id="example1"></span>
+//! <span id="example-uses-type-fn"></span>
 //! ### Indexing polymorphism
 //! 
 //! This function demonstrates const fn polymorphism
@@ -143,15 +143,15 @@
 //! 
 //! type SliceIndexRet<I, T> = <I as SliceIndex<T>>::Returns;
 //! 
-//! // This is a type-level function from `I` to `<I as SliceIndex<T>>::Returns`
-//! struct FnSliceIndexRet<T>(std::marker::PhantomData<fn() -> T>);
-//! 
-//! // What makes FnSliceIndexRet a type-level function
-//! impl<T, I: SliceIndex<T>> typewit::TypeFn<I> for FnSliceIndexRet<T>  {
-//!     type Output = SliceIndexRet<I, T>;
+//! // Declares `struct FnSliceIndexRet<T>`
+//! // a type-level function (TypeFn implementor) from `I` to `SliceIndexRet<I, T>`
+//! typewit::type_fn! {
+//!     struct FnSliceIndexRet<T>;
+//!
+//!     impl<I: SliceIndex<T>> I => SliceIndexRet<I, T>
 //! }
 //! # // would use `konst::slice::slice_range`,
-//! # // but it would become a cyclic dependency once `konst` depends on this crate.
+//! # // but it would become a cyclic dependency.
 //! # const fn slice_range<T>(mut slice: &[T], Range{mut start, end}: Range<usize>) -> &[T] {
 //! #     assert!(start <= end && end <= slice.len());
 //! #     let mut removed_end = slice.len() - end;
@@ -274,12 +274,20 @@ pub mod __ {
         cmp::{PartialEq, Eq, PartialOrd, Ord, Ordering},
         fmt::{Debug, Formatter, Result as FmtResult},
         hash::{Hash, Hasher},
-        marker::Copy,
+        marker::{Copy, PhantomData},
         mem::{ManuallyDrop, discriminant},
         option::Option,
         primitive::{bool, usize},
         assert, compile_error, concat, stringify,
     };
 
-    pub use crate::utils::TypeIdentity;
+    pub use crate::{
+        utils::TypeIdentity,
+        macros::generics_parsing_2::{
+            __parse_in_generics,
+            __pg_parsed_ty_bounds,
+            __parse_ty_bounds,
+        },
+    };
+
 }
