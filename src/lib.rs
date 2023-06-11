@@ -255,6 +255,7 @@ pub mod const_marker;
 mod utils;
 mod macros;
 mod type_eq;
+mod type_identity;
 mod type_ne;
 mod type_witness_traits;
 
@@ -262,6 +263,7 @@ pub use crate::{
     type_eq::*,
     type_ne::*,
     type_witness_traits::*,
+    type_identity::Identity,
 };
 
 #[doc(no_inline)]
@@ -282,7 +284,7 @@ pub mod __ {
     };
 
     pub use crate::{
-        utils::TypeIdentity,
+        type_identity::Identity,
         macros::generics_parsing_2::{
             __parse_in_generics,
             __pg_parsed_ty_bounds,

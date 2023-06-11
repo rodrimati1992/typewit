@@ -1,3 +1,5 @@
+use typewit::Identity;
+
 #[track_caller]
 pub fn assert_type<T, Expected>(_: T) {
     assert_eq!(
@@ -15,17 +17,9 @@ pub fn assert_type_eq<T, Expected>(_: T, _: Expected) {
 }
 
 
-pub trait TypeIdentity {
-    type Type: ?Sized;
-}
-
-impl<T: ?Sized> TypeIdentity for T {
-    type Type = T;
-}
-
 pub struct AssertEq<L, R>(std::marker::PhantomData<(fn() -> L, fn() -> R)>)
 where
-    L: ?Sized + TypeIdentity<Type = R>,
+    L: ?Sized + Identity<Type = R>,
     R: ?Sized;
 
 
