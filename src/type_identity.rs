@@ -4,6 +4,8 @@ use crate::TypeEq;
 /// 
 /// # Example
 /// 
+/// (this example requires Rust 1.61.0, because of the `I: SliceIndex<T>,` bound)
+/// 
 #[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
 #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
 /// use typewit::{Identity, TypeEq};

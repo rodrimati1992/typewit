@@ -2,6 +2,10 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.4.0
+
+Added `Identity` trait
+
 ### 1.3.0
 
 Added `type_fn` macro.
