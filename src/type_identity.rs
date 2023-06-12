@@ -2,9 +2,11 @@ use crate::TypeEq;
 
 /// Emulation of `T == U` bounds.
 /// 
+/// This trait emulates `T == U` bounds with `T: Identity<Type = U>`.
+/// 
 /// # Example
 /// 
-/// (this example requires Rust 1.61.0, because of the `I: SliceIndex<T>,` bound)
+/// (this example requires Rust 1.61.0, because it uses trait bounds in a `const fn`)
 /// 
 #[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
 #[cfg_attr(feature = "rust_1_61", doc = "```rust")]

@@ -181,45 +181,39 @@ This example requires the `"const_marker"` feature (enabled by default).
 ```rust
 use typewit::{const_marker::Usize, TypeEq};
 
-assert_eq!(mutate(Array([])), Array([]));
-assert_eq!(mutate(Array([1])), Array([1]));
-assert_eq!(mutate(Array([1, 2])), Array([1, 2]));
-assert_eq!(mutate(Array([1, 2, 3])), Array([1, 2, 3]));
-assert_eq!(mutate(Array([1, 2, 3, 4])), Array([1, 3, 6, 10])); // this is different
-assert_eq!(mutate(Array([1, 2, 3, 4, 5])), Array([1, 2, 3, 4, 5]));
+assert_eq!(*mutate(&mut Arr([])), Arr([]));
+assert_eq!(*mutate(&mut Arr([1])), Arr([1]));
+assert_eq!(*mutate(&mut Arr([1, 2])), Arr([1, 2]));
+assert_eq!(*mutate(&mut Arr([1, 2, 3])), Arr([1, 3, 6])); // this is different!
+assert_eq!(*mutate(&mut Arr([1, 2, 3, 4])), Arr([1, 2, 3, 4])); 
 
-#[derive(Debug, PartialEq, Copy, Clone)]
-struct Array<const N: usize>([u8; N]);
+#[derive(Debug, PartialEq)]
+struct Arr<const N: usize>([u8; N]);
 
-const fn mutate<const N: usize>(arr: Array<N>) -> Array<N> {
-    match Usize::<N>.eq(Usize::<4>) {
-        // `te` is a `TypeEq<Usize<N>, Usize<4>>`
-        Ok(te) => {
-            let te_arr: TypeEq<Array<N>, Array<4>> = te.project::<GArray>();
+fn mutate<const N: usize>(arr: &mut Arr<N>) -> &mut Arr<N> {
+    if let Ok(te) =  Usize::<N>.eq(Usize::<3>) {
+        let tem = te // `te` is a `TypeEq<Usize<N>, Usize<3>>`
+            .project::<GArr>() // returns `TypeEq<Arr<N>, Arr<3>>`
+            .in_mut(); // returns `TypeEq<&mut Arr<N>, &mut Arr<3>>`
 
-            // `te_arr.to_right(..)` goes from `Array<N>` to `Array<4>`
-            let ret = tetra_sum(te_arr.to_right(arr));
-            
-            // `te_arr.to_left(..)` goes from `Array<4>` to `Array<N>`
-            te_arr.to_left(ret)
-        }
-        Err(_) => arr,
+        // `tem.to_right(arr)` downcasts `arr` to `&mut Arr<3>`
+        tetra_sum(tem.to_right(arr));
     }
-}
 
-const fn tetra_sum(mut arr: Array<4>) -> Array<4> {
-    arr.0[1] += arr.0[0];
-    arr.0[2] += arr.0[1];
-    arr.0[3] += arr.0[2];
     arr
 }
 
-// Declares `struct GArray`
-// a type-level function (TypeFn implementor) from `Usize<N>` to `Array<N>`
-typewit::type_fn!{
-    struct GArray;
+fn tetra_sum(arr: &mut Arr<3>) {
+    arr.0[1] += arr.0[0];
+    arr.0[2] += arr.0[1];
+}
 
-    impl<const N: usize> Usize<N> => Array<N>
+// Declares `struct GArr`
+// a type-level function (TypeFn implementor) from `Usize<N>` to `Arr<N>`
+typewit::type_fn!{
+    struct GArr;
+
+    impl<const N: usize> Usize<N> => Arr<N>
 }
 ```
 
