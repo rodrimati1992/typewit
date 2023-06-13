@@ -171,6 +171,53 @@ error[E0277]: the trait bound `RangeFull: SliceIndex<{integer}>` is not satisfie
              usize
 ```
 
+### Downcasting const generic type
+
+This example demonstrates "downcasting" from a type with a const parameter to 
+a concrete instance of that type.
+
+This example requires the `"const_marker"` feature (enabled by default).
+
+```rust
+use typewit::{const_marker::Usize, TypeEq};
+
+assert_eq!(*mutate(&mut Arr([])), Arr([]));
+assert_eq!(*mutate(&mut Arr([1])), Arr([1]));
+assert_eq!(*mutate(&mut Arr([1, 2])), Arr([1, 2]));
+assert_eq!(*mutate(&mut Arr([1, 2, 3])), Arr([1, 3, 6])); // this is different!
+assert_eq!(*mutate(&mut Arr([1, 2, 3, 4])), Arr([1, 2, 3, 4])); 
+
+#[derive(Debug, PartialEq)]
+struct Arr<const N: usize>([u8; N]);
+
+fn mutate<const N: usize>(arr: &mut Arr<N>) -> &mut Arr<N> {
+    if let Ok(te) =  Usize::<N>.eq(Usize::<3>) {
+        let tem = te // `te` is a `TypeEq<Usize<N>, Usize<3>>`
+            .project::<GArr>() // returns `TypeEq<Arr<N>, Arr<3>>`
+            .in_mut(); // returns `TypeEq<&mut Arr<N>, &mut Arr<3>>`
+
+        // `tem.to_right(arr)` downcasts `arr` to `&mut Arr<3>`
+        tetra_sum(tem.to_right(arr));
+    }
+
+    arr
+}
+
+fn tetra_sum(arr: &mut Arr<3>) {
+    arr.0[1] += arr.0[0];
+    arr.0[2] += arr.0[1];
+}
+
+// Declares `struct GArr`
+// a type-level function (TypeFn implementor) from `Usize<N>` to `Arr<N>`
+typewit::type_fn!{
+    struct GArr;
+
+    impl<const N: usize> Usize<N> => Arr<N>
+}
+```
+
+
 # Cargo features
 
 These are the features of this crates:

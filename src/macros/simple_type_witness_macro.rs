@@ -574,7 +574,7 @@ macro_rules! __stw_make_type_witness_impl {
         where
             $(
                 $enum<$($var_gen_args,)* $witnessed_ty>:
-                    $crate::__::TypeIdentity<Type = Self>,
+                    $crate::__::Identity<Type = Self>,
             )?
             $($where)*
             $($vari_where)*
