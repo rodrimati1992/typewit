@@ -40,6 +40,43 @@
 ///     // Allows deriving some traits without the bounds that 
 ///     // standard derives add to type parameters.
 ///     $(derive($($derive:ident),* $(,)?)))?
+///     $vis:vis enum $enum:ident $(<$($generics:generics_param)*>)? 
+///     // The where clause of the enum
+///     $(where $($where:where_predicate)* )?
+///     {
+///         $(
+///             $(#[$variant_meta:meta])*
+///             $variant:ident $(<$($var_gen_args:generic_arg)*>)?
+///             // additional bounds for the MakeTypeWitness impl that constructs this variant.
+///             $(where $($vari_where:where_predicate)*)?
+///             // the type that this variant requires the 
+///             // implicit `__Wit` type parameter to be.
+///             = $witnessed_ty:ty
+///         ),*
+///         $(,)?
+///     }
+/// ```
+/// 
+/// `<$($var_gen_args:generic_arg)*>`
+/// (optional parameter)[(example usage)](#var_gen_args-example): 
+/// this parameter overrides the generic arguments of the enum in its 
+/// [`MakeTypeWitness`] implementation.
+/// 
+/// <span id = "derive"></span>
+/// `derive($($derive:ident),* $(,)?)`(optional parameter)[(example)](#derive-example):
+/// supports deriving the traits listed in the [derivation](#derivation) section
+/// 
+/// <details>
+/// <summary> soft-deprecated older syntax </summary>
+/// 
+/// This macro originally required the following syntax,
+/// which is soft-deprecated, and will be supported for the rest of `"1.*"` versions.
+/// 
+/// ```text
+///     $(#[$enum_meta:meta])*
+///     // Allows deriving some traits without the bounds that 
+///     // standard derives add to type parameters.
+///     $(derive($($derive:ident),* $(,)?)))?
 ///     $vis:vis enum $enum:ident $([$($generics:tt)*])? 
 ///     // The where clause of the enum
 ///     $(where[$($where:tt)*])?
@@ -55,16 +92,8 @@
 ///         $(,)?
 ///     }
 /// ```
-/// `[$($generics:tt)*]`(optional parameter): these are the generic parameters of the enum,
-/// to which this macro adds an implicit `__Wit` type parameter that the variants constrain.
 /// 
-/// `[$($var_gen_args:tt)*]`(optional parameter)[(example usage)](#var_gen_args-example): 
-/// this parameter overrides the generic arguments of the enum in its 
-/// [`MakeTypeWitness`] implementation.
-/// 
-/// <span id = "derive"></span>
-/// `derive($($derive:ident),* $(,)?)`(optional parameter)[(example)](#derive-example):
-/// supports deriving the traits listed in the [derivation](#derivation) section
+/// </details>
 /// 
 /// ### Limitations
 /// 
@@ -107,10 +136,9 @@
 /// }
 /// 
 /// typewit::simple_type_witness! {
-///     // Generic parameters go inside square brackets (these are optional),
 ///     // Declares an `enum Witness<'a, __Wit>`,
 ///     // the `__Wit` type parameter is added after all generics.
-///     enum Witness['a] {
+///     enum Witness<'a> {
 ///         // This variant requires `__Wit == u8`
 ///         U8 = u8,
 ///         // This variant requires `__Wit == &'a str`
@@ -142,16 +170,15 @@
 /// ```rust
 /// # use std::fmt::Debug;
 /// typewit::simple_type_witness! {
-///     // Generic parameters go inside square brackets (these are optional),
 ///     // Declares an `enum Witness<'a, T, __Wit>`,
 ///     // the `__Wit` type parameter is added after all generics.
-///     enum Witness['a, T: 'a] 
-///     // the constraints in the where clause go inside square brackets 
-///     where[T: 'a + Debug] 
+///     enum Witness<'a, T: 'a>
+///     where 
+///         T: 'a + Debug
 ///     {
 ///         // This variant requires `__Wit == T`.
 ///         // The `MakeTypeWitness` impl for this variant also requires `T: Copy`.
-///         Value where [T: Copy] = T,
+///         Value where T: Copy = T,
 ///         // This variant requires `__Wit == &'a T`
 ///         Ref = &'a T,
 ///     }
@@ -198,18 +225,17 @@
 #[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
 #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
 /// typewit::simple_type_witness! {
-///     // Generic parameters go inside square brackets (these are optional),
 ///     // Declares an `enum Foo<T, const N: usize, __Wit>`,
 ///     // the `__Wit` type parameter is added after all generics.
-///     enum Foo[T, const N: usize] {
+///     enum Foo<T, const N: usize> {
 ///         // This variant requires `__Wit == u64`.
 ///         // 
-///         // The `[(), 0]` here
+///         // The `<(), 0>` here
 ///         // replaces `impl<T, const N: usize> MakeTypeWitness for Foo<T, N, u64>`
 ///         // with     `impl MakeTypeWitness for Foo<(), 0, u64>`.
-///         // Using `[(), 0]` allows the  `T` and `N` type parameters to be inferred
+///         // Using `<(), 0>` allows the  `T` and `N` type parameters to be inferred
 ///         // when the `MakeTypeWitness` impl for `Foo<_, _, u64>` is used.
-///         U64[(), 0] = u64,
+///         U64<(), 0> = u64,
 ///         // This variant requires `__Wit == [T; N]`.
 ///         Array = [T; N],
 ///     }
@@ -248,7 +274,7 @@
 /// assert_eq!(Witness::<u8>::MAKE, Witness::<u8>::MAKE);
 /// 
 /// // Witness doesn't require its type parameters to impl any traits in its derives.
-/// // (the standard derives require type parameters to impl the derived trait)
+/// // (the standard derives require that type parameters impl the derived trait)
 /// assert_eq!(Witness::<NoImpls>::MAKE, Witness::NoImp(TypeEq::NEW));
 /// 
 /// typewit::simple_type_witness! {

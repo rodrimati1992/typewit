@@ -2,6 +2,12 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.5.0
+
+Added support for these to `simple_type_witness` macro:
+- Generic parameters using `< >` syntax
+- non-`[ ]`-surrounded `where` clauses
+
 ### 1.4.0
 
 Added `Identity` trait

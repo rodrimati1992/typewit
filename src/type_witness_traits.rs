@@ -75,19 +75,19 @@ use core::marker::PhantomData;
 ///     // (the `__Wit` type parameter is implicitly added after all generics)
 ///     // `#[non_exhausitve]` allows adding more supported types.
 ///     #[non_exhaustive]
-///     pub enum StrTryFromWitness['a, const L: usize] {
+///     pub enum StrTryFromWitness<'a, const L: usize> {
 ///         // This variant requires `__Wit == &'a str`
 ///         // 
-///         // The `['a, 0]` here changes this macro from generating
+///         // The `<'a, 0>` here changes this macro from generating
 ///         // `impl<'a, const L: usize> MakeTypeWitness for StrTryFromWitness<'a, L, &'a [u8]>`
 ///         // to 
 ///         // `impl<'a> MakeTypeWitness for StrTryFromWitness<'a, 0, &'a [u8]>`
 ///         // which allows the compiler to infer generic arguments when
-///         // using the above `MakeTypeWitness` impl`
-///         Str['a, 0] = &'a str,
+///         // using the latter `MakeTypeWitness` impl`
+///         Str<'a, 0> = &'a str,
 ///    
 ///         // This variant requires `__Wit == &'a [u8]`
-///         Bytes['a, 0] = &'a [u8],
+///         Bytes<'a, 0> = &'a [u8],
 ///    
 ///         // This variant requires `__Wit == &'a [u8; L]`
 ///         Array = &'a [u8; L],
@@ -237,15 +237,16 @@ pub trait TypeWitnessTypeArg {
 ///     // Declares `enum Defaultable<'a, const L: usize, __Wit>`
 ///     // The `__Wit` type parameter is implicit and always the last generic parameter.
 ///     #[non_exhaustive]
-///     enum Defaultable['a, const L: usize] {
-///         // `['a, 0]` is necessary to have 
+///     enum Defaultable<'a, const L: usize> {
+///         // `<'a, 0>` is necessary to have 
 ///         // `impl MakeTypeWitness for Defaultable<'_, 0, i32>` instead of 
-///         // `impl<'a, const L: u32> MakeTypeWitness for Defaultable<'a, L, i32>` 
-///         I32['a, 0] = i32,
+///         // `impl<'a, const L: u32> MakeTypeWitness for Defaultable<'a, L, i32>`,
+///         // which allows the generic arguments to be inferred.
+///         I32<'a, 0> = i32,
 ///
-///         Bool['a, 0] = bool,
+///         Bool<'a, 0> = bool,
 ///
-///         Str['a, 0] = &'a str,
+///         Str<'a, 0> = &'a str,
 ///
 ///         Array = [u32; L],
 ///     }
@@ -253,7 +254,7 @@ pub trait TypeWitnessTypeArg {
 /// ```
 /// note that [`simple_type_witness`] can't replace enums whose 
 /// witnessed type parameter is not the last, 
-/// or have variants with anything but one `TypeEq` field each.
+/// or have variants with anything but one [`TypeEq`] field each.
 /// 
 /// 
 /// [`simple_type_witness`]: crate::simple_type_witness

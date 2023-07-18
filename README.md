@@ -58,7 +58,7 @@ where
 typewit::simple_type_witness! {
     // Declares `enum RetWitness<'a, __Wit>` 
     // (the `__Wit` type parameter is implicitly added after all generics)
-    enum RetWitness['a] {
+    enum RetWitness<'a> {
         // This variant requires `__Wit == u8`
         U8 = u8,
    
