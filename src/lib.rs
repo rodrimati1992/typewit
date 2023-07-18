@@ -332,10 +332,14 @@ pub mod __ {
 
     pub use crate::{
         type_identity::Identity,
-        macros::generics_parsing_2::{
-            __parse_in_generics,
-            __pg_parsed_ty_bounds,
-            __parse_ty_bounds,
+        macros::{
+            generics_parsing::{
+                __parse_in_generics,
+                __pg_parsed_ty_bounds,
+                __parse_ty_bounds,
+                __parse_where_clause_for_item_inner,
+            },
+            simple_type_witness_macro::__stw_parse_variants,
         },
     };
 

@@ -148,7 +148,7 @@ macro_rules! type_fn {
         $vis:vis struct $struct_name:ident
         $($rem:tt)*
     ) => {
-        $crate::__trailing_comma_until_semicolon!{
+        $crate::__trailing_comma_for_where_clause!{
             ($crate::__tyfn_parsed_capture_where! (
                 (
                     $(#[$attrs])*
@@ -177,7 +177,7 @@ macro_rules! __tyfn_parsed_capture_generics {
         $capture_generics:tt
         where $($rem:tt)*
     ) => {
-        $crate::__trailing_comma_until_semicolon!{
+        $crate::__trailing_comma_for_where_clause!{
             ($crate::__tyfn_parsed_capture_where! (
                 ( $($struct_stuff)* $capture_gen_args $capture_generics )
             ))
@@ -308,7 +308,7 @@ macro_rules! __tyfn_parse_fns {
             where $($rem:tt)*
         ]
     ) => {
-        $crate::__trailing_comma_until_semicolon!{
+        $crate::__trailing_comma_for_where_clause!{
             ($crate::__tyfn_parsed_fn_where!(
                 $fixed
                 $fns
@@ -407,7 +407,7 @@ macro_rules! __tyfn_parsed_fn_generics {
         $type_fn_arg:ty => $ret_ty:ty
         where $($rem:tt)*
     ) => {
-        $crate::__trailing_comma_until_semicolon!{
+        $crate::__trailing_comma_for_where_clause!{
             ($crate::__tyfn_parsed_fn_where!(
                 $fixed
                 $fns

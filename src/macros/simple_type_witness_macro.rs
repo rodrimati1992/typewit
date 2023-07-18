@@ -273,41 +273,16 @@ macro_rules! simple_type_witness {
         $(#[$enum_meta:meta])*
         $(derive($($derive:ident),* $(,)?))?
         $(pub $(($($pub:tt)*))?)? 
-        enum $enum:ident $([$($generics:tt)*])? 
-        $(where[$($where:tt)*])?
-        {
-            $(
-                $(#[$variant_meta:meta])*
-                $variant:ident $([$($var_gen_args:tt)*])?
-                $(where[$($vari_where:tt)*])?
-                = $witnessed_ty:ty
-            ),*
-            $(,)?
-        }
+        enum $enum:ident $($rem:tt)*
     ) => {
         $crate::__parse_generics!{
-            (
-                $crate::__stw_with_parsed_generics!(
-                    $(#[$enum_meta])*
-                    derive($($($derive)*)?)
-                    $(pub $(($($pub)*))? )? 
-                    enum $enum {
-                        $((
-                            $variant $([$($var_gen_args)*])?
-                            $(#[$variant_meta])*
-                            where[$($($vari_where)*)?]
-                            = $witnessed_ty
-                        ))*
-                    }
-                    where[$($($where)*)?]
-                )
-
-                [$($($generics)*)?]
-            )
-
-            []
-            []
-            [$($($generics)*)?]
+            ($crate::__stw_with_parsed_generics!((
+                $(#[$enum_meta])*
+                derive($($($derive)*)?)
+                $(pub $(($($pub)*))? )? 
+                enum $enum
+            )))
+            [$($rem)*]
         }
     };
 }
@@ -316,29 +291,152 @@ macro_rules! simple_type_witness {
 #[macro_export]
 macro_rules! __stw_with_parsed_generics {
     (
-        $(# $enum_meta:tt)*
-        derive $derive:tt
-        $vis:vis enum $enum:ident $variants:tt
-        where $where:tt
+        ($($prev_args:tt)*)
 
-        $gen_args:tt
-        $phantom_args:tt
-        $generics:tt
+        [$(($gen_arg:tt ($($gen_phantom:tt)*) $($gen_rem:tt)*))*]
+        [$(($($generics:tt)*))*]
+
+        $($rem:tt)*
     ) => {
-        $crate::__trailing_comma! {
-            (
-                $crate::__stw_with_parsed_args ! (
-                    $(# $enum_meta)*
-                    derive $derive
-                    $vis enum $enum $generics $gen_args
-                    $variants
-                )
-            )
-            []
-            $where
+        $crate::__parse_where_clause_for_item! {
+            ($crate::__stw_with_parsed_where ! ((
+                $($prev_args)*
+                [$($($generics)*,)*]
+                [ $($gen_arg,)* ]
+                [$($($gen_phantom)*)*]
+            )))
+            $($rem)*
         }
     };
 }
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __stw_with_parsed_where {
+    (
+        ($($prev_args:tt)*)
+
+        $where_clause:tt
+
+        {$($variants:tt)*}
+    ) => {
+        $crate::__::__stw_parse_variants!{
+            ($($prev_args)* where $where_clause)
+            []
+            [$($variants)*]
+        }
+    }
+}
+
+
+macro_rules! declare__stw_parse_variants {
+    ($_:tt ($($vari_params:tt)*) ($($vari_output:tt)*)) => {
+        #[doc(hidden)]
+        #[macro_export]
+        macro_rules! __stw_parse_variants_ {
+            (($_($fixed:tt)*) [$_($variant_args:tt)*] [$_(,)*])=>{
+                $crate::__stw_with_parsed_args! {
+                    $_($fixed)*
+                    { $_($variant_args)* }
+                }
+            };
+            (
+                $fixed:tt
+                [$_($prev:tt)*]
+                [$($vari_params)* = $var_type:ty $_(, $_($rem:tt)*)?]
+            )=>{
+                $crate::__::__stw_parse_variants!{
+                    $fixed
+                    // The four token trees in the parentheses here are:
+                    // (
+                    //      variant_name 
+                    //      (replacement_for_Self)
+                    //      [where_clause_for_variant]
+                    //      withnessed_type
+                    // )
+                    [$_($prev)* ($($vari_output)* () [] $var_type)]
+                    [$_($_($rem)*)?]
+                }
+            };
+            ($fixed:tt $prev:tt [$($vari_params)* < $_($rem:tt)*])=>{
+                $crate::__stw_parse_variant_Self_ty!{
+                    $fixed
+                    $prev
+                    [($($vari_output)*) __GenericsPhantom < $_($rem)*]
+                }
+            };
+            ($fixed:tt $prev:tt [$($vari_params)* [$_($SelfArgs:tt)*] $_($rem:tt)*])=>{
+                $crate::__stw_parse_variant_Self_ty!{
+                    $fixed
+                    $prev
+                    [($($vari_output)*) __GenericsPhantom < $_($SelfArgs)* > $_($rem)*]
+                }
+            };
+            ($fixed:tt $prev:tt [$($vari_params)* where $_($rem:tt)*])=>{
+                $crate::__parse_where_clause_for_item!{
+                    ($crate::__stw_parsed_variant_with_where_clause!(
+                        $fixed $prev [$($vari_output)* ()]
+                    ))
+                    where $_($rem)*
+                }
+            };
+        }
+    };
+}
+
+declare__stw_parse_variants!{
+    $
+    ($(#[$vari_attr:meta])* $variant:ident)
+    ($variant $(#[$vari_attr])*)
+}
+
+pub use __stw_parse_variants_ as __stw_parse_variants;
+
+
+
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __stw_parse_variant_Self_ty {
+    ($fixed:tt $prev:tt [($($vari_prev:tt)*) $SelfTy:ty where $($rem:tt)*])=>{
+        $crate::__parse_where_clause_for_item!{
+            ($crate::__stw_parsed_variant_with_where_clause!(
+                $fixed $prev [$($vari_prev)* ($SelfTy)]
+            ))
+            where $($rem)*
+        }
+    };
+    (
+        $fixed:tt
+        [$($prev:tt)*] 
+        [($($vari_prev:tt)*) $SelfTy:ty = $var_type:ty $(, $($rem:tt)*)?]
+    )=>{
+        $crate::__::__stw_parse_variants!{
+            $fixed
+            [$($prev)* ($($vari_prev)* ($SelfTy) [] $var_type)]
+            [$($($rem)*)?]
+        }
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __stw_parsed_variant_with_where_clause {
+    (
+        $fixed:tt
+        [$($prev:tt)*] 
+        [$($vari_prev:tt)*]
+        $where_clause:tt
+        = $var_type:ty $(, $($rem:tt)*)?
+    ) => {
+        $crate::__::__stw_parse_variants!{
+            $fixed
+            [$($prev)* ($($vari_prev)* $where_clause $var_type)]
+            [$($($rem)*)?]
+        }
+    }
+}
+
 
 #[doc(hidden)]
 #[macro_export]
@@ -346,9 +444,9 @@ macro_rules! __stw_with_parsed_args {
     (
         $(# $enum_meta:tt)*
         derive $derive:tt
-        $vis:vis enum $enum:ident $generics:tt $gen_args:tt
+        $vis:vis enum $enum:ident $generics:tt $gen_args:tt $phantoms:tt
+        where $where:tt
         { $($variant_args:tt)* }
-        $where:tt
     ) => {
         $crate::__stw_top_items!{
             $(# $enum_meta)*
@@ -365,16 +463,23 @@ macro_rules! __stw_with_parsed_args {
             { $($variant_args)* }
         }
 
-        $(
-            $crate::__stw_make_type_witness_impl!{
-                $enum $generics $gen_args
+        const _: () = {
+            $crate::__stw_declare_generics_marker_struct! {
+                $generics
+                $phantoms
                 where $where
-                $variant_args
             }
-        )*
+
+            $(
+                $crate::__stw_make_type_witness_impl!{
+                    $enum $generics $gen_args $gen_args
+                    where $where
+                    $variant_args
+                }
+            )*
+        };
     }
 }
-
 
 #[doc(hidden)]
 #[macro_export]
@@ -388,9 +493,9 @@ macro_rules! __stw_top_items {
             $((
                 $variant:ident
                 $(#[$variant_meta:meta])*
-                $([$($var_gen_args:tt)*])?
-                where $vari_where:tt
-                = $witnessed_ty:ty
+                ($($SelfTy:ty)?)
+                $vari_where:tt
+                $witnessed_ty:ty
             ))*
         }
     ) => {
@@ -423,6 +528,21 @@ macro_rules! __stw_top_items {
         {
             type Arg = __Wit;
         }
+    };
+}
+
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __stw_declare_generics_marker_struct {
+    (
+        [$($generics:tt)*]
+        [$($phantoms:tt)*]
+        where [$($where_clause:tt)*]
+    ) => {
+        struct __GenericsPhantom<$($generics)*>(
+            $crate::__::PhantomData<($($phantoms)*)>
+        ) where $($where_clause)*;
     }
 }
 
@@ -559,22 +679,23 @@ macro_rules! __stw_single_derive {
 #[macro_export]
 macro_rules! __stw_make_type_witness_impl {
     (
-        $enum:ident[$($generics:tt)*] [$($gen_args:tt)*]
+        $enum:ident[$($generics:tt)*] [$($gen_args:tt)*] $gen_args_copy:tt
         where [$($where:tt)*]
 
         (
             $variant:ident
             $(#[$variant_meta:meta])*
-            $([$($var_gen_args:tt),* $(,)?])?
-            where[$($vari_where:tt)*]
-            = $witnessed_ty:ty
+            ($($SelfTy:ty)?)
+            [$($vari_where:tt)*]
+            $witnessed_ty:ty
         )
     ) => {
         impl<$($generics)*> $crate::MakeTypeWitness for $enum<$($gen_args)* $witnessed_ty>
         where
             $(
-                $enum<$($var_gen_args,)* $witnessed_ty>:
-                    $crate::__::Identity<Type = Self>,
+                $SelfTy: $crate::__::Identity<Type = 
+                    $crate::__with_gen_args!((__GenericsPhantom) $gen_args_copy)
+                >,
             )?
             $($where)*
             $($vari_where)*
@@ -586,5 +707,11 @@ macro_rules! __stw_make_type_witness_impl {
 }
 
 
-
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __with_gen_args {
+    (($($typename:tt)*) [$($gen_args:tt)*]) => {
+        $($typename)* <$($gen_args)*>
+    }
+}
 
