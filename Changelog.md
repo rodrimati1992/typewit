@@ -7,6 +7,7 @@ This is the changelog, summarising changes in each version(some minor changes ma
 Added support for these to `simple_type_witness` macro:
 - Generic parameters using `< >` syntax
 - non-`[ ]`-surrounded `where` clauses
+- `#[cfg( ... )]` attributes on variants
 
 ### 1.4.0
 

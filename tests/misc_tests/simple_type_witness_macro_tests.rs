@@ -263,6 +263,32 @@ fn full_ex_test() {
 
 
 typewit::simple_type_witness!{
+    enum CfgedOut {
+        #[cfg(all())]
+        U8 = u8,
+        /// Removed variant
+        #[cfg(any())]
+        U16 = u16,
+    }
+}
+
+
+#[test]
+fn cfged_out_varians() {
+    fn cfged<T: HasTypeWitness<CfgedOut<T>>>() -> T {
+        match T::WITNESS {
+            CfgedOut::U8(te) => te.to_left(3),
+        }
+    }
+
+    assert_eq!(cfged::<u8>(), 3);
+}
+
+
+//////////////////////////////
+
+
+typewit::simple_type_witness!{
     derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)
     enum AllDerives {U8 = u8, U16 = u16}
 }

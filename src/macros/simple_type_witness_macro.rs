@@ -14,7 +14,8 @@
 /// 
 /// - An impl of [`TypeWitnessTypeArg`] for the enum.
 /// 
-/// - An impl of [`MakeTypeWitness`](crate::MakeTypeWitness) for each variant of the enum.
+/// - An impl of [`MakeTypeWitness`] for each variant of the enum.
+/// 
 /// 
 /// ### Derivation
 /// 
@@ -65,6 +66,9 @@
 /// <span id = "derive"></span>
 /// `derive($($derive:ident),* $(,)?)`(optional parameter)[(example)](#derive-example):
 /// supports deriving the traits listed in the [derivation](#derivation) section
+/// 
+/// `#[cfg(...)]` attributes on variants are copied to their respective 
+/// [`MakeTypeWitness`] impls.
 /// 
 /// <details>
 /// <summary> soft-deprecated older syntax </summary>
@@ -172,6 +176,7 @@
 /// typewit::simple_type_witness! {
 ///     // Declares an `enum Witness<'a, T, __Wit>`,
 ///     // the `__Wit` type parameter is added after all generics.
+///     #[non_exhaustive]
 ///     enum Witness<'a, T: 'a>
 ///     where 
 ///         T: 'a + Debug
@@ -179,7 +184,9 @@
 ///         // This variant requires `__Wit == T`.
 ///         // The `MakeTypeWitness` impl for this variant also requires `T: Copy`.
 ///         Value where T: Copy = T,
+///
 ///         // This variant requires `__Wit == &'a T`
+///         #[cfg(feature = "foo")]
 ///         Ref = &'a T,
 ///     }
 /// }
@@ -192,14 +199,18 @@
 ///     T: 'a + Debug,
 /// {
 ///     Value(typewit::TypeEq<__Wit, T>),
+/// 
+///     #[cfg(feature = "foo")]
 ///     Ref(typewit::TypeEq<__Wit, &'a T>),
 /// }
+/// 
 /// impl<'a, T, __Wit> typewit::TypeWitnessTypeArg for Witness<'a, T, __Wit>
 /// where
 ///     T: 'a + Debug,
 /// {
 ///     type Arg = __Wit;
 /// }
+/// 
 /// impl<'a, T> typewit::MakeTypeWitness for Witness<'a, T, T>
 /// where
 ///     T: 'a + Debug,
@@ -207,6 +218,8 @@
 /// {
 ///     const MAKE: Self = Self::Value(typewit::TypeEq::NEW);
 /// }
+/// 
+/// #[cfg(feature = "foo")]
 /// impl<'a, T> typewit::MakeTypeWitness for Witness<'a, T, &'a T>
 /// where
 ///     T: 'a + Debug,
@@ -412,8 +425,8 @@ macro_rules! declare__stw_parse_variants {
 
 declare__stw_parse_variants!{
     $
-    ($(#[$vari_attr:meta])* $variant:ident)
-    ($variant $(#[$vari_attr])*)
+    ($(#[$($vari_attr:tt)*])* $variant:ident)
+    ($variant $(#[$($vari_attr)*])*)
 }
 
 pub use __stw_parse_variants_ as __stw_parse_variants;
@@ -497,9 +510,11 @@ macro_rules! __stw_with_parsed_args {
             }
 
             $(
-                $crate::__stw_make_type_witness_impl!{
-                    $enum $generics $gen_args $gen_args
-                    where $where
+                $crate::__stw_parse_attrs_for_mtwi_prelude!{
+                    (
+                        $enum $generics $gen_args $gen_args
+                        where $where
+                    )
                     $variant_args
                 }
             )*
@@ -703,19 +718,71 @@ macro_rules! __stw_single_derive {
 
 #[doc(hidden)]
 #[macro_export]
-macro_rules! __stw_make_type_witness_impl {
+macro_rules! __stw_parse_attrs_for_mtwi_prelude {
     (
-        $enum:ident[$($generics:tt)*] [$($gen_args:tt)*] $gen_args_copy:tt
-        where [$($where:tt)*]
+        ($($fixed:tt)*)
 
         (
             $variant:ident
-            $(#[$variant_meta:meta])*
+            $(#[ $($variant_meta:tt)* ])*
             ($($SelfTy:ty)?)
-            [$($vari_where:tt)*]
-            $witnessed_ty:ty
+            $($rem:tt)*
         )
     ) => {
+        $crate::__stw_parse_attrs_for_mtwi! {
+            (
+                $($fixed)*
+
+                $variant
+                ($($SelfTy)?)
+                $($rem)*
+            )
+            []
+            [$(#[ $($variant_meta)* ])*]
+        }
+    }
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __stw_parse_attrs_for_mtwi {
+    (($($fixed:tt)*) [$($prev:tt)*] []) => {
+        $crate::__stw_make_type_witness_impl! {
+            $($prev)*
+            $($fixed)*
+        }
+    };
+    ($fixed:tt [$($prev:tt)*] [#[cfg $cfg:tt]  $($next:tt)*]) => {
+        $crate::__stw_parse_attrs_for_mtwi! {
+            $fixed
+            [$($prev)* #[cfg $cfg]]
+            [$($next)*]
+        }
+    };
+    ($fixed:tt $prev:tt [#[$($attr:tt)*]  $($next:tt)*]) => {
+        $crate::__stw_parse_attrs_for_mtwi! {
+            $fixed
+            $prev
+            [$($next)*]
+        }
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __stw_make_type_witness_impl {
+    (
+        $(#[$variant_meta:meta])*
+        
+        $enum:ident[$($generics:tt)*] [$($gen_args:tt)*] $gen_args_copy:tt
+        where [$($where:tt)*]
+
+        $variant:ident
+        ($($SelfTy:ty)?)
+        [$($vari_where:tt)*]
+        $witnessed_ty:ty
+    ) => {
+        $(#[$variant_meta])*
         impl<$($generics)*> $crate::MakeTypeWitness for $enum<$($gen_args)* $witnessed_ty>
         where
             $(
