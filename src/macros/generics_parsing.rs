@@ -438,4 +438,7 @@ declare_generics_consuming_macro! {
     ) => {
         $($callback)::* !{$($callback_args)* [$($($prev)+,)?] {$($braced)*} $($rem)*}
     };
+    ($fixed:tt [] $prev:tt []) => {
+        $crate::__::compile_error!{"unexpected end of where clause, expected rest of item"}
+    };
 }

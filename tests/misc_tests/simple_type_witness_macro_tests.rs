@@ -6,6 +6,8 @@ use typewit::{HasTypeWitness, MakeTypeWitness, TypeEq};
 
 use core::fmt::Debug;
 
+mod stw_generics_parsing;
+
 mod privacy {
     typewit::simple_type_witness!{
         pub(super) enum Foo { U8 = u8 }
@@ -211,9 +213,13 @@ typewit::simple_type_witness!{
     enum FullEx['a, T, const N: usize] 
     where[ T: Copy ]
     {
+        // the four permutations of:
+        // - replacing the generic arguments 
+        // - putting a where clause on the variant
         U8 = &'a u8,
         Opt['a, T, 0] where [T: Debug] = Option<T>,
         Array['a, (), N] = [u32; N],
+        Tup where [T: Copy] = (Option<T>,),
     }
 }
 
@@ -229,6 +235,7 @@ fn full_ex_test() {
             FullEx::U8(te) => te.to_left(&5),
             FullEx::Opt(te) => te.to_left(None::<T>),
             FullEx::Array(te) => te.to_left([8; N]),
+            FullEx::Tup(te) => te.to_left((None,)),
         }
     }
 
@@ -245,6 +252,10 @@ fn full_ex_test() {
     {
         let ret: Option<u32> = func();
         assert_eq!(ret, None::<u32>);
+    }
+    {
+        let ret: (Option<u32>,) = func::<_, 0, _>();
+        assert_eq!(ret, (None::<u32>,));
     }
 }
 
