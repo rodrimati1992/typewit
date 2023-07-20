@@ -286,7 +286,7 @@ extern crate alloc;
 // Documentation for concepts not specific to any one item
 macro_rules! explain_type_witness {
     () => ("\
-        A [type witness](crate) is \
+        A [type witness](crate#what-are-type-witnesses) is \
         an enum whose variants only have [`TypeEq`](crate::TypeEq) fields.
         Each variant requires the enum's type parameter to be a specific type.
     ")

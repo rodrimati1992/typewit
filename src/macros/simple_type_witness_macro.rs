@@ -16,6 +16,7 @@
 /// 
 /// - An impl of [`MakeTypeWitness`] for each variant of the enum.
 /// 
+/// Additional trait impls are generated when the [`derive(...)`](#derive) syntax is used.
 /// 
 /// ### Derivation
 /// 
@@ -28,22 +29,20 @@
 /// - `Ord`
 /// - `Hash`
 /// 
+/// As opposed to `#[derive(...))]`-generated implementations,
+/// these impls don't require type parameters to implement the derived trait.
+/// 
 /// This macro always implements `Copy` and `Clone` for the declared type witness,
 /// `derive(Copy, Clone)` does nothing.
 /// 
 /// # Syntax
 /// 
-/// This macro uses square brackets to make parsing generics and where clauses easier.
-/// 
 /// This macro takes an enum-like syntax:
 /// ```text
 ///     $(#[$enum_meta:meta])*
-///     // Allows deriving some traits without the bounds that 
-///     // standard derives add to type parameters.
 ///     $(derive($($derive:ident),* $(,)?)))?
-///     $vis:vis enum $enum:ident $(<$($generics:generics_param)*>)? 
-///     // The where clause of the enum
-///     $(where $($where:where_predicate)* )?
+///     $vis:vis enum $enum:ident $(<$($generics:generics_param),* $(,)?>)? 
+///     $(where $($where:where_predicate),* $(,)? )?
 ///     {
 ///         $(
 ///             $(#[$variant_meta:meta])*
@@ -71,7 +70,9 @@
 /// [`MakeTypeWitness`] impls.
 /// 
 /// <details>
-/// <summary> soft-deprecated older syntax </summary>
+/// <summary>
+/// <b>Soft-deprecated older syntax</b>
+/// </summary>
 /// 
 /// This macro originally required the following syntax,
 /// which is soft-deprecated, and will be supported for the rest of `"1.*"` versions.
@@ -100,10 +101,6 @@
 /// </details>
 /// 
 /// ### Limitations
-/// 
-/// This macro cannot parse defaulted generic parameters,
-/// doing so would either require procedural macros or 
-/// a very complex `macro_rules!` macro.
 /// 
 /// <span id = "const-parameter-limitation"></span>
 /// When used in Rust versions prior to 1.59.0,
@@ -170,7 +167,7 @@
 /// 
 /// ### where clauses 
 /// 
-/// This example demonstrates the where clause syntax
+/// This example demonstrates a variant with a where clause.
 /// ```rust
 /// # use std::fmt::Debug;
 /// typewit::simple_type_witness! {
@@ -245,7 +242,7 @@
 ///         // 
 ///         // The `<(), 0>` here
 ///         // replaces `impl<T, const N: usize> MakeTypeWitness for Foo<T, N, u64>`
-///         // with     `impl MakeTypeWitness for Foo<(), 0, u64>`.
+///         // with     `impl                    MakeTypeWitness for Foo<(), 0, u64>`.
 ///         // Using `<(), 0>` allows the  `T` and `N` type parameters to be inferred
 ///         // when the `MakeTypeWitness` impl for `Foo<_, _, u64>` is used.
 ///         U64<(), 0> = u64,
@@ -287,7 +284,8 @@
 /// assert_eq!(Witness::<u8>::MAKE, Witness::<u8>::MAKE);
 /// 
 /// // Witness doesn't require its type parameters to impl any traits in its derives.
-/// // (the standard derives require that type parameters impl the derived trait)
+/// // The standard derives require that type parameters impl the derived trait,
+/// // so this comparison wouldn't work (because `NoImpls` doesn't impl `PartialEq`.
 /// assert_eq!(Witness::<NoImpls>::MAKE, Witness::NoImp(TypeEq::NEW));
 /// 
 /// typewit::simple_type_witness! {
@@ -336,7 +334,7 @@ macro_rules! __stw_with_parsed_generics {
         ($($prev_args:tt)*)
         $enum:ident
 
-        [$(($gen_arg:tt ($($gen_phantom:tt)*) $($gen_rem:tt)*))*]
+        [$(($gen_arg:tt ($($gen_phantom:tt)*) $( = $($gen_def:tt)* )? ))*]
         [$(($($generics:tt)*))*]
 
         $($rem:tt)*
