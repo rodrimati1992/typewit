@@ -8,6 +8,7 @@ Added support for these to `simple_type_witness` macro:
 - Generic parameters using `< >` syntax
 - non-`[ ]`-surrounded `where` clauses
 - `#[cfg( ... )]` attributes on variants
+- Using `__Wit` in constraints.
 
 ### 1.4.0
 

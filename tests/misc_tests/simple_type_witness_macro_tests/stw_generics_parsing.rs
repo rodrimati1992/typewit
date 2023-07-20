@@ -53,8 +53,42 @@ fn empty_generics_trivial_where_clause() {
     test_case!{<> where}
     test_case!{where}
     test_case!{where [u8; 0]:}
+}
 
+#[test]
+fn trailing_commas() {
+    macro_rules! test_case {
+        (($($gen_p:tt)?) ($($gen_w:tt)?) ($($gen_a:tt)?) ($($gen_v:tt)?)) => ({
+            simple_type_witness! {
+                enum TestCase<T, U $($gen_p)?> 
+                where (): $($gen_w)?
+                {
+                    A = (T, U),
+                    B<u8, () $($gen_a)?> = u8 $($gen_v)?
+                }
+            }
 
+            let _: TestCase<u8, u16, (u8, u16)> = MakeTypeWitness::MAKE;
+            let _: TestCase<u8, (), u8> = MakeTypeWitness::MAKE;
+        });
+    }
+
+    test_case!{(,)(,)(,)(,)}
+    test_case!{(,)(,)(,)( )}
+    test_case!{(,)(,)( )(,)}
+    test_case!{(,)(,)( )( )}
+    test_case!{(,)( )(,)(,)}
+    test_case!{(,)( )(,)( )}
+    test_case!{(,)( )( )(,)}
+    test_case!{(,)( )( )( )}
+    test_case!{( )(,)(,)(,)}
+    test_case!{( )(,)(,)( )}
+    test_case!{( )(,)( )(,)}
+    test_case!{( )(,)( )( )}
+    test_case!{( )( )(,)(,)}
+    test_case!{( )( )(,)( )}
+    test_case!{( )( )( )(,)}
+    test_case!{( )( )( )( )}
 }
 
 

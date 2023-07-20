@@ -112,6 +112,12 @@ macro_rules! declare_generics_consuming_macro {(
                 "`",
             )}
         };
+        ( $_($other:tt)* ) => {
+            $crate::__::compile_error!{$crate::__::concat!(
+                "bug: unhandled syntax in `typewit` macro: ",
+                stringify!($_($other)*),
+            )}
+        };
     }
 
     pub use $gen_consuming_macro_ as $gen_consuming_macro;
@@ -440,5 +446,23 @@ declare_generics_consuming_macro! {
     };
     ($fixed:tt [] $prev:tt []) => {
         $crate::__::compile_error!{"unexpected end of where clause, expected rest of item"}
+    };
+}
+
+
+declare_generics_consuming_macro! {
+    $ __collect_generic_args_ = __collect_generic_args
+    "generic arguments";
+
+    (
+        ($($callback:ident)::* !($($callback_args:tt)*) )
+        []
+        [$($($prev:tt)+)?]
+        [$(,)?> $($rem:tt)*]
+    ) => {
+        $($callback)::* !{$($callback_args)* [$($($prev)+,)?] $($rem)*}
+    };
+    ($fixed:tt [] $prev:tt []) => {
+        $crate::__::compile_error!{"unexpected end of generic arguments"}
     };
 }

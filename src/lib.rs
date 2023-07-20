@@ -334,10 +334,11 @@ pub mod __ {
         type_identity::Identity,
         macros::{
             generics_parsing::{
+                __collect_generic_args,
                 __parse_in_generics,
-                __pg_parsed_ty_bounds,
                 __parse_ty_bounds,
                 __parse_where_clause_for_item_inner,
+                __pg_parsed_ty_bounds,
             },
             simple_type_witness_macro::__stw_parse_variants,
         },

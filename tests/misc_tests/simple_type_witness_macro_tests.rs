@@ -313,4 +313,26 @@ fn test_all_derives() {
 }
 
 
+//////////////////////////////
+
+
+// This ensures that all generic parameters can be used in the where clause,
+typewit::simple_type_witness!{
+    derive(Copy, Clone)
+    enum UsingGenericsInWhereClause<'a, T: 'a, const N: usize>
+    where
+        [&'a T; N]: Clone,
+        __Wit: Clone,
+    {
+        U8 = [&'a T; N],
+        U16['static, (), 0] 
+        where 
+            [&'a T; N]: Copy,
+            __Wit: Copy,
+        = u16,
+    }
+}
+
+
+
 
