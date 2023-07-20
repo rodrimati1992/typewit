@@ -126,6 +126,7 @@ fn lt_gt_token_permutations() {
 
 // ensurs that braces inside the where clause work.
 #[test]
+#[cfg(feature = "rust_1_61")]
 fn parse_braced_const_param() {
     trait UsizeReq<const N: usize> {}
 

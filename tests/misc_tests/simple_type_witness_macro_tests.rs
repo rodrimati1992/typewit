@@ -317,6 +317,7 @@ fn test_all_derives() {
 
 
 // This ensures that all generic parameters can be used in the where clause,
+#[cfg(feature = "rust_1_61")]
 typewit::simple_type_witness!{
     derive(Copy, Clone)
     enum UsingGenericsInWhereClause<'a, T: 'a, const N: usize>
