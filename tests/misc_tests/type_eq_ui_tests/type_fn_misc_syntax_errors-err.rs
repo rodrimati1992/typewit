@@ -53,4 +53,17 @@ typewit::type_fn!{
     impl () => T::Output
 }
 
+typewit::type_fn!{
+    struct GenParamAttributes<#[foo] #[bar] T>;
+
+    impl () => ()
+}
+
+typewit::type_fn!{
+    struct CfgAllOnImplGeneric;
+
+    impl<#[cfg(all())] T> () => u8
+}
+
+
 fn main(){}

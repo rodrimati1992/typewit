@@ -9,6 +9,10 @@ Added support for these to `simple_type_witness` macro:
 - non-`[ ]`-surrounded `where` clauses
 - `#[cfg( ... )]` attributes on variants
 - Using `__Wit` in constraints.
+- `#[cfg(...)]` attributes on generic parameters
+
+
+Added support for `#[cfg(...)]` attributes on generic parameters to `type_fn` macro.
 
 ### 1.4.0
 

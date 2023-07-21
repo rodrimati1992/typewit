@@ -147,16 +147,41 @@ macro_rules! declare_parse_generics_macros {($_:tt [$($sep:tt)*] [$($err_token:t
             // (N ()) 
             // (M () = 10)
             $gen_args:tt
-            // [$( ($($generic_parameter:tt)*) )*]
-            $generics:tt
+            [$_(((/* no attributes */) $_($generics:tt)*))*]
             [$_(,)* $_(> $_($rem:tt)*)?]
         ) => {
             $_($callback)::* ! {
                 $_($callback_args)*
                 $gen_args
-                $generics
+                [$_(($_($generics)*))*]
+                []
                 $_($_($rem)*)?
             }
+        };
+        // if there is at least one generic param with cfg attributes
+        (
+            ($_($fixed:tt)*)
+            $gen_args:tt
+            [$_((($_( $_(#[cfg($_($cfg:tt)+)])+ )?) $generics_first:tt $_($generics:tt)*))+]
+            [$_(,)* $_(> $_($rem:tt)*)?]
+        ) => {
+            $crate::__::__pg_cfg_expansion!{
+                ($_($fixed)* $_($_($rem)+)?)
+                [] $gen_args
+                [] [$_(($generics_first $_($generics)*))*]
+                []
+                [$_( ($_($generics_first all( $_( $_($cfg)+ ),* ))?) )+]
+            }
+        };
+        (
+            ($_($fixed:tt)*)
+            $gen_args:tt
+            [$_((($_(#[$_($attr:tt)*])*) $_($generics:tt)*))+]
+            [$_(,)* $_(> $_($rem:tt)*)?]
+        ) => {
+            $_(
+                $crate::__assert_valid_gen_attr!{ [] [$_(#[$_($attr)*])*] }
+            )*
         };
         $(
             (
@@ -164,7 +189,9 @@ macro_rules! declare_parse_generics_macros {($_:tt [$($sep:tt)*] [$($err_token:t
                 [$_($prev_gen_args:tt)*]
                 [$_($prev_gen:tt)*]
                 [
-                    $_(,)? $lt:lifetime $_(:
+                    $_(,)?
+                    $_(#[$_($attr:tt)*])*
+                    $lt:lifetime $_(:
                         $_($lt_bound0:lifetime $_( + $lt_bound1:lifetime)*)?
                     )?
                     $_($sep $_($rem:tt)*)?
@@ -173,7 +200,10 @@ macro_rules! declare_parse_generics_macros {($_:tt [$($sep:tt)*] [$($err_token:t
                 $crate::__::__parse_in_generics!{
                     $fixed 
                     [$_($prev_gen_args)* ($lt (fn() -> &$lt (),) )]
-                    [$_($prev_gen)* ($lt $_(: $_($lt_bound0 $_( + $lt_bound1 )* )?)?)]
+                    [
+                        $_($prev_gen)* 
+                        (($_(#[$_($attr)*])*) $lt $_(: $_($lt_bound0 $_( + $lt_bound1 )* )?)?)
+                    ]
                     [$_($sep  $_($rem)*)?]
                 }
             };
@@ -182,14 +212,16 @@ macro_rules! declare_parse_generics_macros {($_:tt [$($sep:tt)*] [$($err_token:t
                 [$_($prev_gen_args:tt)*]
                 [$_($prev_gen:tt)*]
                 [
-                    $_(,)? const $const:ident: $const_ty:ty $_(= $default:tt)?
+                    $_(,)? 
+                    $_(#[$_($attr:tt)*])*
+                    const $const:ident: $const_ty:ty $_(= $default:tt)?
                     $_($sep $_($rem:tt)*)?
                 ]
             ) => {
                 $crate::__::__parse_in_generics!{
                     $fixed 
                     [$_($prev_gen_args)* ($const () $_(= $default)?)]
-                    [$_($prev_gen)* (const $const: $const_ty)]
+                    [$_($prev_gen)* (($_(#[$_($attr)*])*) const $const: $const_ty)]
                     [$_($sep $_($rem)*)?]
                 }
             };
@@ -199,7 +231,7 @@ macro_rules! declare_parse_generics_macros {($_:tt [$($sep:tt)*] [$($err_token:t
             $prev_gen_args:tt
             $prev_gen:tt
             [
-                $_(,)? $ty:ident: $_($rem:tt)*
+                $_(,)? $_(#[$_($attr:tt)*])* $ty:ident: $_($rem:tt)*
             ]
         ) => {
             $crate::__::__parse_ty_bounds!{
@@ -207,6 +239,7 @@ macro_rules! declare_parse_generics_macros {($_:tt [$($sep:tt)*] [$($err_token:t
                     $fixed 
                     $prev_gen_args
                     $prev_gen
+                    ($_(#[$_($attr)*])*)
                     $ty
                 )
                 [] // counter for depth between < > pairs
@@ -219,13 +252,14 @@ macro_rules! declare_parse_generics_macros {($_:tt [$($sep:tt)*] [$($err_token:t
             $prev_gen_args:tt
             $prev_gen:tt
             [
-                $_(,)? $ty:ident $_($rem:tt)*
+                $_(,)? $_(#[$_($attr:tt)*])* $ty:ident $_($rem:tt)*
             ]
         ) => {
             $crate::__::__pg_parsed_ty_bounds!{
                 $fixed 
                 $prev_gen_args
                 $prev_gen
+                ($_(#[$_($attr)*])*)
                 $ty
                 []
                 $_($rem)*
@@ -247,7 +281,10 @@ macro_rules! declare_parse_generics_macros {($_:tt [$($sep:tt)*] [$($err_token:t
     #[macro_export]
     macro_rules! __pg_parsed_ty_bounds_ {
         $(
-            ($fixed:tt $gen_args:tt $gen:tt $ty:tt $bound:tt [$err_token $_($rem:tt)*]) => {
+            (
+                $fixed:tt $gen_args:tt $gen:tt $attrs:tt $ty:tt $bound:tt
+                [$err_token $_($rem:tt)*]
+            ) => {
                 $crate::__::compile_error!{$crate::__::concat!(
                     "unexpected `",
                     $crate::__::stringify!($err_token),
@@ -261,6 +298,7 @@ macro_rules! declare_parse_generics_macros {($_:tt [$($sep:tt)*] [$($err_token:t
                 $fixed:tt
                 [$_($prev_gen_args:tt)*]
                 [$_($prev_gen:tt)*]
+                $attrs:tt
                 $ty:ident 
                 [$_($_($bound:tt)+)?]
                 $_(= $default:ty)? $sep $_($rem:tt)*
@@ -271,14 +309,12 @@ macro_rules! declare_parse_generics_macros {($_:tt [$($sep:tt)*] [$($err_token:t
                         $_($prev_gen_args)* 
                         ($ty (fn() -> $crate::__::PhantomData<$ty>,) $_(= $default)?)
                     ]
-                    [$_($prev_gen)* ($ty $_(: $_($bound)+)?)]
+                    [$_($prev_gen)* ($attrs $ty $_(: $_($bound)+)?)]
                     [$sep $_($rem)*]
                 }
             };
         )*
     }
-
-
 
     declare_generics_consuming_macro! {
         $ __parse_ty_bounds_ = __parse_ty_bounds
@@ -313,6 +349,88 @@ pub use {
     __parse_in_generics_ as __parse_in_generics,
     __pg_parsed_ty_bounds_ as __pg_parsed_ty_bounds,
 };
+
+macro_rules! declare_pg_cfg_expansion {
+($_:tt 
+    $(
+        [($deleted_lt_ty_marker_:ident) ($($gp_rule:tt)*) => {$($erase_marker_token:tt)*}]
+    )*
+) => {
+
+    #[doc(hidden)]
+    #[macro_export]
+    macro_rules! __pg_cfg_expansion_ {
+
+        (
+            $fixed:tt
+            [$_($prev_gen_args:tt)*] [$gen_arg:tt $_($rem_gen_args:tt)*]
+            [$_($prev_generics:tt)*] [$generic:tt $_($rem_generics:tt)*]
+            $deleted_lt_ty_marker:tt
+            [() $_($rem_cfg:tt)*]
+        ) => {
+            $crate::__::__pg_cfg_expansion!{
+                $fixed
+                [$_($prev_gen_args)* $gen_arg] [ $_($rem_gen_args)*]
+                [$_($prev_generics)* $generic] [ $_($rem_generics)*]
+                $deleted_lt_ty_marker
+                [$_($rem_cfg)*]
+            }
+        };
+        $(
+            (
+                $fixed:tt
+                [$_($prev_gen_args:tt)*] [$gen_arg:tt $_($rem_gen_args:tt)*]
+                [$_($prev_generics:tt)*] [$generic:tt $_($rem_generics:tt)*]
+                $_$deleted_lt_ty_marker_:tt
+                [($($gp_rule)* $_($cfg:tt)+) $_($rem_cfg:tt)*]
+            ) => {
+                #[cfg($_($cfg)+)]
+                $crate::__::__pg_cfg_expansion!{
+                    $fixed
+                    [$_($prev_gen_args)* $gen_arg] [ $_($rem_gen_args)*]
+                    [$_($prev_generics)* $generic] [ $_($rem_generics)*]
+                    $_$deleted_lt_ty_marker_
+                    [$_($rem_cfg)*]
+                }
+
+                #[cfg(not($_($cfg)+))]
+                $crate::__::__pg_cfg_expansion!{
+                    $fixed
+                    [$_($prev_gen_args)*] [ $_($rem_gen_args)*]
+                    [$_($prev_generics)*] [ $_($rem_generics)*]
+                    $($erase_marker_token)*
+                    [$_($rem_cfg)*]
+                }
+            };
+        )*
+
+        (
+            ( $_($callback:ident)::* !($_($callback_args:tt)*) $_($rem:tt)*)
+            $gen_args:tt []
+            $generics:tt []
+            $deleted_lt_ty_marker:tt
+            [] // no cfgs left
+        ) => {
+            $_($callback)::* ! {
+                $_($callback_args)*
+                $gen_args
+                $generics
+                $deleted_lt_ty_marker
+                $_($rem)*
+            }
+        };
+    }
+
+}}
+
+declare_pg_cfg_expansion!{
+    $
+    [(deleted_lt_ty_marker) (const) => {$deleted_lt_ty_marker}]
+    [(deleted_lt_ty_marker) ($__gp:tt) => {[()]}]
+}
+
+pub use __pg_cfg_expansion_ as __pg_cfg_expansion;
+
 
 
 #[doc(hidden)]
@@ -353,6 +471,7 @@ macro_rules! __parse_generics {
     ) => {
         $($callback)::* ! {
             $($callback_args)*
+            []
             []
             []
             $($rem)*
@@ -464,5 +583,27 @@ declare_generics_consuming_macro! {
     };
     ($fixed:tt [] $prev:tt []) => {
         $crate::__::compile_error!{"unexpected end of generic arguments"}
+    };
+}
+
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __assert_valid_gen_attr {
+    ( $prev:tt [#[cfg($($tt:tt)*)] $($rem:tt)*]) => {
+        $crate::__assert_valid_gen_attr!{ $prev [$($rem)*] }
+    };
+    ( [$($prev:tt)*] [#[$($tt:tt)*] $($rem:tt)*]) => {
+        $crate::__assert_valid_gen_attr!{
+            [$($prev)* #[$($tt)*]]
+            [$($rem)*]
+        }
+    };
+    ( [$(#[$attr:meta])*] []) => {
+        $crate::__::compile_error!{$crate::__::concat!{
+            "unsupported attribute(s) on generic parameter(s): "
+            $( ,"`#[", stringify!($attr), "]`", )", "*
+            "\nonly the `#[cfg(...)]` attribute is supported"
+        }}
     };
 }

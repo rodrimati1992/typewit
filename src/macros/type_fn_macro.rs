@@ -24,7 +24,10 @@
 /// e.g: `T: Foo, 'a: 'b, U: 'b`.
 /// 
 /// `:generic_params` is a list of generic parameter declarations.
-/// e.g: `'a, T, const N: usize`.
+/// e.g: `'a, T, #[cfg(feature = "hi")] U, const N: usize`.
+/// 
+/// Generic parameters support the `#[cfg(...)]` attribute, 
+/// no other attribute is supported.
 /// 
 /// # Generated code 
 /// 
@@ -37,7 +40,9 @@
 /// - Impls of [`TypeFn`] for the generated struct corresponding to 
 /// each `... => ...` argument.
 /// 
-/// If the struct has any lifetime or type parameters, it has a private field,
+/// If the struct has any lifetime or type parameters
+/// (even if disabled by `#[cfg(...)]` attributes), 
+/// it has a private field,
 /// and requires using its `NEW` associated constant to be instantiated.
 /// If it has no type or lifetime parameters, the struct is a unit struct.
 /// 
@@ -152,7 +157,7 @@ macro_rules! type_fn {
             ($crate::__tyfn_parsed_capture_where! (
                 (
                     $(#[$attrs])*
-                    $vis struct $struct_name [] []
+                    $vis struct $struct_name [] [] []
                 )
             ))
             []
@@ -175,11 +180,12 @@ macro_rules! __tyfn_parsed_capture_generics {
         ($($struct_stuff:tt)*)
         $capture_gen_args:tt
         $capture_generics:tt
+        $deleted_markers:tt
         where $($rem:tt)*
     ) => {
         $crate::__trailing_comma_for_where_clause!{
             ($crate::__tyfn_parsed_capture_where! (
-                ( $($struct_stuff)* $capture_gen_args $capture_generics )
+                ( $($struct_stuff)* $capture_gen_args $capture_generics $deleted_markers )
             ))
             []
             [$($rem)*]
@@ -189,10 +195,11 @@ macro_rules! __tyfn_parsed_capture_generics {
         ($($struct_stuff:tt)*)
         $capture_gen_args:tt
         $capture_generics:tt
+        $deleted_markers:tt
         ;$($rem:tt)*
     ) => {
         $crate::__tyfn_parsed_capture_where! {
-            ( $($struct_stuff)* $capture_gen_args $capture_generics )
+            ( $($struct_stuff)* $capture_gen_args $capture_generics $deleted_markers )
             []
             $($rem)*
         }
@@ -201,6 +208,7 @@ macro_rules! __tyfn_parsed_capture_generics {
         $struct_stuff:tt
         $capture_gen_args:tt
         $capture_generics:tt
+        $deleted_markers:tt
         $($first_token:tt $($rem:tt)*)?
     ) => {
         $crate::__::compile_error!{$crate::__::concat!(
@@ -249,6 +257,7 @@ macro_rules! __tyfn_parse_fns {
 
             $capture_gen_args:tt
             $capture_generics:tt
+            $erased_lt_ty_marker:tt
             captures_where $captures_where:tt
         )
 
@@ -264,8 +273,16 @@ macro_rules! __tyfn_parse_fns {
             $capture_gen_args
             $capture_gen_args
             $capture_generics
+            $erased_lt_ty_marker
             captures_where $captures_where
         }
+    };
+    ( $fixed:tt $fns:tt [] ) => {
+        $crate::__::compile_error!{$crate::__::concat!(
+            "bug: unhandled syntax in `typewit` macro: ",
+            stringify!($fixed),
+            stringify!($fns),
+        )}
     };
     (
         $fixed:tt
@@ -296,7 +313,7 @@ macro_rules! __tyfn_parse_fns {
             $fixed
             $fns
             [$(#[$impl_attrs])*]
-            [] [] $($rem)*
+            [] [] [] $($rem)*
         }
     };
     (
@@ -382,6 +399,7 @@ macro_rules! __tyfn_parsed_fn_generics {
         [$(#[$impl_attrs:meta])*]
         $__gen_args:tt
         $gen_params:tt
+        $deleted_markers:tt
         $type_fn_arg:ty => $ret_ty:ty
         $(; $($rem:tt)*)?
     ) => {
@@ -404,6 +422,7 @@ macro_rules! __tyfn_parsed_fn_generics {
         [$(#[$impl_attrs:meta])*]
         $__gen_args:tt
         $gen_params:tt
+        $deleted_markers:tt
         $type_fn_arg:ty => $ret_ty:ty
         where $($rem:tt)*
     ) => {
@@ -465,6 +484,7 @@ macro_rules! __tyfn_split_capture_generics {
         $capture_gen_args:tt
         [$(($gen_arg:tt ($($($gen_phantom:tt)+)?) $($gen_rem:tt)*))*]
         $capture_generics:tt
+        [$($erased_lt_ty_marker:tt)*]
         captures_where $captures_where:tt
     ) => {
         $crate::__tyfn_parsed!{
@@ -473,7 +493,7 @@ macro_rules! __tyfn_split_capture_generics {
             $(#[$attrs])*
             $vis struct $struct_name
             $capture_gen_args
-            [$($(($($gen_phantom)+))?)*]
+            [$($(($($gen_phantom)+))?)* $(($erased_lt_ty_marker))*]
             $capture_generics
             $captures_where
         }

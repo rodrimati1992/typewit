@@ -338,6 +338,7 @@ pub mod __ {
                 __parse_in_generics,
                 __parse_ty_bounds,
                 __parse_where_clause_for_item_inner,
+                __pg_cfg_expansion,
                 __pg_parsed_ty_bounds,
             },
             simple_type_witness_macro::__stw_parse_variants,

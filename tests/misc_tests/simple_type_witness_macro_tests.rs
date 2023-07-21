@@ -335,5 +335,32 @@ typewit::simple_type_witness!{
 }
 
 
+//////////////////////////////
 
 
+#[test]
+fn cfg_attributes_on_generics() {
+    {
+        typewit::simple_type_witness!{
+            enum AnyCfg[#[cfg(any())] T] {
+                U8 = u8,
+                U16 = u16,
+            }
+
+        }
+        let _: AnyCfg<u8> = MakeTypeWitness::MAKE;
+        let _: AnyCfg<u16> = MakeTypeWitness::MAKE;
+    }
+    {
+        typewit::simple_type_witness!{
+            enum AllCfg[#[cfg(all())] T] {
+                U8<()> = u8,
+                Generic = (T,),
+            }
+
+        }
+        let _: AllCfg<(), u8> = MakeTypeWitness::MAKE;
+        let _: AllCfg<u16, (u16,)> = MakeTypeWitness::MAKE;
+    }
+
+}

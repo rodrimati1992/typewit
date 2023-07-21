@@ -69,6 +69,9 @@
 /// `#[cfg(...)]` attributes on variants are copied to their respective 
 /// [`MakeTypeWitness`] impls.
 /// 
+/// Generic parameters support the `#[cfg(...)]` attribute, 
+/// no other attribute is supported.
+/// 
 /// <details>
 /// <summary>
 /// <b>Soft-deprecated older syntax</b>
@@ -336,6 +339,7 @@ macro_rules! __stw_with_parsed_generics {
 
         [$(($gen_arg:tt ($($gen_phantom:tt)*) $( = $($gen_def:tt)* )? ))*]
         [$(($($generics:tt)*))*]
+        $deleted_markers:tt
 
         $($rem:tt)*
     ) => {
@@ -345,7 +349,6 @@ macro_rules! __stw_with_parsed_generics {
                     $($prev_args)*
                     [$($($generics)*,)*]
                     [ $($gen_arg,)* ]
-                    [$($($gen_phantom)*)*]
                 )
                 $enum
             ))
@@ -518,7 +521,7 @@ macro_rules! __stw_with_parsed_args {
     (
         $(# $enum_meta:tt)*
         derive $derive:tt
-        $vis:vis enum $enum:ident $generics:tt $gen_args:tt $phantoms:tt
+        $vis:vis enum $enum:ident $generics:tt $gen_args:tt
         where $where:tt
         { $($variant_args:tt)* }
     ) => {

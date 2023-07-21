@@ -117,3 +117,22 @@ error: unexpected end of bound: `Add < Type < u16 > > impl`
    | |_^
    |
    = note: this error originates in the macro `$crate::__::__parse_ty_bounds` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unsupported attribute(s) on generic parameter(s): `#[foo]`, `#[bar]`
+       only the `#[cfg(...)]` attribute is supported
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:56:1
+   |
+56 | / typewit::type_fn!{
+57 | |     struct GenParamAttributes<#[foo] #[bar] T>;
+58 | |
+59 | |     impl () => ()
+60 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__assert_valid_gen_attr` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0207]: the type parameter `T` is not constrained by the impl trait, self type, or predicates
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:65:24
+   |
+65 |     impl<#[cfg(all())] T> () => u8
+   |                        ^ unconstrained type parameter

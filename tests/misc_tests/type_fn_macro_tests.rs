@@ -430,4 +430,62 @@ fn test_construction() {
 }
 
 
+// When cfg attributes are used on generic parameters,
+// it doesn't change whether a tuple struct is created or not,
+// that depends only on whether the input contains lifetime or type parameters.
+#[test] 
+fn cfg_on_all_generic_params() {
+    macro_rules! test_case {
+        (($attr0:ident) ($attr1:ident) ($attr2:ident), $pat:pat, $type_ex:ty) => ({
+            typewit::type_fn!{
+                struct AllGenerics<
+                    #[cfg($attr0())] 'a,
+                    #[cfg($attr1())] T,
+                    #[cfg($attr2())] const N: usize,
+                >;
 
+                impl () => ()
+            }
+
+            fn make() -> $type_ex {
+                AllGenerics::NEW
+            }
+            let $pat = make();
+        });
+    }
+
+    test_case!{(all)(all)(all), AllGenerics(..), AllGenerics<'static, u8, 0> }
+    test_case!{(all)(all)(any), AllGenerics(..), AllGenerics<'static, u8> }
+    test_case!{(all)(any)(all), AllGenerics(..), AllGenerics<'static, 0> }
+    test_case!{(all)(any)(any), AllGenerics(..), AllGenerics<'static> }
+    test_case!{(any)(all)(all), AllGenerics(..), AllGenerics<u8, 0> }
+    test_case!{(any)(all)(any), AllGenerics(..), AllGenerics<u8> }
+    test_case!{(any)(any)(all), AllGenerics(..), AllGenerics<0> }
+    test_case!{(any)(any)(any), AllGenerics(..), AllGenerics<> }
+}
+
+
+#[test] 
+fn cfg_on_single_const_params() {
+    typewit::type_fn!{
+        struct SingleConstParam<
+            #[cfg(any())] const N: usize,
+        >;
+
+        impl () => ()
+    }
+
+    let SingleConstParam: SingleConstParam = SingleConstParam;
+}
+
+#[test] 
+fn cfg_any_on_impl_parameter() {
+    typewit::type_fn!{
+        struct CfgOnImplGeneric;
+
+        impl<#[cfg(any())] T> () => u8
+    }
+
+    let CfgOnImplGeneric: CfgOnImplGeneric = CfgOnImplGeneric;
+    let _: CallFn<CfgOnImplGeneric, ()> = 0u8;
+}
