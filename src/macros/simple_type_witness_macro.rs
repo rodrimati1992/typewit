@@ -383,10 +383,31 @@ macro_rules! declare__stw_parse_variants {
         #[doc(hidden)]
         #[macro_export]
         macro_rules! __stw_parse_variants_ {
-            (($_($fixed:tt)*) $enum:ident [$_($variant_args:tt)*] [$_(,)*])=>{
+            (
+                ($_($fixed:tt)*) 
+                $enum:ident 
+                // fast path for enums with no attributes on variants other than docs
+                [$_(($variant:ident ($_(#[doc $_($docs:tt)*])*) $_($rem_vari:tt)*))*] 
+                [$_(,)*]
+            )=>{
                 $crate::__stw_with_parsed_args! {
                     $_($fixed)*
-                    { $_($variant_args)* }
+                    { $_(($variant ($_(#[doc $_($docs)*])*) $_($rem_vari)*))* }
+                }
+            };
+            (
+                $fixed:tt
+                $enum:ident
+                [
+                    ($pvariant:ident ($_($pattrs:tt)*) $_($prem:tt)*)
+                    $_($variants:tt)*
+                ]
+                [$_(,)*]
+            )=>{
+                $crate::__stw_parse_variants_attrs!{
+                    $fixed
+                    [/*prev variants*/] [ ($pvariant ($_($pattrs)*) $_($prem)*) $_($variants)*]
+                    [/*prev attrs of variant*/] [/*prev cfgs of variant*/] [$_($pattrs)*]
                 }
             };
             (
@@ -401,6 +422,7 @@ macro_rules! declare__stw_parse_variants {
                     // The four token trees in the parentheses here are:
                     // (
                     //      variant_name 
+                    //      ($($attributes:tt)*)
                     //      (replacement_for_Self)
                     //      [where_clause_for_variant]
                     //      withnessed_type
@@ -450,12 +472,100 @@ macro_rules! declare__stw_parse_variants {
 declare__stw_parse_variants!{
     $
     ($(#[$($vari_attr:tt)*])* $variant:ident)
-    ($variant $(#[$($vari_attr)*])*)
+    ($variant ($(#[$($vari_attr)*])*))
 }
 
 pub use __stw_parse_variants_ as __stw_parse_variants;
 
 
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __stw_parse_variants_attrs {
+    (
+        ($($fixed:tt)*) 
+        [$($variants:tt)*] []
+        [] [] []
+    )=>{
+        $crate::__stw_with_parsed_args! {
+            $($fixed)*
+            { $($variants)* }
+        }
+    };
+    (
+        $fixed:tt
+        $prev_vari:tt $next_vari:tt
+        $prev_attrs:tt [$($prev_cfgs:tt)*] [#[cfg($($cfg:tt)*)] $($rest_attrs:tt)*]
+    ) => {
+        $crate::__stw_parse_variants_attrs! {
+            $fixed
+            $prev_vari $next_vari
+            $prev_attrs [$($prev_cfgs)* ($($cfg)*)] [$($rest_attrs)*]
+        }
+    };
+    (
+        $fixed:tt
+        $prev_vari:tt $next_vari:tt
+        [$($prev_attrs:tt)*] $prev_cfgs:tt [#[$($attr:tt)*] $($rest_attrs:tt)*]
+    ) => {
+        $crate::__stw_parse_variants_attrs! {
+            $fixed
+            $prev_vari $next_vari
+            [$($prev_attrs)* #[$($attr)*]] $prev_cfgs [$($rest_attrs)*]
+        }
+    };
+    // none of the attributes of the variant were cfg
+    (
+        $fixed:tt
+        [$($prev_vari:tt)*] 
+        [   
+            $curr_vari:tt 
+            $(
+                ($nvariant:ident ($($nattrs:tt)*) $($nrem:tt)*) 
+                $($rem_vari:tt)*
+            )?
+        ]
+        $prev_attrs:tt [] []
+    ) => {
+        $crate::__stw_parse_variants_attrs! {
+            $fixed
+            [$($prev_vari)* $curr_vari] [
+                $(($nvariant ($($nattrs)*) $($nrem)*)  $($rem_vari)*)?
+            ]
+            [] [] [$($($nattrs)*)?]
+        }
+    };
+    // some of the attributes of the variant were cfg
+    (
+        $fixed:tt
+        [$($prev_vari:tt)*] 
+        [   
+            ($cvariant:ident $__cattrs:tt $($crem:tt)*) 
+            $(
+                ($nvariant:ident ($($nattrs:tt)*) $($nrem:tt)*) 
+                $($rem_vari:tt)*
+            )?
+        ]
+        [$($prev_attrs:tt)*] [$(($($cfg:tt)*))+] []
+    ) => {
+        #[cfg(all($($($cfg)*)+))]
+        $crate::__stw_parse_variants_attrs! {
+            $fixed
+            [$($prev_vari)* ($cvariant ($($prev_attrs)*) $($crem)*) ] [
+                $(($nvariant ($($nattrs)*) $($nrem)*)  $($rem_vari)*)?
+            ]
+            [] [] [$($($nattrs)*)?]
+        }
+
+        #[cfg(not(all($($($cfg)*)+)))]
+        $crate::__stw_parse_variants_attrs! {
+            $fixed
+            [$($prev_vari)*] [
+                $(($nvariant ($($nattrs)*) $($nrem)*)  $($rem_vari)*)?
+            ]
+            [] [] [$($($nattrs)*)?]
+        }
+    };
+} 
 
 
 #[doc(hidden)]
@@ -542,11 +652,9 @@ macro_rules! __stw_with_parsed_args {
 
         const _: () = {
             $(
-                $crate::__stw_parse_attrs_for_mtwi_prelude!{
-                    (
-                        $enum $generics $gen_args
-                        where $where
-                    )
+                $crate::__stw_make_type_witness_impl!{
+                    $enum $generics $gen_args
+                    where $where
                     $variant_args
                 }
             )*
@@ -565,7 +673,7 @@ macro_rules! __stw_top_items {
         {
             $((
                 $variant:ident
-                $(#[$variant_meta:meta])*
+                ($(#[$variant_meta:meta])*)
                 ($($SelfTy:tt)*)
                 $vari_where:tt
                 $witnessed_ty:ty
@@ -733,73 +841,22 @@ macro_rules! __stw_single_derive {
     };
 }
 
-#[doc(hidden)]
-#[macro_export]
-macro_rules! __stw_parse_attrs_for_mtwi_prelude {
-    (
-        ($($fixed:tt)*)
-
-        (
-            $variant:ident
-            $(#[ $($variant_meta:tt)* ])*
-            ($($SelfTy:tt)*)
-            $($rem:tt)*
-        )
-    ) => {
-        $crate::__stw_parse_attrs_for_mtwi! {
-            (
-                $($fixed)*
-
-                $variant
-                ($($SelfTy)*)
-                $($rem)*
-            )
-            []
-            [$(#[ $($variant_meta)* ])*]
-        }
-    }
-}
-
-#[doc(hidden)]
-#[macro_export]
-macro_rules! __stw_parse_attrs_for_mtwi {
-    (($($fixed:tt)*) [$($prev:tt)*] []) => {
-        $crate::__stw_make_type_witness_impl! {
-            $($prev)*
-            $($fixed)*
-        }
-    };
-    ($fixed:tt [$($prev:tt)*] [#[cfg $cfg:tt]  $($next:tt)*]) => {
-        $crate::__stw_parse_attrs_for_mtwi! {
-            $fixed
-            [$($prev)* #[cfg $cfg]]
-            [$($next)*]
-        }
-    };
-    ($fixed:tt $prev:tt [#[$($attr:tt)*]  $($next:tt)*]) => {
-        $crate::__stw_parse_attrs_for_mtwi! {
-            $fixed
-            $prev
-            [$($next)*]
-        }
-    };
-}
 
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __stw_make_type_witness_impl {
     (
-        $(#[$variant_meta:meta])*
-        
         $enum:ident[$($generics:tt)*] [$($gen_args:tt)*]
         where [$($where:tt)*]
 
-        $variant:ident
-        ($( $($SelfTy:tt)+ )?)
-        [$($vari_where:tt)*]
-        $witnessed_ty:ty
+        (
+            $variant:ident
+            $attrs:tt
+            ($( $($SelfTy:tt)+ )?)
+            [$($vari_where:tt)*]
+            $witnessed_ty:ty
+        )
     ) => {
-        $(#[$variant_meta])*
         impl<$($generics)* __Wit: ?Sized> 
             $crate::MakeTypeWitness 
         for $crate::__first_ty!(

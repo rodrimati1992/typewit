@@ -337,6 +337,32 @@ typewit::simple_type_witness!{
 
 //////////////////////////////
 
+#[test]
+fn derives_and_cfg_on_variants() {
+    typewit::simple_type_witness!{
+        derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)
+        enum AllDerives {
+            #[cfg(all())]
+            U8 = u8,
+            /// docs above
+            #[cfg(any())]
+            U16 = u16,
+            U32 = u32,
+        }
+    }
+
+    fn _foo<T>(ad: AllDerives<T>) {
+        match ad {
+            AllDerives::U8{..} => {}
+            AllDerives::U32{..} => {}
+        }
+    }
+
+    assert_eq!(AllDerives::<u8>::MAKE, AllDerives::<u8>::MAKE);
+}
+
+//////////////////////////////
+
 
 #[test]
 fn cfg_attributes_on_generics() {
