@@ -229,7 +229,7 @@ These are the features of this crates:
 
 - `"alloc"`: enable items that use anything from the standard `alloc` crate.
 
-- `"const_marker"`(enabled by default): Enables the [`const_param`] module,
+- `"const_marker"`(enabled by default): Enables the [`const_marker`] module,
 and all items that depend on it.
 
 - `"mut_refs"`: turns functions that take mutable references into const fns.
@@ -262,4 +262,4 @@ need to be explicitly enabled with crate features.
 
 [`TypeEq`]: https://docs.rs/typewit/latest/typewit/struct.TypeEq.html
 [`TypeFn`]: https://docs.rs/typewit/latest/typewit/type_fn/trait.TypeFn.html
-[`const_param`]: https://docs.rs/typewit/latest/typewit/const_param/index.html
+[`const_marker`]: https://docs.rs/typewit/latest/typewit/const_marker/index.html
