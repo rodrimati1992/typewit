@@ -3,10 +3,11 @@
 [![api-docs](https://docs.rs/typewit/badge.svg)](https://docs.rs/typewit/*)
 
 
-This crate provides abstractions for creating type witnesses.
+This crate provides abstractions for creating
+[type witnesses](#what-are-type-witnesses).
 
 The inciting motivation for this crate is emulating trait polymorphism in `const fn`
-(as of 2023-04-30 it's not possible to call trait methods in const contexts on stable).
+(as of 2023-07-31, it's not possible to call trait methods in const contexts on stable).
 
 # What are type witnesses
 
@@ -26,7 +27,7 @@ which can coerce between a type parameter and as many types as there are variant
 ### Polymorphic function
 
 This demonstrates how one can write a return-type-polymorphic `const fn`
-(as of 2023-04-30, trait methods can't be called in const fns)
+(as of 2023-07-31, trait methods can't be called in const fns)
 
 ```rust
 use typewit::{MakeTypeWitness, TypeEq};
@@ -232,7 +233,7 @@ These are the features of this crates:
 and all items that depend on it.
 
 - `"mut_refs"`: turns functions that take mutable references into const fns.
-note: as of April 2023, 
+note: as of July 2023, 
 this crate feature requires a stable compiler from the future.
 
 - `"nightly_mut_refs"`(requires the nightly compiler):

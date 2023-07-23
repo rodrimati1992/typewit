@@ -1,8 +1,9 @@
 #![allow(clippy::needless_doctest_main)]
-//! This crate provides abstractions for creating type witnesses.
+//! This crate provides abstractions for creating
+//! [type witnesses](#what-are-type-witnesses).
 //! 
 //! The inciting motivation for this crate is emulating trait polymorphism in `const fn`
-//! (as of 2023-04-30 it's not possible to call trait methods in const contexts on stable).
+//! (as of 2023-07-31, it's not possible to call trait methods in const contexts on stable).
 //! 
 //! # What are type witnesses
 //! 
