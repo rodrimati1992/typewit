@@ -57,7 +57,7 @@
 ///     }
 /// ```
 /// 
-/// `<$($var_gen_args:generic_arg)*>`
+/// <span id = "var_gen_args-param"></span> `<$($var_gen_args:generic_arg)*>`
 /// (optional parameter)[(example usage)](#var_gen_args-example): 
 /// this parameter overrides the generic arguments of the enum in its 
 /// [`MakeTypeWitness`] implementation.
@@ -71,6 +71,10 @@
 /// 
 /// Generic parameters support the `#[cfg(...)]` attribute, 
 /// no other attribute is supported.
+/// 
+/// Defaults for generic parameters are only used 
+/// as the default value of [`$var_gen_args`](#var_gen_args-param)
+/// [(example usage)](#var_gen_args-example) .
 /// 
 /// <details>
 /// <summary>
@@ -193,8 +197,10 @@
 /// ```
 /// the above invocation of `simple_type_witness` effectively generates this code:
 /// ```rust
-/// # use std::fmt::Debug;
-/// enum Witness<'a, T, __Wit>
+/// # use core::fmt::Debug;
+/// # 
+/// #[non_exhaustive]
+/// enum Witness<'a, T: 'a, __Wit: ?Sized>
 /// where
 ///     T: 'a + Debug,
 /// {
@@ -204,7 +210,7 @@
 ///     Ref(typewit::TypeEq<__Wit, &'a T>),
 /// }
 /// 
-/// impl<'a, T, __Wit> typewit::TypeWitnessTypeArg for Witness<'a, T, __Wit>
+/// impl<'a, T: 'a, __Wit: ?Sized> typewit::TypeWitnessTypeArg for Witness<'a, T, __Wit>
 /// where
 ///     T: 'a + Debug,
 /// {
@@ -212,15 +218,14 @@
 /// }
 /// 
 /// #[cfg(feature = "foo")]
-/// impl<'a, T> typewit::MakeTypeWitness for Witness<'a, T, T>
+/// impl<'a, T: 'a> typewit::MakeTypeWitness for Witness<'a, T, T>
 /// where
-///     T: 'a + Debug,
-///     T: Copy,
+///     T: 'a + Debug + Copy,
 /// {
 ///     const MAKE: Self = Self::Value(typewit::TypeEq::NEW);
 /// }
 /// 
-/// impl<'a, T> typewit::MakeTypeWitness for Witness<'a, T, &'a T>
+/// impl<'a, T: 'a> typewit::MakeTypeWitness for Witness<'a, T, &'a T>
 /// where
 ///     T: 'a + Debug,
 /// {
@@ -232,23 +237,34 @@
 /// <span id = "var_gen_args-example"></span>
 /// ### `$var_gen_args` parameter
 /// 
-/// This example shows what the `$var_gen_args` parameter does.
-/// ([it also requires Rust 1.59.0](#const-parameter-limitation))
+/// This example shows what the `$var_gen_args` parameter does,
+/// as well as how generic parameter defaults relate to it.
+/// 
+/// ([this example requires Rust 1.59.0](#const-parameter-limitation))
 /// 
 #[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
 #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
 /// typewit::simple_type_witness! {
 ///     // Declares an `enum Foo<T, const N: usize, __Wit>`,
 ///     // the `__Wit` type parameter is added after all generics.
-///     enum Foo<T, const N: usize> {
+///     //
+///     // The defaults for generic parameters are only used 
+///     // as the default value of the generic arguments of variants.
+///     enum Foo<T = i8, const N: usize = 1234> {
 ///         // This variant requires `__Wit == u64`.
 ///         // 
-///         // The `<(), 0>` here
+///         // The `<(), 3>` here
 ///         // replaces `impl<T, const N: usize> MakeTypeWitness for Foo<T, N, u64>`
-///         // with     `impl                    MakeTypeWitness for Foo<(), 0, u64>`.
-///         // Using `<(), 0>` allows the  `T` and `N` type parameters to be inferred
+///         // with     `impl                    MakeTypeWitness for Foo<(), 3, u64>`.
+///         // Using `<(), 3>` allows the  `T` and `N` type parameters to be inferred
 ///         // when the `MakeTypeWitness` impl for `Foo<_, _, u64>` is used.
-///         U64<(), 0> = u64,
+///         U64<(), 3> = u64,
+///         // This variant requires `__Wit == bool`.
+///         // 
+///         // The `<>` here uses the defaults for the generic arguments to 
+///         // replace `impl<T, const N: usize> MakeTypeWitness for Foo<T, N, bool>`
+///         // with    `impl                    MakeTypeWitness for Foo<i8, 1234, bool>`.
+///         Bool<> = bool,
 ///         // This variant requires `__Wit == [T; N]`.
 ///         Array = [T; N],
 ///     }
@@ -257,15 +273,19 @@
 /// the above effectively expands to this:
 #[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
 #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
-/// enum Foo<T, const N: usize, __Wit> {
+/// enum Foo<T, const N: usize, __Wit: ?Sized> {
 ///     U64(typewit::TypeEq<__Wit, u64>),
+///     Bool(typewit::TypeEq<__Wit, bool>),
 ///     Array(typewit::TypeEq<__Wit, [T; N]>),
 /// }
-/// impl<T, const N: usize, __Wit> typewit::TypeWitnessTypeArg for Foo<T, N, __Wit> {
+/// impl<T, const N: usize, __Wit: ?Sized> typewit::TypeWitnessTypeArg for Foo<T, N, __Wit> {
 ///     type Arg = __Wit;
 /// }
-/// impl typewit::MakeTypeWitness for Foo<(), 0, u64> {
+/// impl typewit::MakeTypeWitness for Foo<(), 3, u64> {
 ///     const MAKE: Self = Self::U64(typewit::TypeEq::NEW);
+/// }
+/// impl typewit::MakeTypeWitness for Foo<i8, 1234, bool> {
+///     const MAKE: Self = Self::Bool(typewit::TypeEq::NEW);
 /// }
 /// impl<T, const N: usize> typewit::MakeTypeWitness for Foo<T, N, [T; N]> {
 ///     const MAKE: Self = Self::Array(typewit::TypeEq::NEW);
@@ -288,7 +308,7 @@
 /// 
 /// // Witness doesn't require its type parameters to impl any traits in its derives.
 /// // The standard derives require that type parameters impl the derived trait,
-/// // so this comparison wouldn't work (because `NoImpls` doesn't impl `PartialEq`.
+/// // so this comparison wouldn't work (because `NoImpls` doesn't impl `PartialEq`).
 /// assert_eq!(Witness::<NoImpls>::MAKE, Witness::NoImp(TypeEq::NEW));
 /// 
 /// typewit::simple_type_witness! {
@@ -696,15 +716,13 @@ macro_rules! __stw_with_parsed_args {
             { $($variant_args)* }
         }
 
-        const _: () = {
-            $(
-                $crate::__stw_make_type_witness_impl!{
-                    $enum $generics $gen_args
-                    where $where
-                    $variant_args
-                }
-            )*
-        };
+        $(
+            $crate::__stw_make_type_witness_impl!{
+                $enum $generics $gen_args
+                where $where
+                $variant_args
+            }
+        )*
     }
 }
 

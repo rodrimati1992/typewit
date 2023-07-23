@@ -77,11 +77,13 @@
 #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
 /// typewit::type_fn! {
 ///     /// Hello
-///     pub struct Foo<'a, T: IntoIterator = Vec<u8>, const N: usize = 3>
+///     pub struct Foo<'a, T: IntoIterator = Vec<u8>, #[cfg(any())] const N: usize = 3>
 ///     where T: Clone;
 ///     
 ///     /// docs for impl
-///     impl<'b: 'a, U, const M: usize> [&'b U; M] => ([&'b U; M], T::IntoIter)
+///     #[cfg(all())]
+///     impl<'b: 'a, U, #[cfg(all())] const M: usize> 
+///         [&'b U; M] => ([&'b U; M], T::IntoIter)
 ///     where 
 ///         U: 'static,
 ///         u32: From<U>;
@@ -98,11 +100,12 @@
 /// use core::marker::PhantomData;
 /// 
 /// /// Hello
-/// pub struct Foo<'a, T: IntoIterator = Vec<u8>, const N: usize = 3>(
+/// // The `const N: usize = 3` param is removed by the `#[cfg(any()))]` attribute
+/// pub struct Foo<'a, T: IntoIterator = Vec<u8>>(
 ///     PhantomData<(&'a (), fn() -> T)>
 /// ) where T: Clone;
 /// 
-/// impl<'a, T: IntoIterator, const N: usize> Foo<'a, T, N>
+/// impl<'a, T: IntoIterator> Foo<'a, T>
 /// where
 ///     T: Clone,
 /// {
@@ -110,9 +113,10 @@
 /// }
 /// 
 /// /// docs for impl
-/// impl<'a, 'b: 'a, U, T: IntoIterator, const M: usize, const N: usize> 
+/// #[cfg(all())]
+/// impl<'a, 'b: 'a, U, T: IntoIterator, #[cfg(all())] const M: usize> 
 ///     TypeFn<[&'b U; M]> 
-/// for Foo<'a, T, N>
+/// for Foo<'a, T>
 /// where
 ///     T: Clone,
 ///     U: 'static,
@@ -122,7 +126,7 @@
 /// }
 /// 
 /// /// docs for another impl
-/// impl<'a, T: IntoIterator, const N: usize> TypeFn<()> for Foo<'a, T, N>
+/// impl<'a, T: IntoIterator> TypeFn<()> for Foo<'a, T>
 /// where
 ///     T: Clone,
 /// {

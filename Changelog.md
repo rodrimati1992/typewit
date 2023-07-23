@@ -10,6 +10,7 @@ Added support for these to `simple_type_witness` macro:
 - `#[cfg( ... )]` attributes on variants
 - Using `__Wit` in constraints.
 - `#[cfg(...)]` attributes on generic parameters
+- Defaulted generic parameters (only used for defaulting generic arguments in `MakeTypeWitness` impls)
 
 
 Added support for `#[cfg(...)]` attributes on generic parameters to `type_fn` macro.
