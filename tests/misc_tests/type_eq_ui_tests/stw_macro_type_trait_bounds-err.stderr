@@ -1,7 +1,7 @@
 error[E0277]: `X` doesn't implement `Debug`
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:13:12
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:19:12
    |
-13 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
+19 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `X` cannot be formatted using `{:?}` because it doesn't implement `Debug`
    |
 note: required by a bound in `TypeParams`
@@ -11,13 +11,13 @@ note: required by a bound in `TypeParams`
    |                                                      ^^^^^ required by this bound in `TypeParams`
 help: consider restricting type parameter `X`
    |
-12 | fn _foo<'a, T, U, V, W, X: std::fmt::Debug, Y>() {
+18 | fn _foo<'a, T, U, V, W, X: std::fmt::Debug, Y>() {
    |                          +++++++++++++++++
 
 error[E0277]: `Y` doesn't implement `Debug`
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:13:12
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:19:12
    |
-13 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
+19 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Y` cannot be formatted using `{:?}` because it doesn't implement `Debug`
    |
 note: required by a bound in `TypeParams`
@@ -27,13 +27,13 @@ note: required by a bound in `TypeParams`
    |                                                                     ^^^^^ required by this bound in `TypeParams`
 help: consider restricting type parameter `Y`
    |
-12 | fn _foo<'a, T, U, V, W, X, Y: std::fmt::Debug>() {
+18 | fn _foo<'a, T, U, V, W, X, Y: std::fmt::Debug>() {
    |                             +++++++++++++++++
 
 error[E0277]: `X` doesn't implement `Debug`
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:13:50
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:19:50
    |
-13 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
+19 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |                                                  ^^^^^^^^^^^^^^^^^^^^^ `X` cannot be formatted using `{:?}` because it doesn't implement `Debug`
    |
 note: required for `TypeParams<'a, T, U, V, W, X, Y, (&(), T, U, V, W, X, Y)>` to implement `TypeWitnessTypeArg`
@@ -57,13 +57,13 @@ note: required by a bound in `MAKE`
    = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 help: consider restricting type parameter `X`
     |
-12  | fn _foo<'a, T, U, V, W, X: std::fmt::Debug, Y>() {
+18  | fn _foo<'a, T, U, V, W, X: std::fmt::Debug, Y>() {
     |                          +++++++++++++++++
 
 error[E0277]: `Y` doesn't implement `Debug`
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:13:50
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:19:50
    |
-13 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
+19 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |                                                  ^^^^^^^^^^^^^^^^^^^^^ `Y` cannot be formatted using `{:?}` because it doesn't implement `Debug`
    |
 note: required for `TypeParams<'a, T, U, V, W, X, Y, (&(), T, U, V, W, X, Y)>` to implement `TypeWitnessTypeArg`
@@ -87,5 +87,97 @@ note: required by a bound in `MAKE`
    = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 help: consider restricting type parameter `Y`
     |
-12  | fn _foo<'a, T, U, V, W, X, Y: std::fmt::Debug>() {
+18  | fn _foo<'a, T, U, V, W, X, Y: std::fmt::Debug>() {
+    |                             +++++++++++++++++
+
+error[E0277]: `X` doesn't implement `Debug`
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:23:12
+   |
+23 |     let _: TypeParamsAngBrack<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `X` cannot be formatted using `{:?}` because it doesn't implement `Debug`
+   |
+note: required by a bound in `TypeParamsAngBrack`
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:13:62
+   |
+13 |     enum TypeParamsAngBrack<'a, T, U:, V: 'a, W: 'a + 'a, X: Debug, Y: 'a + Debug> {
+   |                                                              ^^^^^ required by this bound in `TypeParamsAngBrack`
+help: consider restricting type parameter `X`
+   |
+22 | fn _bar<'a, T, U, V, W, X: std::fmt::Debug, Y>() {
+   |                          +++++++++++++++++
+
+error[E0277]: `Y` doesn't implement `Debug`
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:23:12
+   |
+23 |     let _: TypeParamsAngBrack<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Y` cannot be formatted using `{:?}` because it doesn't implement `Debug`
+   |
+note: required by a bound in `TypeParamsAngBrack`
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:13:77
+   |
+13 |     enum TypeParamsAngBrack<'a, T, U:, V: 'a, W: 'a + 'a, X: Debug, Y: 'a + Debug> {
+   |                                                                             ^^^^^ required by this bound in `TypeParamsAngBrack`
+help: consider restricting type parameter `Y`
+   |
+22 | fn _bar<'a, T, U, V, W, X, Y: std::fmt::Debug>() {
+   |                             +++++++++++++++++
+
+error[E0277]: `X` doesn't implement `Debug`
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:23:58
+   |
+23 |     let _: TypeParamsAngBrack<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
+   |                                                          ^^^^^^^^^^^^^^^^^^^^^ `X` cannot be formatted using `{:?}` because it doesn't implement `Debug`
+   |
+note: required for `TypeParamsAngBrack<'a, T, U, V, W, X, Y, (&(), T, U, V, W, X, Y)>` to implement `TypeWitnessTypeArg`
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:12:1
+   |
+12 | / typewit::simple_type_witness!{
+13 | |     enum TypeParamsAngBrack<'a, T, U:, V: 'a, W: 'a + 'a, X: Debug, Y: 'a + Debug> {
+   | |                                                              ----- unsatisfied trait bound introduced here
+14 | |         U8 = (&'a (), T, U, V, W, X, Y)
+15 | |     }
+16 | | }
+   | |_^
+note: required by a bound in `MAKE`
+  --> src/type_witness_traits.rs
+   |
+   | pub trait MakeTypeWitness: TypeWitnessTypeArg {
+   |                            ^^^^^^^^^^^^^^^^^^ required by this bound in `MakeTypeWitness::MAKE`
+   |     /// A constant with the type witness
+   |     const MAKE: Self;
+   |           ---- required by a bound in this associated constant
+   = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider restricting type parameter `X`
+    |
+22  | fn _bar<'a, T, U, V, W, X: std::fmt::Debug, Y>() {
+    |                          +++++++++++++++++
+
+error[E0277]: `Y` doesn't implement `Debug`
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:23:58
+   |
+23 |     let _: TypeParamsAngBrack<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
+   |                                                          ^^^^^^^^^^^^^^^^^^^^^ `Y` cannot be formatted using `{:?}` because it doesn't implement `Debug`
+   |
+note: required for `TypeParamsAngBrack<'a, T, U, V, W, X, Y, (&(), T, U, V, W, X, Y)>` to implement `TypeWitnessTypeArg`
+  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_trait_bounds-err.rs:12:1
+   |
+12 | / typewit::simple_type_witness!{
+13 | |     enum TypeParamsAngBrack<'a, T, U:, V: 'a, W: 'a + 'a, X: Debug, Y: 'a + Debug> {
+   | |                                                                             ----- unsatisfied trait bound introduced here
+14 | |         U8 = (&'a (), T, U, V, W, X, Y)
+15 | |     }
+16 | | }
+   | |_^
+note: required by a bound in `MAKE`
+  --> src/type_witness_traits.rs
+   |
+   | pub trait MakeTypeWitness: TypeWitnessTypeArg {
+   |                            ^^^^^^^^^^^^^^^^^^ required by this bound in `MakeTypeWitness::MAKE`
+   |     /// A constant with the type witness
+   |     const MAKE: Self;
+   |           ---- required by a bound in this associated constant
+   = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider restricting type parameter `Y`
+    |
+22  | fn _bar<'a, T, U, V, W, X, Y: std::fmt::Debug>() {
     |                             +++++++++++++++++

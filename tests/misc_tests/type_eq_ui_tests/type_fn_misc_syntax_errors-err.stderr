@@ -74,7 +74,7 @@ error: unexpected `;` in generic parameter list
    |
    = note: this error originates in the macro `$crate::__::__parse_in_generics` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: unexpected end of bound: `Add < Type < u16 >> ;`
+error: unexpected end of bound: `Add < Type < u16 > > ;`
   --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:35:1
    |
 35 | / typewit::type_fn!{
@@ -106,7 +106,7 @@ error: unexpected `impl` in generic parameter list
    |
    = note: this error originates in the macro `$crate::__::__parse_in_generics` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: unexpected end of bound: `Add < Type < u16 >> impl`
+error: unexpected end of bound: `Add < Type < u16 > > impl`
   --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:50:1
    |
 50 | / typewit::type_fn!{
@@ -117,3 +117,48 @@ error: unexpected end of bound: `Add < Type < u16 >> impl`
    | |_^
    |
    = note: this error originates in the macro `$crate::__::__parse_ty_bounds` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unsupported attribute(s) on generic parameter(s): `#[foo]`, `#[bar]`
+       only the `#[cfg(...)]` attribute is supported
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:56:1
+   |
+56 | / typewit::type_fn!{
+57 | |     struct GenParamAttributes<#[foo] #[bar] T>;
+58 | |
+59 | |     impl () => ()
+60 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__assert_valid_gen_attr` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected these generic argument(s) for `One` variant to be passed: B
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:69:1
+   |
+69 | / typewit::simple_type_witness!{
+70 | |     enum UnprovidedGenericArgsInVariant[A, B, C = u8, D = u64] {
+71 | |         One[A] = (A,),
+72 | |         Three<> = (A, B, C, D),
+73 | |     }
+74 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__parse_generic_args_with_defaults__assert_only_defaults` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected these generic argument(s) for `Three` variant to be passed: A, B
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:69:1
+   |
+69 | / typewit::simple_type_witness!{
+70 | |     enum UnprovidedGenericArgsInVariant[A, B, C = u8, D = u64] {
+71 | |         One[A] = (A,),
+72 | |         Three<> = (A, B, C, D),
+73 | |     }
+74 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__parse_generic_args_with_defaults__assert_only_defaults` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0207]: the type parameter `T` is not constrained by the impl trait, self type, or predicates
+  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:65:24
+   |
+65 |     impl<#[cfg(all())] T> () => u8
+   |                        ^ unconstrained type parameter

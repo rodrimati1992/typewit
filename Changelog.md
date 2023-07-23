@@ -2,6 +2,17 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.5.0
+
+Added support for these to `simple_type_witness` macro:
+- Generic parameters using `< >` syntax
+- Non-`[ ]`-surrounded `where` clauses
+- `#[cfg(...)]` attributes on variants and generic parameters
+- Using `__Wit` in constraints.
+- Defaulted generic parameters (only used for defaulting generic arguments in `MakeTypeWitness` impls)
+
+Added support for `#[cfg(...)]` attributes on generic parameters to `type_fn` macro.
+
 ### 1.4.0
 
 Added `Identity` trait

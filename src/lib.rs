@@ -1,8 +1,9 @@
 #![allow(clippy::needless_doctest_main)]
-//! This crate provides abstractions for creating type witnesses.
+//! This crate provides abstractions for creating
+//! [type witnesses](#what-are-type-witnesses).
 //! 
 //! The inciting motivation for this crate is emulating trait polymorphism in `const fn`
-//! (as of 2023-04-30 it's not possible to call trait methods in const contexts on stable).
+//! (as of 2023-07-31, it's not possible to call trait methods in const contexts on stable).
 //! 
 //! # What are type witnesses
 //! 
@@ -54,7 +55,7 @@
 //! typewit::simple_type_witness! {
 //!     // Declares `enum RetWitness<'a, __Wit>` 
 //!     // (the `__Wit` type parameter is implicitly added after all generics)
-//!     enum RetWitness['a] {
+//!     enum RetWitness<'a> {
 //!         // This variant requires `__Wit == u8`
 //!         U8 = u8,
 //!    
@@ -286,7 +287,7 @@ extern crate alloc;
 // Documentation for concepts not specific to any one item
 macro_rules! explain_type_witness {
     () => ("\
-        A [type witness](crate) is \
+        A [type witness](crate#what-are-type-witnesses) is \
         an enum whose variants only have [`TypeEq`](crate::TypeEq) fields.
         Each variant requires the enum's type parameter to be a specific type.
     ")
@@ -332,10 +333,16 @@ pub mod __ {
 
     pub use crate::{
         type_identity::Identity,
-        macros::generics_parsing_2::{
-            __parse_in_generics,
-            __pg_parsed_ty_bounds,
-            __parse_ty_bounds,
+        macros::{
+            generics_parsing::{
+                __parse_generic_args_with_defaults,
+                __parse_in_generics,
+                __parse_ty_bounds,
+                __parse_where_clause_for_item_inner,
+                __pg_cfg_expansion,
+                __pg_parsed_ty_bounds,
+            },
+            simple_type_witness_macro::__stw_parse_variants,
         },
     };
 

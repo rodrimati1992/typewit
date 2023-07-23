@@ -53,4 +53,25 @@ typewit::type_fn!{
     impl () => T::Output
 }
 
+typewit::type_fn!{
+    struct GenParamAttributes<#[foo] #[bar] T>;
+
+    impl () => ()
+}
+
+typewit::type_fn!{
+    struct CfgAllOnImplGeneric;
+
+    impl<#[cfg(all())] T> () => u8
+}
+
+
+typewit::simple_type_witness!{
+    enum UnprovidedGenericArgsInVariant[A, B, C = u8, D = u64] {
+        One[A] = (A,),
+        Three<> = (A, B, C, D),
+    }
+}
+
+
 fn main(){}

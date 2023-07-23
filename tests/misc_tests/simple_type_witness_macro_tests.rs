@@ -6,6 +6,8 @@ use typewit::{HasTypeWitness, MakeTypeWitness, TypeEq};
 
 use core::fmt::Debug;
 
+mod stw_generics_parsing;
+
 mod privacy {
     typewit::simple_type_witness!{
         pub(super) enum Foo { U8 = u8 }
@@ -211,9 +213,13 @@ typewit::simple_type_witness!{
     enum FullEx['a, T, const N: usize] 
     where[ T: Copy ]
     {
+        // the four permutations of:
+        // - replacing the generic arguments 
+        // - putting a where clause on the variant
         U8 = &'a u8,
         Opt['a, T, 0] where [T: Debug] = Option<T>,
         Array['a, (), N] = [u32; N],
+        Tup where [T: Copy] = (Option<T>,),
     }
 }
 
@@ -229,6 +235,7 @@ fn full_ex_test() {
             FullEx::U8(te) => te.to_left(&5),
             FullEx::Opt(te) => te.to_left(None::<T>),
             FullEx::Array(te) => te.to_left([8; N]),
+            FullEx::Tup(te) => te.to_left((None,)),
         }
     }
 
@@ -246,7 +253,37 @@ fn full_ex_test() {
         let ret: Option<u32> = func();
         assert_eq!(ret, None::<u32>);
     }
+    {
+        let ret: (Option<u32>,) = func::<_, 0, _>();
+        assert_eq!(ret, (None::<u32>,));
+    }
 }
+
+//////////////////////////////
+
+
+typewit::simple_type_witness!{
+    enum CfgedOut {
+        #[cfg(all())]
+        U8 = u8,
+        /// Removed variant
+        #[cfg(any())]
+        U16 = u16,
+    }
+}
+
+
+#[test]
+fn cfged_out_varians() {
+    fn cfged<T: HasTypeWitness<CfgedOut<T>>>() -> T {
+        match T::WITNESS {
+            CfgedOut::U8(te) => te.to_left(3),
+        }
+    }
+
+    assert_eq!(cfged::<u8>(), 3);
+}
+
 
 //////////////////////////////
 
@@ -273,6 +310,143 @@ fn test_all_derives() {
 
     assert_impld::<AllDerives<NoImpls>>()
     
+}
+
+
+//////////////////////////////
+
+
+// This ensures that all generic parameters can be used in the where clause,
+#[cfg(feature = "rust_1_61")]
+typewit::simple_type_witness!{
+    derive(Copy, Clone)
+    enum UsingGenericsInWhereClause<'a, T: 'a, const N: usize>
+    where
+        [&'a T; N]: Clone,
+        __Wit: Clone,
+    {
+        U8 = [&'a T; N],
+        U16['static, (), 0] 
+        where 
+            [&'a T; N]: Copy,
+            __Wit: Copy,
+        = u16,
+    }
+}
+
+
+//////////////////////////////
+
+#[test]
+fn derives_and_cfg_on_variants() {
+    typewit::simple_type_witness!{
+        derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)
+        enum AllDerives {
+            #[cfg(all())]
+            U8 = u8,
+            /// docs above
+            #[cfg(any())]
+            U16 = u16,
+            U32 = u32,
+        }
+    }
+
+    fn _foo<T>(ad: AllDerives<T>) {
+        match ad {
+            AllDerives::U8{..} => {}
+            AllDerives::U32{..} => {}
+        }
+    }
+
+    assert_eq!(AllDerives::<u8>::MAKE, AllDerives::<u8>::MAKE);
+}
+
+//////////////////////////////
+
+
+#[test]
+fn cfg_attributes_on_generics() {
+    {
+        typewit::simple_type_witness!{
+            enum AnyCfg[#[cfg(any())] T] {
+                U8 = u8,
+                U16 = u16,
+            }
+        }
+        let _: AnyCfg<u8> = MakeTypeWitness::MAKE;
+        let _: AnyCfg<u16> = MakeTypeWitness::MAKE;
+    }
+    {
+        typewit::simple_type_witness!{
+            enum AllCfg[#[cfg(all())] T] {
+                U8<()> = u8,
+                Generic = (T,),
+            }
+
+        }
+        let _: AllCfg<(), u8> = MakeTypeWitness::MAKE;
+        let _: AllCfg<u16, (u16,)> = MakeTypeWitness::MAKE;
+    }
+}
+
+
+//////////////////////////////
+
+
+#[test]
+#[cfg(feature = "rust_1_61")]
+fn defaulted_generic_param() {
+    type Pair<T, U> = (T, U);
+
+    macro_rules! test_case {
+        (($($comma:tt)?)) => {
+            {
+                typewit::simple_type_witness!{
+                    enum DefButOne[T, U = u8, const N: usize = 10] {
+                        Arr[T, (), N $($comma)?] = [T; N],
+                        U32<Pair<(), ()>$($comma)?> = u32,
+                        Unary<Pair<i8, i16,>, U> = (U,),
+                    }
+                }
+
+                fn make<T, U, const N: usize, Wit>(_: Wit) -> DefButOne<T, U, N, Wit> 
+                where
+                    DefButOne<T, U, N, Wit>: MakeTypeWitness
+                {
+                    MakeTypeWitness::MAKE
+                }
+
+                assert_type::<_, DefButOne<u64, (), 4, [u64; 4]>>(make([0u64; 4]));
+                assert_type::<_, DefButOne<Pair<(), ()>, u8, 10, u32>>(make(0u32));
+                assert_type::<_, DefButOne<Pair<i8, i16,>, bool, 10, (bool,)>>(make((false,)));
+            }
+
+            {
+                typewit::simple_type_witness!{
+                    enum DefAll[T = u8, const N: usize = 10] {
+                        Arr[T, N $($comma)?] = [T; N],
+                        U32<> = u32,
+                        Unary<T $($comma)?> = (T,),
+                    }
+                }
+
+                fn make<T, const N: usize, Wit>(_: Wit) -> DefAll<T, N, Wit> 
+                where
+                    DefAll<T, N, Wit>: MakeTypeWitness
+                {
+                    MakeTypeWitness::MAKE
+                }
+
+
+                assert_type::<_, DefAll<u64, 4, [u64; 4]>>(make([0u64; 4]));
+                assert_type::<_, DefAll<u8, 10, u32>>(make(0u32));
+                assert_type::<_, DefAll<bool, 10, (bool,)>>(make((false,)));
+            }
+        };
+    }
+    
+    test_case!{(,)}
+    test_case!{()}
 }
 
 

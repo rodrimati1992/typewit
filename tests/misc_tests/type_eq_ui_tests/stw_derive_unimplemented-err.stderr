@@ -18,6 +18,7 @@ help: consider annotating `NoDerives<NoImpls>` with `#[derive(Debug)]`
   --> src/macros/simple_type_witness_macro.rs
    |
    +         #[derive(Debug)]
+   |         $vis enum $enum <$($generics)* __Wit: ?Sized>
    |
 
 error[E0277]: the trait bound `NoDerives<NoImpls>: Ord` is not satisfied
@@ -38,6 +39,7 @@ help: consider annotating `NoDerives<NoImpls>` with `#[derive(Ord)]`
   --> src/macros/simple_type_witness_macro.rs
    |
    +         #[derive(Ord)]
+   |         $vis enum $enum <$($generics)* __Wit: ?Sized>
    |
 
 error[E0277]: the trait bound `NoDerives<NoImpls>: Hash` is not satisfied
@@ -58,6 +60,7 @@ help: consider annotating `NoDerives<NoImpls>` with `#[derive(Hash)]`
   --> src/macros/simple_type_witness_macro.rs
    |
    +         #[derive(Hash)]
+   |         $vis enum $enum <$($generics)* __Wit: ?Sized>
    |
 
 error[E0277]: the trait bound `OnlyPartialEq<NoImpls>: Eq` is not satisfied
@@ -78,6 +81,7 @@ help: consider annotating `OnlyPartialEq<NoImpls>` with `#[derive(Eq)]`
   --> src/macros/simple_type_witness_macro.rs
    |
    +         #[derive(Eq)]
+   |         $vis enum $enum <$($generics)* __Wit: ?Sized>
    |
 
 error[E0277]: can't compare `OnlyPartialEq<NoImpls>` with `OnlyPartialEq<NoImpls>`
@@ -99,6 +103,7 @@ help: consider annotating `OnlyPartialEq<NoImpls>` with `#[derive(PartialOrd)]`
   --> src/macros/simple_type_witness_macro.rs
    |
    +         #[derive(PartialOrd)]
+   |         $vis enum $enum <$($generics)* __Wit: ?Sized>
    |
 
 error[E0277]: the trait bound `OnlyPartialEqOrd<NoImpls>: Eq` is not satisfied
@@ -119,6 +124,7 @@ help: consider annotating `OnlyPartialEqOrd<NoImpls>` with `#[derive(Eq)]`
   --> src/macros/simple_type_witness_macro.rs
    |
    +         #[derive(Eq)]
+   |         $vis enum $enum <$($generics)* __Wit: ?Sized>
    |
 
 error[E0277]: `AllCmpTraits<NoImpls>` doesn't implement `Debug`
@@ -141,6 +147,7 @@ help: consider annotating `AllCmpTraits<NoImpls>` with `#[derive(Debug)]`
   --> src/macros/simple_type_witness_macro.rs
    |
    +         #[derive(Debug)]
+   |         $vis enum $enum <$($generics)* __Wit: ?Sized>
    |
 
 error[E0277]: the trait bound `AllCmpTraits<NoImpls>: Hash` is not satisfied
@@ -161,4 +168,5 @@ help: consider annotating `AllCmpTraits<NoImpls>` with `#[derive(Hash)]`
   --> src/macros/simple_type_witness_macro.rs
    |
    +         #[derive(Hash)]
+   |         $vis enum $enum <$($generics)* __Wit: ?Sized>
    |

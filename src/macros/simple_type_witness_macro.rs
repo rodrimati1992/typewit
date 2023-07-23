@@ -14,7 +14,9 @@
 /// 
 /// - An impl of [`TypeWitnessTypeArg`] for the enum.
 /// 
-/// - An impl of [`MakeTypeWitness`](crate::MakeTypeWitness) for each variant of the enum.
+/// - An impl of [`MakeTypeWitness`] for each variant of the enum.
+/// 
+/// Additional trait impls are generated when the [`derive(...)`](#derive) syntax is used.
 /// 
 /// ### Derivation
 /// 
@@ -27,14 +29,61 @@
 /// - `Ord`
 /// - `Hash`
 /// 
+/// As opposed to `#[derive(...))]`-generated implementations,
+/// these impls don't require type parameters to implement the derived trait.
+/// 
 /// This macro always implements `Copy` and `Clone` for the declared type witness,
 /// `derive(Copy, Clone)` does nothing.
 /// 
 /// # Syntax
 /// 
-/// This macro uses square brackets to make parsing generics and where clauses easier.
-/// 
 /// This macro takes an enum-like syntax:
+/// ```text
+///     $(#[$enum_meta:meta])*
+///     $(derive($($derive:ident),* $(,)?)))?
+///     $vis:vis enum $enum:ident $(<$($generics:generics_param),* $(,)?>)? 
+///     $(where $($where:where_predicate),* $(,)? )?
+///     {
+///         $(
+///             $(#[$variant_meta:meta])*
+///             $variant:ident $(<$($var_gen_args:generic_arg)*>)?
+///             // additional bounds for the MakeTypeWitness impl that constructs this variant.
+///             $(where $($vari_where:where_predicate)*)?
+///             // the type that this variant requires the 
+///             // implicit `__Wit` type parameter to be.
+///             = $witnessed_ty:ty
+///         ),*
+///         $(,)?
+///     }
+/// ```
+/// 
+/// <span id = "var_gen_args-param"></span> `<$($var_gen_args:generic_arg)*>`
+/// (optional parameter)[(example usage)](#var_gen_args-example): 
+/// this parameter overrides the generic arguments of the enum in its 
+/// [`MakeTypeWitness`] implementation.
+/// 
+/// <span id = "derive"></span>
+/// `derive($($derive:ident),* $(,)?)`(optional parameter)[(example)](#derive-example):
+/// supports deriving the traits listed in the [derivation](#derivation) section
+/// 
+/// `#[cfg(...)]` attributes on variants are copied to their respective 
+/// [`MakeTypeWitness`] impls.
+/// 
+/// Generic parameters support the `#[cfg(...)]` attribute, 
+/// no other attribute is supported.
+/// 
+/// Defaults for generic parameters are only used 
+/// as the default value of [`$var_gen_args`](#var_gen_args-param)
+/// [(example usage)](#var_gen_args-example) .
+/// 
+/// <details>
+/// <summary>
+/// <b>Soft-deprecated older syntax</b>
+/// </summary>
+/// 
+/// This macro originally required the following syntax,
+/// which is soft-deprecated, and will be supported for the rest of `"1.*"` versions.
+/// 
 /// ```text
 ///     $(#[$enum_meta:meta])*
 ///     // Allows deriving some traits without the bounds that 
@@ -55,22 +104,10 @@
 ///         $(,)?
 ///     }
 /// ```
-/// `[$($generics:tt)*]`(optional parameter): these are the generic parameters of the enum,
-/// to which this macro adds an implicit `__Wit` type parameter that the variants constrain.
 /// 
-/// `[$($var_gen_args:tt)*]`(optional parameter)[(example usage)](#var_gen_args-example): 
-/// this parameter overrides the generic arguments of the enum in its 
-/// [`MakeTypeWitness`] implementation.
-/// 
-/// <span id = "derive"></span>
-/// `derive($($derive:ident),* $(,)?)`(optional parameter)[(example)](#derive-example):
-/// supports deriving the traits listed in the [derivation](#derivation) section
+/// </details>
 /// 
 /// ### Limitations
-/// 
-/// This macro cannot parse defaulted generic parameters,
-/// doing so would either require procedural macros or 
-/// a very complex `macro_rules!` macro.
 /// 
 /// <span id = "const-parameter-limitation"></span>
 /// When used in Rust versions prior to 1.59.0,
@@ -107,10 +144,9 @@
 /// }
 /// 
 /// typewit::simple_type_witness! {
-///     // Generic parameters go inside square brackets (these are optional),
 ///     // Declares an `enum Witness<'a, __Wit>`,
 ///     // the `__Wit` type parameter is added after all generics.
-///     enum Witness['a] {
+///     enum Witness<'a> {
 ///         // This variant requires `__Wit == u8`
 ///         U8 = u8,
 ///         // This variant requires `__Wit == &'a str`
@@ -138,20 +174,22 @@
 /// 
 /// ### where clauses 
 /// 
-/// This example demonstrates the where clause syntax
+/// This example demonstrates a variant with a where clause.
 /// ```rust
 /// # use std::fmt::Debug;
 /// typewit::simple_type_witness! {
-///     // Generic parameters go inside square brackets (these are optional),
 ///     // Declares an `enum Witness<'a, T, __Wit>`,
 ///     // the `__Wit` type parameter is added after all generics.
-///     enum Witness['a, T: 'a] 
-///     // the constraints in the where clause go inside square brackets 
-///     where[T: 'a + Debug] 
+///     #[non_exhaustive]
+///     enum Witness<'a, T: 'a>
+///     where 
+///         T: 'a + Debug
 ///     {
 ///         // This variant requires `__Wit == T`.
 ///         // The `MakeTypeWitness` impl for this variant also requires `T: Copy`.
-///         Value where [T: Copy] = T,
+///         #[cfg(feature = "foo")]
+///         Value where T: Copy = T,
+///
 ///         // This variant requires `__Wit == &'a T`
 ///         Ref = &'a T,
 ///     }
@@ -159,28 +197,35 @@
 /// ```
 /// the above invocation of `simple_type_witness` effectively generates this code:
 /// ```rust
-/// # use std::fmt::Debug;
-/// enum Witness<'a, T, __Wit>
+/// # use core::fmt::Debug;
+/// # 
+/// #[non_exhaustive]
+/// enum Witness<'a, T: 'a, __Wit: ?Sized>
 /// where
 ///     T: 'a + Debug,
 /// {
+///     #[cfg(feature = "foo")]
 ///     Value(typewit::TypeEq<__Wit, T>),
+/// 
 ///     Ref(typewit::TypeEq<__Wit, &'a T>),
 /// }
-/// impl<'a, T, __Wit> typewit::TypeWitnessTypeArg for Witness<'a, T, __Wit>
+/// 
+/// impl<'a, T: 'a, __Wit: ?Sized> typewit::TypeWitnessTypeArg for Witness<'a, T, __Wit>
 /// where
 ///     T: 'a + Debug,
 /// {
 ///     type Arg = __Wit;
 /// }
-/// impl<'a, T> typewit::MakeTypeWitness for Witness<'a, T, T>
+/// 
+/// #[cfg(feature = "foo")]
+/// impl<'a, T: 'a> typewit::MakeTypeWitness for Witness<'a, T, T>
 /// where
-///     T: 'a + Debug,
-///     T: Copy,
+///     T: 'a + Debug + Copy,
 /// {
 ///     const MAKE: Self = Self::Value(typewit::TypeEq::NEW);
 /// }
-/// impl<'a, T> typewit::MakeTypeWitness for Witness<'a, T, &'a T>
+/// 
+/// impl<'a, T: 'a> typewit::MakeTypeWitness for Witness<'a, T, &'a T>
 /// where
 ///     T: 'a + Debug,
 /// {
@@ -192,24 +237,34 @@
 /// <span id = "var_gen_args-example"></span>
 /// ### `$var_gen_args` parameter
 /// 
-/// This example shows what the `$var_gen_args` parameter does.
-/// ([it also requires Rust 1.59.0](#const-parameter-limitation))
+/// This example shows what the `$var_gen_args` parameter does,
+/// as well as how generic parameter defaults relate to it.
+/// 
+/// ([this example requires Rust 1.59.0](#const-parameter-limitation))
 /// 
 #[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
 #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
 /// typewit::simple_type_witness! {
-///     // Generic parameters go inside square brackets (these are optional),
 ///     // Declares an `enum Foo<T, const N: usize, __Wit>`,
 ///     // the `__Wit` type parameter is added after all generics.
-///     enum Foo[T, const N: usize] {
+///     //
+///     // The defaults for generic parameters are only used 
+///     // as the default value of the generic arguments of variants.
+///     enum Foo<T = i8, const N: usize = 1234> {
 ///         // This variant requires `__Wit == u64`.
 ///         // 
-///         // The `[(), 0]` here
+///         // The `<(), 3>` here
 ///         // replaces `impl<T, const N: usize> MakeTypeWitness for Foo<T, N, u64>`
-///         // with     `impl MakeTypeWitness for Foo<(), 0, u64>`.
-///         // Using `[(), 0]` allows the  `T` and `N` type parameters to be inferred
+///         // with     `impl                    MakeTypeWitness for Foo<(), 3, u64>`.
+///         // Using `<(), 3>` allows the  `T` and `N` type parameters to be inferred
 ///         // when the `MakeTypeWitness` impl for `Foo<_, _, u64>` is used.
-///         U64[(), 0] = u64,
+///         U64<(), 3> = u64,
+///         // This variant requires `__Wit == bool`.
+///         // 
+///         // The `<>` here uses the defaults for the generic arguments to 
+///         // replace `impl<T, const N: usize> MakeTypeWitness for Foo<T, N, bool>`
+///         // with    `impl                    MakeTypeWitness for Foo<i8, 1234, bool>`.
+///         Bool<> = bool,
 ///         // This variant requires `__Wit == [T; N]`.
 ///         Array = [T; N],
 ///     }
@@ -218,15 +273,19 @@
 /// the above effectively expands to this:
 #[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
 #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
-/// enum Foo<T, const N: usize, __Wit> {
+/// enum Foo<T, const N: usize, __Wit: ?Sized> {
 ///     U64(typewit::TypeEq<__Wit, u64>),
+///     Bool(typewit::TypeEq<__Wit, bool>),
 ///     Array(typewit::TypeEq<__Wit, [T; N]>),
 /// }
-/// impl<T, const N: usize, __Wit> typewit::TypeWitnessTypeArg for Foo<T, N, __Wit> {
+/// impl<T, const N: usize, __Wit: ?Sized> typewit::TypeWitnessTypeArg for Foo<T, N, __Wit> {
 ///     type Arg = __Wit;
 /// }
-/// impl typewit::MakeTypeWitness for Foo<(), 0, u64> {
+/// impl typewit::MakeTypeWitness for Foo<(), 3, u64> {
 ///     const MAKE: Self = Self::U64(typewit::TypeEq::NEW);
+/// }
+/// impl typewit::MakeTypeWitness for Foo<i8, 1234, bool> {
+///     const MAKE: Self = Self::Bool(typewit::TypeEq::NEW);
 /// }
 /// impl<T, const N: usize> typewit::MakeTypeWitness for Foo<T, N, [T; N]> {
 ///     const MAKE: Self = Self::Array(typewit::TypeEq::NEW);
@@ -248,7 +307,8 @@
 /// assert_eq!(Witness::<u8>::MAKE, Witness::<u8>::MAKE);
 /// 
 /// // Witness doesn't require its type parameters to impl any traits in its derives.
-/// // (the standard derives require type parameters to impl the derived trait)
+/// // The standard derives require that type parameters impl the derived trait,
+/// // so this comparison wouldn't work (because `NoImpls` doesn't impl `PartialEq`).
 /// assert_eq!(Witness::<NoImpls>::MAKE, Witness::NoImp(TypeEq::NEW));
 /// 
 /// typewit::simple_type_witness! {
@@ -273,41 +333,19 @@ macro_rules! simple_type_witness {
         $(#[$enum_meta:meta])*
         $(derive($($derive:ident),* $(,)?))?
         $(pub $(($($pub:tt)*))?)? 
-        enum $enum:ident $([$($generics:tt)*])? 
-        $(where[$($where:tt)*])?
-        {
-            $(
-                $(#[$variant_meta:meta])*
-                $variant:ident $([$($var_gen_args:tt)*])?
-                $(where[$($vari_where:tt)*])?
-                = $witnessed_ty:ty
-            ),*
-            $(,)?
-        }
+        enum $enum:ident $($rem:tt)*
     ) => {
         $crate::__parse_generics!{
-            (
-                $crate::__stw_with_parsed_generics!(
+            ($crate::__stw_with_parsed_generics!(
+                (
                     $(#[$enum_meta])*
                     derive($($($derive)*)?)
                     $(pub $(($($pub)*))? )? 
-                    enum $enum {
-                        $((
-                            $variant $([$($var_gen_args)*])?
-                            $(#[$variant_meta])*
-                            where[$($($vari_where)*)?]
-                            = $witnessed_ty
-                        ))*
-                    }
-                    where[$($($where)*)?]
+                    enum $enum
                 )
-
-                [$($($generics)*)?]
-            )
-
-            []
-            []
-            [$($($generics)*)?]
+                $enum
+            ))
+            [$($rem)*]
         }
     };
 }
@@ -316,29 +354,342 @@ macro_rules! simple_type_witness {
 #[macro_export]
 macro_rules! __stw_with_parsed_generics {
     (
-        $(# $enum_meta:tt)*
-        derive $derive:tt
-        $vis:vis enum $enum:ident $variants:tt
-        where $where:tt
+        ($($prev_args:tt)*)
+        $enum:ident
 
-        $gen_args:tt
-        $phantom_args:tt
-        $generics:tt
+        [$(($gen_arg:tt ($($gen_phantom:tt)*) $( = $($gen_def:tt)* )? ))*]
+        [$(($($generics:tt)*))*]
+        $deleted_markers:tt
+
+        $($rem:tt)*
     ) => {
-        $crate::__trailing_comma! {
-            (
-                $crate::__stw_with_parsed_args ! (
-                    $(# $enum_meta)*
-                    derive $derive
-                    $vis enum $enum $generics $gen_args
-                    $variants
+        $crate::__parse_where_clause_for_item! {
+            ($crate::__stw_with_parsed_where ! (
+                (
+                    $($prev_args)*
+                    [$($($generics)*,)*]
+                    [ $($gen_arg,)* ]
                 )
-            )
-            []
-            $where
+                [
+                    $enum
+                    [
+                        $((
+                            ( $(($($gen_def)*))? ($gen_arg) )
+                            ( $(($($gen_def)*))? [$gen_arg] )
+                        ))*
+                    ]
+                ]
+            ))
+            $($rem)*
         }
     };
 }
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __stw_with_parsed_where {
+    (
+        ($($prev_args:tt)*)
+        $vari_vars:tt
+
+        $where_clause:tt
+
+        {$($variants:tt)*}
+    ) => {
+        $crate::__::__stw_parse_variants!{
+            ($($prev_args)* where $where_clause)
+            $vari_vars
+            []
+            [$($variants)*]
+        }
+    }
+}
+
+
+macro_rules! declare__stw_parse_variants {
+    ($_:tt ($($vari_params:tt)*) ($($vari_output:tt)*) $variant_:ident) => {
+        #[doc(hidden)]
+        #[macro_export]
+        macro_rules! __stw_parse_variants_ {
+            (
+                ($_($fixed:tt)*) 
+                $vari_vars:tt 
+                // fast path for enums with no attributes on variants other than docs
+                [$_(($variant:ident ($_(#[doc $_($docs:tt)*])*) $_($rem_vari:tt)*))*] 
+                [$_(,)*]
+            )=>{
+                $crate::__stw_with_parsed_args! {
+                    $_($fixed)*
+                    { $_(($variant ($_(#[doc $_($docs)*])*) $_($rem_vari)*))* }
+                }
+            };
+            (
+                $fixed:tt
+                $vari_vars:tt
+                [
+                    ($pvariant:ident ($_($pattrs:tt)*) $_($prem:tt)*)
+                    $_($variants:tt)*
+                ]
+                [$_(,)*]
+            )=>{
+                $crate::__stw_parse_variants_attrs!{
+                    $fixed
+                    [/*prev variants*/] [ ($pvariant ($_($pattrs)*) $_($prem)*) $_($variants)*]
+                    [/*prev attrs of variant*/] [/*prev cfgs of variant*/] [$_($pattrs)*]
+                }
+            };
+            (
+                $fixed:tt
+                $vari_vars:tt
+                [$_($prev:tt)*]
+                [$($vari_params)* = $var_type:ty $_(, $_($rem:tt)*)?]
+            )=>{
+                $crate::__::__stw_parse_variants!{
+                    $fixed
+                    $vari_vars
+                    // The four token trees in the parentheses here are:
+                    // (
+                    //      variant_name 
+                    //      ($($attributes:tt)*)
+                    //      (replacement_for_Self)
+                    //      [where_clause_for_variant]
+                    //      withnessed_type
+                    // )
+                    [$_($prev)* ($($vari_output)* () [] $var_type)]
+                    [$_($_($rem)*)?]
+                }
+            };
+            (
+                $fixed:tt 
+                [$enum:ident $gen_with_defs:tt]
+                $prev:tt
+                [$($vari_params)* < $_($rem:tt)*]
+            )=>{
+                $crate::__::__parse_generic_args_with_defaults! {
+                    (
+                        (
+                            ($crate::__stw_parse_variant_Self_ty!(
+                                $fixed
+                                [$enum $gen_with_defs]
+                                $prev
+                                ($($vari_output)*)
+                            ))
+
+                            $crate::__::concat!(
+                                "`",
+                                $crate::__::stringify!($_ $variant_), 
+                                "` variant",
+                            )
+                        )
+                        []
+                        $gen_with_defs
+                    )
+                    []
+                    []
+                    [$_($rem)*]
+                }
+            };
+            (
+                $fixed:tt
+                [$enum:ident $gen_with_defs:tt]
+                $prev:tt
+                [$($vari_params)* [$_($SelfArgs:tt)*] $_($rem:tt)*]
+            )=>{
+                $crate::__::__parse_generic_args_with_defaults! {
+                    (
+                        (
+                            ($crate::__stw_parse_variant_Self_ty!(
+                                $fixed
+                                [$enum $gen_with_defs]
+                                $prev
+                                ($($vari_output)*)
+                            ))
+
+                            $crate::__::concat!(
+                                "`",
+                                $crate::__::stringify!($_ $variant_), 
+                                "` variant",
+                            )
+                        )
+                        []
+                        $gen_with_defs
+                    )
+                    []
+                    []
+                    [$_($SelfArgs)* > $_($rem)*]
+                }
+            };
+            ($fixed:tt $vari_vars:tt $prev:tt [$($vari_params)* where $_($rem:tt)*])=>{
+                $crate::__parse_where_clause_for_item!{
+                    ($crate::__stw_parsed_variant_with_where_clause!(
+                        $fixed $vari_vars $prev [$($vari_output)* ()]
+                    ))
+                    where $_($rem)*
+                }
+            };
+        }
+    };
+}
+
+declare__stw_parse_variants!{
+    $
+    ($(#[$($vari_attr:tt)*])* $variant:ident)
+    ($variant ($(#[$($vari_attr)*])*))
+    variant
+}
+
+pub use __stw_parse_variants_ as __stw_parse_variants;
+
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __stw_parse_variants_attrs {
+    (
+        ($($fixed:tt)*) 
+        [$($variants:tt)*] []
+        [] [] []
+    )=>{
+        $crate::__stw_with_parsed_args! {
+            $($fixed)*
+            { $($variants)* }
+        }
+    };
+    (
+        $fixed:tt
+        $prev_vari:tt $next_vari:tt
+        $prev_attrs:tt [$($prev_cfgs:tt)*] [#[cfg($($cfg:tt)*)] $($rest_attrs:tt)*]
+    ) => {
+        $crate::__stw_parse_variants_attrs! {
+            $fixed
+            $prev_vari $next_vari
+            $prev_attrs [$($prev_cfgs)* ($($cfg)*)] [$($rest_attrs)*]
+        }
+    };
+    (
+        $fixed:tt
+        $prev_vari:tt $next_vari:tt
+        [$($prev_attrs:tt)*] $prev_cfgs:tt [#[$($attr:tt)*] $($rest_attrs:tt)*]
+    ) => {
+        $crate::__stw_parse_variants_attrs! {
+            $fixed
+            $prev_vari $next_vari
+            [$($prev_attrs)* #[$($attr)*]] $prev_cfgs [$($rest_attrs)*]
+        }
+    };
+    // none of the attributes of the variant were cfg
+    (
+        $fixed:tt
+        [$($prev_vari:tt)*] 
+        [   
+            $curr_vari:tt 
+            $(
+                ($nvariant:ident ($($nattrs:tt)*) $($nrem:tt)*) 
+                $($rem_vari:tt)*
+            )?
+        ]
+        $prev_attrs:tt [] []
+    ) => {
+        $crate::__stw_parse_variants_attrs! {
+            $fixed
+            [$($prev_vari)* $curr_vari] [
+                $(($nvariant ($($nattrs)*) $($nrem)*)  $($rem_vari)*)?
+            ]
+            [] [] [$($($nattrs)*)?]
+        }
+    };
+    // some of the attributes of the variant were cfg
+    (
+        $fixed:tt
+        [$($prev_vari:tt)*] 
+        [   
+            ($cvariant:ident $__cattrs:tt $($crem:tt)*) 
+            $(
+                ($nvariant:ident ($($nattrs:tt)*) $($nrem:tt)*) 
+                $($rem_vari:tt)*
+            )?
+        ]
+        [$($prev_attrs:tt)*] [$(($($cfg:tt)*))+] []
+    ) => {
+        #[cfg(all($($($cfg)*)+))]
+        $crate::__stw_parse_variants_attrs! {
+            $fixed
+            [$($prev_vari)* ($cvariant ($($prev_attrs)*) $($crem)*) ] [
+                $(($nvariant ($($nattrs)*) $($nrem)*)  $($rem_vari)*)?
+            ]
+            [] [] [$($($nattrs)*)?]
+        }
+
+        #[cfg(not(all($($($cfg)*)+)))]
+        $crate::__stw_parse_variants_attrs! {
+            $fixed
+            [$($prev_vari)*] [
+                $(($nvariant ($($nattrs)*) $($nrem)*)  $($rem_vari)*)?
+            ]
+            [] [] [$($($nattrs)*)?]
+        }
+    };
+} 
+
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __stw_parse_variant_Self_ty {
+    (
+        $fixed:tt
+        [$enum:ident $($rem_vars:tt)*]
+        $prev:tt 
+        ($($vari_prev:tt)*) 
+        [$($SelfTy:tt)*] 
+        where $($rem:tt)*
+    )=>{
+        $crate::__parse_where_clause_for_item!{
+            ($crate::__stw_parsed_variant_with_where_clause!(
+                $fixed 
+                [$enum $($rem_vars)*]
+                $prev 
+                [$($vari_prev)* ($enum < $($SelfTy)*)]
+            ))
+            where $($rem)*
+        }
+    };
+    (
+        $fixed:tt
+        [$enum:ident $($rem_vars:tt)*]
+        [$($prev:tt)*] 
+        ($($vari_prev:tt)*)
+        [$($SelfTy:tt)*] 
+        = $var_type:ty 
+        $(, $($rem:tt)*)?
+    )=>{
+        $crate::__::__stw_parse_variants!{
+            $fixed
+            [$enum $($rem_vars)*]
+            [$($prev)* ($($vari_prev)* ($enum < $($SelfTy)*) [] $var_type)]
+            [$($($rem)*)?]
+        }
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __stw_parsed_variant_with_where_clause {
+    (
+        $fixed:tt
+        $vari_vars:tt
+        [$($prev:tt)*] 
+        [$($vari_prev:tt)*]
+        $where_clause:tt
+        = $var_type:ty $(, $($rem:tt)*)?
+    ) => {
+        $crate::__::__stw_parse_variants!{
+            $fixed
+            $vari_vars
+            [$($prev)* ($($vari_prev)* $where_clause $var_type)]
+            [$($($rem)*)?]
+        }
+    }
+}
+
 
 #[doc(hidden)]
 #[macro_export]
@@ -347,8 +698,8 @@ macro_rules! __stw_with_parsed_args {
         $(# $enum_meta:tt)*
         derive $derive:tt
         $vis:vis enum $enum:ident $generics:tt $gen_args:tt
+        where $where:tt
         { $($variant_args:tt)* }
-        $where:tt
     ) => {
         $crate::__stw_top_items!{
             $(# $enum_meta)*
@@ -375,7 +726,6 @@ macro_rules! __stw_with_parsed_args {
     }
 }
 
-
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __stw_top_items {
@@ -387,10 +737,10 @@ macro_rules! __stw_top_items {
         {
             $((
                 $variant:ident
-                $(#[$variant_meta:meta])*
-                $([$($var_gen_args:tt)*])?
-                where $vari_where:tt
-                = $witnessed_ty:ty
+                ($(#[$variant_meta:meta])*)
+                ($($SelfTy:tt)*)
+                $vari_where:tt
+                $witnessed_ty:ty
             ))*
         }
     ) => {
@@ -423,7 +773,7 @@ macro_rules! __stw_top_items {
         {
             type Arg = __Wit;
         }
-    }
+    };
 }
 
 #[doc(hidden)]
@@ -555,6 +905,7 @@ macro_rules! __stw_single_derive {
     };
 }
 
+
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __stw_make_type_witness_impl {
@@ -564,27 +915,32 @@ macro_rules! __stw_make_type_witness_impl {
 
         (
             $variant:ident
-            $(#[$variant_meta:meta])*
-            $([$($var_gen_args:tt),* $(,)?])?
-            where[$($vari_where:tt)*]
-            = $witnessed_ty:ty
+            $attrs:tt
+            ($( $($SelfTy:tt)+ )?)
+            [$($vari_where:tt)*]
+            $witnessed_ty:ty
         )
     ) => {
-        impl<$($generics)*> $crate::MakeTypeWitness for $enum<$($gen_args)* $witnessed_ty>
-        where
-            $(
-                $enum<$($var_gen_args,)* $witnessed_ty>:
-                    $crate::__::Identity<Type = Self>,
-            )?
+        impl<$($generics)* __Wit: ?Sized> 
+            $crate::MakeTypeWitness 
+        for $crate::__first_ty!(
+            $($($SelfTy)+ $witnessed_ty>,)? 
+            $enum<$($gen_args)* $witnessed_ty>,
+        ) where
+            Self: $crate::__::Identity<Type = $enum<$($gen_args)* __Wit>>,
             $($where)*
             $($vari_where)*
         {
             const MAKE: Self = Self::$variant($crate::TypeEq::NEW);
         }
-
     }
 }
 
 
-
-
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __first_ty {
+    ($first:ty, $($rem:tt)*) => {
+        $first
+    }
+}

@@ -24,7 +24,10 @@
 /// e.g: `T: Foo, 'a: 'b, U: 'b`.
 /// 
 /// `:generic_params` is a list of generic parameter declarations.
-/// e.g: `'a, T, const N: usize`.
+/// e.g: `'a, T, #[cfg(feature = "hi")] U, const N: usize`.
+/// 
+/// Generic parameters support the `#[cfg(...)]` attribute, 
+/// no other attribute is supported.
 /// 
 /// # Generated code 
 /// 
@@ -37,7 +40,9 @@
 /// - Impls of [`TypeFn`] for the generated struct corresponding to 
 /// each `... => ...` argument.
 /// 
-/// If the struct has any lifetime or type parameters, it has a private field,
+/// If the struct has any lifetime or type parameters
+/// (even if disabled by `#[cfg(...)]` attributes), 
+/// it has a private field,
 /// and requires using its `NEW` associated constant to be instantiated.
 /// If it has no type or lifetime parameters, the struct is a unit struct.
 /// 
@@ -72,11 +77,13 @@
 #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
 /// typewit::type_fn! {
 ///     /// Hello
-///     pub struct Foo<'a, T: IntoIterator = Vec<u8>, const N: usize = 3>
+///     pub struct Foo<'a, T: IntoIterator = Vec<u8>, #[cfg(any())] const N: usize = 3>
 ///     where T: Clone;
 ///     
 ///     /// docs for impl
-///     impl<'b: 'a, U, const M: usize> [&'b U; M] => ([&'b U; M], T::IntoIter)
+///     #[cfg(all())]
+///     impl<'b: 'a, U, #[cfg(all())] const M: usize> 
+///         [&'b U; M] => ([&'b U; M], T::IntoIter)
 ///     where 
 ///         U: 'static,
 ///         u32: From<U>;
@@ -93,11 +100,12 @@
 /// use core::marker::PhantomData;
 /// 
 /// /// Hello
-/// pub struct Foo<'a, T: IntoIterator = Vec<u8>, const N: usize = 3>(
+/// // The `const N: usize = 3` param is removed by the `#[cfg(any()))]` attribute
+/// pub struct Foo<'a, T: IntoIterator = Vec<u8>>(
 ///     PhantomData<(&'a (), fn() -> T)>
 /// ) where T: Clone;
 /// 
-/// impl<'a, T: IntoIterator, const N: usize> Foo<'a, T, N>
+/// impl<'a, T: IntoIterator> Foo<'a, T>
 /// where
 ///     T: Clone,
 /// {
@@ -105,9 +113,10 @@
 /// }
 /// 
 /// /// docs for impl
-/// impl<'a, 'b: 'a, U, T: IntoIterator, const M: usize, const N: usize> 
+/// #[cfg(all())]
+/// impl<'a, 'b: 'a, U, T: IntoIterator, #[cfg(all())] const M: usize> 
 ///     TypeFn<[&'b U; M]> 
-/// for Foo<'a, T, N>
+/// for Foo<'a, T>
 /// where
 ///     T: Clone,
 ///     U: 'static,
@@ -117,7 +126,7 @@
 /// }
 /// 
 /// /// docs for another impl
-/// impl<'a, T: IntoIterator, const N: usize> TypeFn<()> for Foo<'a, T, N>
+/// impl<'a, T: IntoIterator> TypeFn<()> for Foo<'a, T>
 /// where
 ///     T: Clone,
 /// {
@@ -148,11 +157,11 @@ macro_rules! type_fn {
         $vis:vis struct $struct_name:ident
         $($rem:tt)*
     ) => {
-        $crate::__trailing_comma_until_semicolon!{
+        $crate::__trailing_comma_for_where_clause!{
             ($crate::__tyfn_parsed_capture_where! (
                 (
                     $(#[$attrs])*
-                    $vis struct $struct_name [] []
+                    $vis struct $struct_name [] [] []
                 )
             ))
             []
@@ -175,11 +184,12 @@ macro_rules! __tyfn_parsed_capture_generics {
         ($($struct_stuff:tt)*)
         $capture_gen_args:tt
         $capture_generics:tt
+        $deleted_markers:tt
         where $($rem:tt)*
     ) => {
-        $crate::__trailing_comma_until_semicolon!{
+        $crate::__trailing_comma_for_where_clause!{
             ($crate::__tyfn_parsed_capture_where! (
-                ( $($struct_stuff)* $capture_gen_args $capture_generics )
+                ( $($struct_stuff)* $capture_gen_args $capture_generics $deleted_markers )
             ))
             []
             [$($rem)*]
@@ -189,10 +199,11 @@ macro_rules! __tyfn_parsed_capture_generics {
         ($($struct_stuff:tt)*)
         $capture_gen_args:tt
         $capture_generics:tt
+        $deleted_markers:tt
         ;$($rem:tt)*
     ) => {
         $crate::__tyfn_parsed_capture_where! {
-            ( $($struct_stuff)* $capture_gen_args $capture_generics )
+            ( $($struct_stuff)* $capture_gen_args $capture_generics $deleted_markers )
             []
             $($rem)*
         }
@@ -201,6 +212,7 @@ macro_rules! __tyfn_parsed_capture_generics {
         $struct_stuff:tt
         $capture_gen_args:tt
         $capture_generics:tt
+        $deleted_markers:tt
         $($first_token:tt $($rem:tt)*)?
     ) => {
         $crate::__::compile_error!{$crate::__::concat!(
@@ -249,6 +261,7 @@ macro_rules! __tyfn_parse_fns {
 
             $capture_gen_args:tt
             $capture_generics:tt
+            $erased_lt_ty_marker:tt
             captures_where $captures_where:tt
         )
 
@@ -264,8 +277,16 @@ macro_rules! __tyfn_parse_fns {
             $capture_gen_args
             $capture_gen_args
             $capture_generics
+            $erased_lt_ty_marker
             captures_where $captures_where
         }
+    };
+    ( $fixed:tt $fns:tt [] ) => {
+        $crate::__::compile_error!{$crate::__::concat!(
+            "bug: unhandled syntax in `typewit` macro: ",
+            stringify!($fixed),
+            stringify!($fns),
+        )}
     };
     (
         $fixed:tt
@@ -296,7 +317,7 @@ macro_rules! __tyfn_parse_fns {
             $fixed
             $fns
             [$(#[$impl_attrs])*]
-            [] [] $($rem)*
+            [] [] [] $($rem)*
         }
     };
     (
@@ -308,7 +329,7 @@ macro_rules! __tyfn_parse_fns {
             where $($rem:tt)*
         ]
     ) => {
-        $crate::__trailing_comma_until_semicolon!{
+        $crate::__trailing_comma_for_where_clause!{
             ($crate::__tyfn_parsed_fn_where!(
                 $fixed
                 $fns
@@ -382,6 +403,7 @@ macro_rules! __tyfn_parsed_fn_generics {
         [$(#[$impl_attrs:meta])*]
         $__gen_args:tt
         $gen_params:tt
+        $deleted_markers:tt
         $type_fn_arg:ty => $ret_ty:ty
         $(; $($rem:tt)*)?
     ) => {
@@ -404,10 +426,11 @@ macro_rules! __tyfn_parsed_fn_generics {
         [$(#[$impl_attrs:meta])*]
         $__gen_args:tt
         $gen_params:tt
+        $deleted_markers:tt
         $type_fn_arg:ty => $ret_ty:ty
         where $($rem:tt)*
     ) => {
-        $crate::__trailing_comma_until_semicolon!{
+        $crate::__trailing_comma_for_where_clause!{
             ($crate::__tyfn_parsed_fn_where!(
                 $fixed
                 $fns
@@ -465,6 +488,7 @@ macro_rules! __tyfn_split_capture_generics {
         $capture_gen_args:tt
         [$(($gen_arg:tt ($($($gen_phantom:tt)+)?) $($gen_rem:tt)*))*]
         $capture_generics:tt
+        [$($erased_lt_ty_marker:tt)*]
         captures_where $captures_where:tt
     ) => {
         $crate::__tyfn_parsed!{
@@ -473,7 +497,7 @@ macro_rules! __tyfn_split_capture_generics {
             $(#[$attrs])*
             $vis struct $struct_name
             $capture_gen_args
-            [$($(($($gen_phantom)+))?)*]
+            [$($(($($gen_phantom)+))?)* $(($erased_lt_ty_marker))*]
             $capture_generics
             $captures_where
         }

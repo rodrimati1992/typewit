@@ -28,3 +28,36 @@ error[E0308]: mismatched types
    |
    = note: expected struct `TypeEq<i8, u8>`
               found struct `TypeEq<_, _>`
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/constructor_type_errors-err.rs:14:5
+   |
+13 | const fn coercing_to_dyn_right() -> TypeEq<u8, dyn std::fmt::Debug> {
+   |                                     ------------------------------- expected `TypeEq<u8, (dyn Debug + 'static)>` because of return type
+14 |     TypeEq::new::<u8>()
+   |     ^^^^^^^^^^^^^^^^^^^ expected `TypeEq<u8, dyn Debug>`, found `TypeEq<u8, u8>`
+   |
+   = note: expected struct `TypeEq<_, (dyn Debug + 'static)>`
+              found struct `TypeEq<_, u8>`
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/constructor_type_errors-err.rs:18:5
+   |
+17 | const fn coercing_to_dyn_left() -> TypeEq<dyn std::fmt::Debug, u8> {
+   |                                    ------------------------------- expected `TypeEq<(dyn Debug + 'static), u8>` because of return type
+18 |     TypeEq::new::<u8>()
+   |     ^^^^^^^^^^^^^^^^^^^ expected `TypeEq<dyn Debug, u8>`, found `TypeEq<u8, u8>`
+   |
+   = note: expected struct `TypeEq<(dyn Debug + 'static), _>`
+              found struct `TypeEq<u8, _>`
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/constructor_type_errors-err.rs:22:5
+   |
+21 | const fn coercing_to_dyn_botht() -> TypeEq<dyn std::fmt::Debug, dyn std::fmt::Debug> {
+   |                                     ------------------------------------------------ expected `TypeEq<(dyn Debug + 'static), (dyn Debug + 'static)>` because of return type
+22 |     TypeEq::new::<u8>()
+   |     ^^^^^^^^^^^^^^^^^^^ expected `TypeEq<dyn Debug, dyn Debug>`, found `TypeEq<u8, u8>`
+   |
+   = note: expected struct `TypeEq<(dyn Debug + 'static), (dyn Debug + 'static)>`
+              found struct `TypeEq<u8, u8>`

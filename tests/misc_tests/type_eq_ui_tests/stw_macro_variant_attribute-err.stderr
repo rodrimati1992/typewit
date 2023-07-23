@@ -3,23 +3,3 @@ error: cannot find attribute `asdkaspokaopskd` in this scope
   |
 3 |         #[asdkaspokaopskd]
   |           ^^^^^^^^^^^^^^^
-
-error[E0601]: `main` function not found in crate `$CRATE`
- --> tests/misc_tests/type_eq_ui_tests/stw_macro_variant_attribute-err.rs:8:2
-  |
-8 | }
-  |  ^ consider adding a `main` function to `$DIR/tests/misc_tests/type_eq_ui_tests/stw_macro_variant_attribute-err.rs`
-
-error[E0599]: no variant or associated item named `U16` found for enum `TypeParams` in the current scope
- --> tests/misc_tests/type_eq_ui_tests/stw_macro_variant_attribute-err.rs:6:9
-  |
-1 | / typewit::simple_type_witness!{
-2 | |     enum TypeParams {
-3 | |         #[asdkaspokaopskd]
-4 | |         U8 = u8,
-5 | |         #[cfg(any())]
-6 | |         U16 = u16
-  | |         ^^^ variant or associated item not found in `TypeParams<u16>`
-7 | |     }
-8 | | }
-  | |_- variant or associated item `U16` not found for this enum
