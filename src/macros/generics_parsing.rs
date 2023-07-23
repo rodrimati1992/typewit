@@ -570,21 +570,108 @@ declare_generics_consuming_macro! {
 
 
 declare_generics_consuming_macro! {
-    $ __collect_generic_args_ = __collect_generic_args
+    $ __parse_generic_args_with_defaults_ = __parse_generic_args_with_defaults
     "generic arguments";
 
     (
-        ($($callback:ident)::* !($($callback_args:tt)*) )
+        ($fixed:tt [$($prev_args:tt)*] [$($curr_gen_param:tt $($gen_params_rem:tt)*)?])
         []
-        [$($($prev:tt)+)?]
-        [$(,)?> $($rem:tt)*]
+        [$($prev_tokens:tt)*]
+        [, $($rem:tt)*]
     ) => {
-        $($callback)::* !{$($callback_args)* [$($($prev)+,)?] $($rem)*}
+        $crate::__::__parse_generic_args_with_defaults! {
+            ($fixed [$($prev_args)* $($prev_tokens)*,] [$($($gen_params_rem)*)?])
+            []
+            []
+            [$($rem)*]
+        }
     };
+
+    (
+        ($fixed:tt [$($prev_args:tt)*] [$($curr_gen_param:tt $($gen_params_rem:tt)*)?])
+        []
+        [$($prev_tokens:tt)+]
+        [> $($rem:tt)*]
+    ) => {
+        $crate::__parse_generic_args_with_defaults__finish !{
+            ($fixed [$($prev_args)* $($prev_tokens)*,] [$($($gen_params_rem)*)?])
+            $($rem)*
+        }
+    };
+
+    ($fixed:tt [] [] [> $($rem:tt)*]) => {
+        $crate::__parse_generic_args_with_defaults__finish !{
+            $fixed $($rem)*
+        }
+    };
+
     ($fixed:tt [] $prev:tt []) => {
         $crate::__::compile_error!{"unexpected end of generic arguments"}
     };
 }
+
+
+
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __parse_generic_args_with_defaults__finish {
+    (
+        (
+            (
+                ($($callback:ident)::* !($($callback_args:tt)*) )
+                $context:expr
+            )
+
+            [$($gen_args:tt)*]
+
+            [
+                $((
+                    // gen_eff_def is either:
+                    // - the default (if the generic parameter has one)
+                    // - the name of the generic parameter (if it has no default)
+                    (($($gen_eff_def:tt)*) $($__0:tt)*) 
+
+                    (
+                        // defined if the generic parameter does not have a default 
+                        $([$gen_param:tt])? 
+                        // defined if the generic parameter has a default
+                        $(($($__1:tt)*) [$__gen_param:tt])?
+                    )
+                ))*
+            ]
+        )
+        $($rem:tt)*
+    ) => {
+        $crate::__parse_generic_args_with_defaults__assert_only_defaults! {
+            $context,
+            [$($($gen_param)?)*]
+        }
+
+        $($callback)::* !{
+            $($callback_args)* 
+            [$($gen_args)* $($($gen_eff_def)* ,)*] 
+            $($rem)*
+        }
+    }
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __parse_generic_args_with_defaults__assert_only_defaults {
+    (
+        $context:expr,
+        [$($($gen_param:tt)+)?]
+    ) => {
+        $(
+            $crate::__::compile_error!{$crate::__::concat!{
+                "expected these generic argument(s) for ", $context, " to be passed: "
+                $( , stringify!($gen_param), )", "+
+            }}
+        )?
+    };
+}
+
 
 
 #[doc(hidden)]

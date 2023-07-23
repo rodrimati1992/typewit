@@ -372,7 +372,6 @@ fn cfg_attributes_on_generics() {
                 U8 = u8,
                 U16 = u16,
             }
-
         }
         let _: AnyCfg<u8> = MakeTypeWitness::MAKE;
         let _: AnyCfg<u16> = MakeTypeWitness::MAKE;
@@ -388,5 +387,67 @@ fn cfg_attributes_on_generics() {
         let _: AllCfg<(), u8> = MakeTypeWitness::MAKE;
         let _: AllCfg<u16, (u16,)> = MakeTypeWitness::MAKE;
     }
-
 }
+
+
+//////////////////////////////
+
+
+#[test]
+#[cfg(feature = "rust_1_61")]
+fn defaulted_generic_param() {
+    type Pair<T, U> = (T, U);
+
+    macro_rules! test_case {
+        (($($comma:tt)?)) => {
+            {
+                typewit::simple_type_witness!{
+                    enum DefButOne[T, U = u8, const N: usize = 10] {
+                        Arr[T, (), N $($comma)?] = [T; N],
+                        U32<Pair<(), ()>$($comma)?> = u32,
+                        Unary<Pair<i8, i16,>, U> = (U,),
+                    }
+                }
+
+                fn make<T, U, const N: usize, Wit>(_: Wit) -> DefButOne<T, U, N, Wit> 
+                where
+                    DefButOne<T, U, N, Wit>: MakeTypeWitness
+                {
+                    MakeTypeWitness::MAKE
+                }
+
+                assert_type::<_, DefButOne<u64, (), 4, [u64; 4]>>(make([0u64; 4]));
+                assert_type::<_, DefButOne<Pair<(), ()>, u8, 10, u32>>(make(0u32));
+                assert_type::<_, DefButOne<Pair<i8, i16,>, bool, 10, (bool,)>>(make((false,)));
+            }
+
+            {
+                typewit::simple_type_witness!{
+                    enum DefAll[T = u8, const N: usize = 10] {
+                        Arr[T, N $($comma)?] = [T; N],
+                        U32<> = u32,
+                        Unary<T $($comma)?> = (T,),
+                    }
+                }
+
+                fn make<T, const N: usize, Wit>(_: Wit) -> DefAll<T, N, Wit> 
+                where
+                    DefAll<T, N, Wit>: MakeTypeWitness
+                {
+                    MakeTypeWitness::MAKE
+                }
+
+
+                assert_type::<_, DefAll<u64, 4, [u64; 4]>>(make([0u64; 4]));
+                assert_type::<_, DefAll<u8, 10, u32>>(make(0u32));
+                assert_type::<_, DefAll<bool, 10, (bool,)>>(make((false,)));
+            }
+        };
+    }
+    
+    test_case!{(,)}
+    test_case!{()}
+}
+
+
+

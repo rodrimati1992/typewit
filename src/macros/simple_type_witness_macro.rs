@@ -350,7 +350,15 @@ macro_rules! __stw_with_parsed_generics {
                     [$($($generics)*,)*]
                     [ $($gen_arg,)* ]
                 )
-                $enum
+                [
+                    $enum
+                    [
+                        $((
+                            ( $(($($gen_def)*))? ($gen_arg) )
+                            ( $(($($gen_def)*))? [$gen_arg] )
+                        ))*
+                    ]
+                ]
             ))
             $($rem)*
         }
@@ -362,7 +370,7 @@ macro_rules! __stw_with_parsed_generics {
 macro_rules! __stw_with_parsed_where {
     (
         ($($prev_args:tt)*)
-        $enum:ident
+        $vari_vars:tt
 
         $where_clause:tt
 
@@ -370,7 +378,7 @@ macro_rules! __stw_with_parsed_where {
     ) => {
         $crate::__::__stw_parse_variants!{
             ($($prev_args)* where $where_clause)
-            $enum
+            $vari_vars
             []
             [$($variants)*]
         }
@@ -379,13 +387,13 @@ macro_rules! __stw_with_parsed_where {
 
 
 macro_rules! declare__stw_parse_variants {
-    ($_:tt ($($vari_params:tt)*) ($($vari_output:tt)*)) => {
+    ($_:tt ($($vari_params:tt)*) ($($vari_output:tt)*) $variant_:ident) => {
         #[doc(hidden)]
         #[macro_export]
         macro_rules! __stw_parse_variants_ {
             (
                 ($_($fixed:tt)*) 
-                $enum:ident 
+                $vari_vars:tt 
                 // fast path for enums with no attributes on variants other than docs
                 [$_(($variant:ident ($_(#[doc $_($docs:tt)*])*) $_($rem_vari:tt)*))*] 
                 [$_(,)*]
@@ -397,7 +405,7 @@ macro_rules! declare__stw_parse_variants {
             };
             (
                 $fixed:tt
-                $enum:ident
+                $vari_vars:tt
                 [
                     ($pvariant:ident ($_($pattrs:tt)*) $_($prem:tt)*)
                     $_($variants:tt)*
@@ -412,13 +420,13 @@ macro_rules! declare__stw_parse_variants {
             };
             (
                 $fixed:tt
-                $enum:ident
+                $vari_vars:tt
                 [$_($prev:tt)*]
                 [$($vari_params)* = $var_type:ty $_(, $_($rem:tt)*)?]
             )=>{
                 $crate::__::__stw_parse_variants!{
                     $fixed
-                    $enum
+                    $vari_vars
                     // The four token trees in the parentheses here are:
                     // (
                     //      variant_name 
@@ -431,36 +439,70 @@ macro_rules! declare__stw_parse_variants {
                     [$_($_($rem)*)?]
                 }
             };
-            ($fixed:tt $enum:ident $prev:tt [$($vari_params)* < $_($rem:tt)*])=>{
-                $crate::__::__collect_generic_args! {
-                    ($crate::__stw_parse_variant_Self_ty!(
-                        $fixed
-                        $enum
-                        $prev
-                        ($($vari_output)*)
-                    ))
+            (
+                $fixed:tt 
+                [$enum:ident $gen_with_defs:tt]
+                $prev:tt
+                [$($vari_params)* < $_($rem:tt)*]
+            )=>{
+                $crate::__::__parse_generic_args_with_defaults! {
+                    (
+                        (
+                            ($crate::__stw_parse_variant_Self_ty!(
+                                $fixed
+                                [$enum $gen_with_defs]
+                                $prev
+                                ($($vari_output)*)
+                            ))
+
+                            $crate::__::concat!(
+                                "`",
+                                $crate::__::stringify!($_ $variant_), 
+                                "` variant",
+                            )
+                        )
+                        []
+                        $gen_with_defs
+                    )
                     []
                     []
                     [$_($rem)*]
                 }
             };
-            ($fixed:tt $enum:ident $prev:tt [$($vari_params)* [$_($SelfArgs:tt)*] $_($rem:tt)*])=>{
-                $crate::__::__collect_generic_args! {
-                    ($crate::__stw_parse_variant_Self_ty!(
-                        $fixed
-                        $enum
-                        $prev
-                        ($($vari_output)*)
-                    ))
+            (
+                $fixed:tt
+                [$enum:ident $gen_with_defs:tt]
+                $prev:tt
+                [$($vari_params)* [$_($SelfArgs:tt)*] $_($rem:tt)*]
+            )=>{
+                $crate::__::__parse_generic_args_with_defaults! {
+                    (
+                        (
+                            ($crate::__stw_parse_variant_Self_ty!(
+                                $fixed
+                                [$enum $gen_with_defs]
+                                $prev
+                                ($($vari_output)*)
+                            ))
+
+                            $crate::__::concat!(
+                                "`",
+                                $crate::__::stringify!($_ $variant_), 
+                                "` variant",
+                            )
+                        )
+                        []
+                        $gen_with_defs
+                    )
                     []
                     []
                     [$_($SelfArgs)* > $_($rem)*]
                 }
             };
-            ($fixed:tt $enum:ident $prev:tt [$($vari_params)* where $_($rem:tt)*])=>{
+            ($fixed:tt $vari_vars:tt $prev:tt [$($vari_params)* where $_($rem:tt)*])=>{
                 $crate::__parse_where_clause_for_item!{
                     ($crate::__stw_parsed_variant_with_where_clause!(
-                        $fixed $enum $prev [$($vari_output)* ()]
+                        $fixed $vari_vars $prev [$($vari_output)* ()]
                     ))
                     where $_($rem)*
                 }
@@ -473,6 +515,7 @@ declare__stw_parse_variants!{
     $
     ($(#[$($vari_attr:tt)*])* $variant:ident)
     ($variant ($(#[$($vari_attr)*])*))
+    variant
 }
 
 pub use __stw_parse_variants_ as __stw_parse_variants;
@@ -573,7 +616,7 @@ macro_rules! __stw_parse_variants_attrs {
 macro_rules! __stw_parse_variant_Self_ty {
     (
         $fixed:tt
-        $enum:ident
+        [$enum:ident $($rem_vars:tt)*]
         $prev:tt 
         ($($vari_prev:tt)*) 
         [$($SelfTy:tt)*] 
@@ -581,14 +624,17 @@ macro_rules! __stw_parse_variant_Self_ty {
     )=>{
         $crate::__parse_where_clause_for_item!{
             ($crate::__stw_parsed_variant_with_where_clause!(
-                $fixed $enum $prev [$($vari_prev)* ($enum < $($SelfTy)*)]
+                $fixed 
+                [$enum $($rem_vars)*]
+                $prev 
+                [$($vari_prev)* ($enum < $($SelfTy)*)]
             ))
             where $($rem)*
         }
     };
     (
         $fixed:tt
-        $enum:ident
+        [$enum:ident $($rem_vars:tt)*]
         [$($prev:tt)*] 
         ($($vari_prev:tt)*)
         [$($SelfTy:tt)*] 
@@ -597,7 +643,7 @@ macro_rules! __stw_parse_variant_Self_ty {
     )=>{
         $crate::__::__stw_parse_variants!{
             $fixed
-            $enum
+            [$enum $($rem_vars)*]
             [$($prev)* ($($vari_prev)* ($enum < $($SelfTy)*) [] $var_type)]
             [$($($rem)*)?]
         }
@@ -609,7 +655,7 @@ macro_rules! __stw_parse_variant_Self_ty {
 macro_rules! __stw_parsed_variant_with_where_clause {
     (
         $fixed:tt
-        $enum:ident
+        $vari_vars:tt
         [$($prev:tt)*] 
         [$($vari_prev:tt)*]
         $where_clause:tt
@@ -617,7 +663,7 @@ macro_rules! __stw_parsed_variant_with_where_clause {
     ) => {
         $crate::__::__stw_parse_variants!{
             $fixed
-            $enum
+            $vari_vars
             [$($prev)* ($($vari_prev)* $where_clause $var_type)]
             [$($($rem)*)?]
         }

@@ -334,7 +334,7 @@ pub mod __ {
         type_identity::Identity,
         macros::{
             generics_parsing::{
-                __collect_generic_args,
+                __parse_generic_args_with_defaults,
                 __parse_in_generics,
                 __parse_ty_bounds,
                 __parse_where_clause_for_item_inner,
