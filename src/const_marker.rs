@@ -39,6 +39,23 @@ use crate::{
 };
 
 
+#[cfg(feature = "nightly_const_marker")]
+mod slice_const_markers;
+
+#[cfg(feature = "nightly_const_marker")]
+pub use slice_const_markers::*;
+
+
+macro_rules! __const_eq_with {
+    ($L:ident, $R:ident) => {
+        $L == $R
+    };
+    ($L:ident, $R:ident, ($L2:ident, $R2:ident) $cmp:expr) => ({
+        let $L2 = $L;
+        let $R2 = $R;
+        $cmp
+    });
+} pub(crate) use __const_eq_with;
 
 macro_rules! declare_const_param_type {
     (
@@ -47,7 +64,7 @@ macro_rules! declare_const_param_type {
 
         $(
             $(#[$eq_docs:meta])*
-            fn eq;
+            fn eq $(($L:ident, $R:ident) $comparator:block)?;
         )?
     ) => {
         #[doc = concat!(
@@ -80,7 +97,11 @@ macro_rules! declare_const_param_type {
                     const EQ: Result<
                         TypeEq<$struct<L>, $struct<R>>,
                         TypeNe<$struct<L>, $struct<R>>,
-                    > = if L == R {
+                    > = if crate::const_marker::__const_eq_with!(
+                        L,
+                        R
+                        $($(, ($L, $R) $comparator)?)?
+                    ) {
                         // SAFETY: `L == R` (both are std types with sensible Eq impls)
                         // therefore `$struct<L> == $struct<R>`
                         unsafe {
@@ -100,7 +121,7 @@ macro_rules! declare_const_param_type {
         }
 
     };
-}
+} pub(crate) use declare_const_param_type;
 
 
 declare_const_param_type!{Bool(bool)}

@@ -241,8 +241,13 @@
 //! 
 //! - `"alloc"`: enable items that use anything from the standard `alloc` crate.
 //! 
-//! - `"const_marker"`(enabled by default): Enables the [`const_marker`] module,
+//! - `"const_marker"`(enabled by default): enables the [`const_marker`] module,
 //! and all items that depend on it.
+//! 
+//! - `"nightly_const_marker"`(requires the nightly compiler):
+//! enables the `"const_marker"` feature,
+//! and marker types in the [`const_marker`] module that have
+//! non-primitive `const` parameters.
 //! 
 //! - `"mut_refs"`: turns functions that take mutable references into const fns.
 //! note: as of April 2023, 
@@ -274,6 +279,8 @@
 //! [`const_marker`]: crate::const_marker
 #![no_std]
 #![cfg_attr(feature = "nightly_mut_refs", feature(const_mut_refs))]
+#![cfg_attr(feature = "nightly_const_marker", feature(adt_const_params))]
+#![cfg_attr(feature = "nightly_const_marker", allow(incomplete_features))]
 #![cfg_attr(feature = "docsrs", feature(doc_cfg))]
 #![allow(clippy::type_complexity)]
 #![deny(missing_docs)]
