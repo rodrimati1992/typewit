@@ -2,6 +2,13 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.6.0
+
+Added `"nightly_const_marker"` feature.
+
+Declared these structs in typewit::const_marker(under the `"nightly_const_marker"` feature):
+- `Str` (unit struct)
+
 ### 1.5.0
 
 Added support for these to `simple_type_witness` macro:
