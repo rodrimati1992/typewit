@@ -46,7 +46,28 @@ pub use const_witnesses::*;
 mod slice_const_markers;
 
 #[cfg(feature = "nightly_const_marker")]
-pub use slice_const_markers::*;
+pub use slice_const_markers::Str;
+
+/// Marker types for `const FOO: &'static [T]` parameters.
+#[cfg(feature = "nightly_const_marker")]
+pub mod slice {
+    pub use super::slice_const_markers::{
+        BoolSlice,
+        CharSlice,
+        U8Slice,
+        U16Slice,
+        U32Slice,
+        U64Slice,
+        U128Slice,
+        UsizeSlice,
+        I8Slice,
+        I16Slice,
+        I32Slice,
+        I64Slice,
+        I128Slice,
+        IsizeSlice,
+    };
+}
 
 
 macro_rules! __const_eq_with {

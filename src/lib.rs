@@ -307,6 +307,9 @@ pub mod type_fn;
 #[cfg_attr(feature = "docsrs", doc(cfg(feature = "const_marker")))]
 pub mod const_marker;
 
+#[cfg(feature = "nightly_const_marker")]
+mod all_init_bytes;
+
 mod utils;
 mod macros;
 mod type_eq;

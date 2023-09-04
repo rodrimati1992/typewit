@@ -18,6 +18,10 @@ include = [
     "LICENSE-ZLIB.md", 
 ]
 
+[dev-dependencies.arrayvec]
+version = "0.7"
+default-features = false
+
 [dev-dependencies.trybuild]
 version = "1.0"
 

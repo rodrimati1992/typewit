@@ -1,4 +1,5 @@
 use crate::{
+    all_init_bytes::slice_as_bytes,
     TypeEq,
     TypeNe,
 };
@@ -74,27 +75,76 @@ super::declare_const_param_type! {
     fn eq(l, r) { u8_slice_eq(l.as_bytes(), r.as_bytes()) };
 }
 
-
-macro_rules! cmp_slice_of {
-    ($left:ident, $right:ident) => {
-        if $left.len() != $right.len() {
-            false
-        } else {
-            let mut i = 0;
-            loop {
-                if i == $left.len() {
-                    break true;
-                } else if $left[i] != $right[i] {
-                    break false;
-                };
-                i += 1;
-            }
-        }
-    };
-} use cmp_slice_of;
+super::declare_const_param_type! {
+    BoolSlice(&'static [bool])
+    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+}
+super::declare_const_param_type! {
+    CharSlice(&'static [char])
+    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+}
+super::declare_const_param_type! {
+    U8Slice(&'static [u8])
+    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+}
+super::declare_const_param_type! {
+    U16Slice(&'static [u16])
+    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+}
+super::declare_const_param_type! {
+    U32Slice(&'static [u32])
+    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+}
+super::declare_const_param_type! {
+    U64Slice(&'static [u64])
+    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+}
+super::declare_const_param_type! {
+    U128Slice(&'static [u128])
+    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+}
+super::declare_const_param_type! {
+    UsizeSlice(&'static [usize])
+    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+}
+super::declare_const_param_type! {
+    I8Slice(&'static [i8])
+    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+}
+super::declare_const_param_type! {
+    I16Slice(&'static [i16])
+    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+}
+super::declare_const_param_type! {
+    I32Slice(&'static [i32])
+    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+}
+super::declare_const_param_type! {
+    I64Slice(&'static [i64])
+    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+}
+super::declare_const_param_type! {
+    I128Slice(&'static [i128])
+    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+}
+super::declare_const_param_type! {
+    IsizeSlice(&'static [isize])
+    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+}
 
 const fn u8_slice_eq(left: &[u8], right: &[u8]) -> bool {
-    cmp_slice_of!(left, right)
+    if left.len() != right.len() {
+        false
+    } else {
+        let mut i = 0;
+        while i != left.len() {
+            if left[i] != right[i] {
+                return false;
+            }
+            i += 1;
+        }
+        true
+    }
 }
 
 
