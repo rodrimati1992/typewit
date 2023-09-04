@@ -38,6 +38,9 @@ use crate::{
     TypeNe,
 };
 
+mod const_witnesses;
+
+pub use const_witnesses::*;
 
 #[cfg(feature = "nightly_const_marker")]
 mod slice_const_markers;
