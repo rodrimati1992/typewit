@@ -46,10 +46,12 @@ pub use const_witnesses::*;
 mod slice_const_markers;
 
 #[cfg(feature = "nightly_const_marker")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "nightly_const_marker")))]
 pub use slice_const_markers::Str;
 
 /// Marker types for `const FOO: &'static [T]` parameters.
 #[cfg(feature = "nightly_const_marker")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "nightly_const_marker")))]
 pub mod slice {
     pub use super::slice_const_markers::{
         BoolSlice,
@@ -66,6 +68,7 @@ pub mod slice {
         I64Slice,
         I128Slice,
         IsizeSlice,
+        StrSlice,
     };
 }
 

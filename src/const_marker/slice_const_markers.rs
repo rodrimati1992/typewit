@@ -4,6 +4,11 @@ use crate::{
     TypeNe,
 };
 
+
+#[cfg(test)]
+mod tests;
+
+
 super::declare_const_param_type! {
     /// # Example
     /// 
@@ -75,6 +80,15 @@ super::declare_const_param_type! {
     fn eq(l, r) { u8_slice_eq(l.as_bytes(), r.as_bytes()) };
 }
 
+
+super::declare_const_param_type! {
+    StrSlice(&'static [&'static str])
+
+    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "nightly_const_marker")))]
+    fn eq(l, r) { str_slice_eq(l, r) };
+}
+
+
 super::declare_const_param_type! {
     BoolSlice(&'static [bool])
     fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
@@ -132,34 +146,35 @@ super::declare_const_param_type! {
     fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 
-const fn u8_slice_eq(left: &[u8], right: &[u8]) -> bool {
-    if left.len() != right.len() {
-        false
-    } else {
-        let mut i = 0;
-        while i != left.len() {
-            if left[i] != right[i] {
-                return false;
+macro_rules! cmp_slice_of {
+    ($left:ident, $right:ident, |$l:ident, $r:ident| $eq:expr) => {
+        if $left.len() != $right.len() {
+            false
+        } else {
+            let mut i = 0;
+            loop {
+                if i == $left.len() {
+                    break true;
+                } 
+
+                let $l = &$left[i];
+                let $r = &$right[i];
+                if !$eq {
+                    break false;
+                }
+
+                i += 1;
             }
-            i += 1;
         }
-        true
     }
 }
 
 
-
-#[test]
-fn u8_slice_test() {
-    assert!(u8_slice_eq(b"", b""));
-    assert!(!u8_slice_eq(b"", b"0"));
-    assert!(!u8_slice_eq(b"0", b""));
-    assert!(u8_slice_eq(b"0", b"0"));
-    assert!(!u8_slice_eq(b"0", b"1"));
-    assert!(!u8_slice_eq(b"1", b"0"));
-    assert!(!u8_slice_eq(b"0", b"0, 1"));
-    assert!(!u8_slice_eq(b"0, 1", b"0"));
-    assert!(!u8_slice_eq(b"0, 1", b"1"));
-    assert!(u8_slice_eq(b"0, 1", b"0, 1"));
-    assert!(!u8_slice_eq(b"0, 1", b"0, 2"));
+const fn str_slice_eq(left: &[&str], right: &[&str]) -> bool {
+    cmp_slice_of!{left, right, |l, r| u8_slice_eq(l.as_bytes(), r.as_bytes())}
 }
+
+const fn u8_slice_eq(left: &[u8], right: &[u8]) -> bool {
+    cmp_slice_of!{left, right, |l, r| *l == *r}
+}
+

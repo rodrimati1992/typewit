@@ -6,8 +6,25 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 Added `"nightly_const_marker"` feature.
 
-Declared these structs in typewit::const_marker(under the `"nightly_const_marker"` feature):
+Declared these structs in `typewit::const_marker`(under the `"nightly_const_marker"` feature):
 - `Str` (unit struct)
+
+Declared these structs in `typewit::const_marker::slice`(under the `"nightly_const_marker"` feature):
+- `BoolSlice` (unit struct)
+- `CharSlice` (unit struct)
+- `I8Slice` (unit struct)
+- `I16Slice` (unit struct)
+- `I32Slice` (unit struct)
+- `I64Slice` (unit struct)
+- `I128Slice` (unit struct)
+- `IsizeSlice` (unit struct)
+- `StrSlice` (unit struct)
+- `U8Slice` (unit struct)
+- `U16Slice` (unit struct)
+- `U32Slice` (unit struct)
+- `U64Slice` (unit struct)
+- `U128Slice` (unit struct)
+- `UsizeSlice` (unit struct)
 
 ### 1.5.0
 
