@@ -2,6 +2,34 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.6.0
+
+Added `"adt_const_marker"` feature.
+
+Added `BoolWit` in `typewit::const_marker`
+
+Added these structs in `typewit::const_marker`(under the `"adt_const_marker"` feature):
+- `Str` (unit struct)
+
+Added these structs in `typewit::const_marker::slice`(under the `"adt_const_marker"` feature):
+- `BoolSlice` (unit struct)
+- `CharSlice` (unit struct)
+- `I8Slice` (unit struct)
+- `I16Slice` (unit struct)
+- `I32Slice` (unit struct)
+- `I64Slice` (unit struct)
+- `I128Slice` (unit struct)
+- `IsizeSlice` (unit struct)
+- `StrSlice` (unit struct)
+- `U8Slice` (unit struct)
+- `U16Slice` (unit struct)
+- `U32Slice` (unit struct)
+- `U64Slice` (unit struct)
+- `U128Slice` (unit struct)
+- `UsizeSlice` (unit struct)
+
+Changed `"nightly_mut_refs*"` crate feature to enable the `"rust_stable"` feature.
+
 ### 1.5.0
 
 Added support for these to `simple_type_witness` macro:

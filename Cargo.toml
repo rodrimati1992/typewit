@@ -1,6 +1,6 @@
 [package]
 name = "typewit"
-version = "1.5.0"
+version = "1.6.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 rust-version = "1.57.0"
 edition = "2021"
@@ -18,6 +18,10 @@ include = [
     "LICENSE-ZLIB.md", 
 ]
 
+[dev-dependencies.arrayvec]
+version = "0.7"
+default-features = false
+
 [dev-dependencies.trybuild]
 version = "1.0"
 
@@ -26,9 +30,10 @@ default = ["const_marker"]
 rust_1_61 = []
 rust_stable = ["rust_1_61"]
 const_marker = []
+adt_const_marker = ["rust_stable","const_marker"]
 alloc = []
 mut_refs = []
-nightly_mut_refs = ["mut_refs"]
+nightly_mut_refs = ["rust_stable", "mut_refs"]
 docsrs = []
 __ui_tests = []
 

@@ -139,13 +139,13 @@ macro_rules! declare_parse_generics_macros {($_:tt [$($sep:tt)*] [$($err_token:t
         )*
         (
             ( $_($callback:ident)::* !($_($callback_args:tt)*) )
-            // [$( ($generic_arg $phantom_arg = $default_val) )*]
+            // [$( (($($attrs)*) $generic_arg $phantom_arg = $default_val) )*]
             // Example of a single parameter list:
-            // ('a (fn() -> &'a (),)) 
-            // (T (fn() -> $crate::__::PhantomData<T>,)) 
-            // (U (fn() -> $crate::__::PhantomData<U>,) = u32)
-            // (N ()) 
-            // (M () = 10)
+            // (() 'a (fn() -> &'a (),)) 
+            // (() T (fn() -> $crate::__::PhantomData<T>,)) 
+            // ((#[foo]) U (fn() -> $crate::__::PhantomData<U>,) = u32)
+            // (() N ()) 
+            // (() M () = 10)
             $gen_args:tt
             [$_(((/* no attributes */) $_($generics:tt)*))*]
             [$_(,)* $_(> $_($rem:tt)*)?]

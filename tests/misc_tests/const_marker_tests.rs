@@ -4,6 +4,10 @@ use typewit::const_marker::{
 };
 
 
+#[cfg(feature = "adt_const_marker")]
+mod slice_const_marker_tests;
+
+
 #[test]
 fn test_integer_const_marker() {
 

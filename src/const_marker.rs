@@ -38,7 +38,51 @@ use crate::{
     TypeNe,
 };
 
+mod const_witnesses;
 
+pub use const_witnesses::*;
+
+#[cfg(feature = "adt_const_marker")]
+mod slice_const_markers;
+
+#[cfg(feature = "adt_const_marker")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "adt_const_marker")))]
+pub use slice_const_markers::Str;
+
+/// Marker types for `const FOO: &'static [T]` parameters.
+#[cfg(feature = "adt_const_marker")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "adt_const_marker")))]
+pub mod slice {
+    pub use super::slice_const_markers::{
+        BoolSlice,
+        CharSlice,
+        U8Slice,
+        U16Slice,
+        U32Slice,
+        U64Slice,
+        U128Slice,
+        UsizeSlice,
+        I8Slice,
+        I16Slice,
+        I32Slice,
+        I64Slice,
+        I128Slice,
+        IsizeSlice,
+        StrSlice,
+    };
+}
+
+
+macro_rules! __const_eq_with {
+    ($L:ident, $R:ident) => {
+        $L == $R
+    };
+    ($L:ident, $R:ident, ($L2:ident, $R2:ident) $cmp:expr) => ({
+        let $L2 = $L;
+        let $R2 = $R;
+        $cmp
+    });
+} pub(crate) use __const_eq_with;
 
 macro_rules! declare_const_param_type {
     (
@@ -47,7 +91,7 @@ macro_rules! declare_const_param_type {
 
         $(
             $(#[$eq_docs:meta])*
-            fn eq;
+            fn eq $(($L:ident, $R:ident) $comparator:block)?;
         )?
     ) => {
         #[doc = concat!(
@@ -80,7 +124,11 @@ macro_rules! declare_const_param_type {
                     const EQ: Result<
                         TypeEq<$struct<L>, $struct<R>>,
                         TypeNe<$struct<L>, $struct<R>>,
-                    > = if L == R {
+                    > = if crate::const_marker::__const_eq_with!(
+                        L,
+                        R
+                        $($(, ($L, $R) $comparator)?)?
+                    ) {
                         // SAFETY: `L == R` (both are std types with sensible Eq impls)
                         // therefore `$struct<L> == $struct<R>`
                         unsafe {
@@ -100,10 +148,21 @@ macro_rules! declare_const_param_type {
         }
 
     };
+} pub(crate) use declare_const_param_type;
+
+
+declare_const_param_type!{
+    Bool(bool)
+
+    /// 
+    /// For getting a type witness that
+    /// `Bool<B>` is either `Bool<true>` or `Bool<false>`,
+    /// you can use [`BoolWit`].
+
+
+    /// 
+    fn eq;
 }
-
-
-declare_const_param_type!{Bool(bool)}
 declare_const_param_type!{Char(char)}
 
 declare_const_param_type!{U8(u8)}
