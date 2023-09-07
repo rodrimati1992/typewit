@@ -6,10 +6,12 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 Added `"nightly_const_marker"` feature.
 
-Declared these structs in `typewit::const_marker`(under the `"nightly_const_marker"` feature):
+Added `BoolWit` in `typewit::const_marker`
+
+Added these structs in `typewit::const_marker`(under the `"nightly_const_marker"` feature):
 - `Str` (unit struct)
 
-Declared these structs in `typewit::const_marker::slice`(under the `"nightly_const_marker"` feature):
+Added these structs in `typewit::const_marker::slice`(under the `"nightly_const_marker"` feature):
 - `BoolSlice` (unit struct)
 - `CharSlice` (unit struct)
 - `I8Slice` (unit struct)
@@ -25,6 +27,8 @@ Declared these structs in `typewit::const_marker::slice`(under the `"nightly_con
 - `U64Slice` (unit struct)
 - `U128Slice` (unit struct)
 - `UsizeSlice` (unit struct)
+
+Changed `"nightly_mut_refs*"` crate feature to enable the `"rust_stable"` feature.
 
 ### 1.5.0
 
