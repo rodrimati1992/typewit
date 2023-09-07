@@ -6,7 +6,7 @@ use crate::{
 
 
 
-/// Type Witness for [`Bool<true>` and `Bool<false>`](Bool).
+/// Type Witness that [`Bool<B>`](Bool) is either `Bool<true>` or `Bool<false>`.
 /// 
 /// # Example
 /// 

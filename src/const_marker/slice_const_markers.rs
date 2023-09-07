@@ -74,7 +74,7 @@ super::declare_const_param_type! {
     /// }
     /// 
     /// ```
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "nightly_const_marker")))]
+    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "adt_const_marker")))]
     Str(&'static str)
 
     fn eq(l, r) { u8_slice_eq(l.as_bytes(), r.as_bytes()) };
@@ -84,7 +84,7 @@ super::declare_const_param_type! {
 super::declare_const_param_type! {
     StrSlice(&'static [&'static str])
 
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "nightly_const_marker")))]
+    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "adt_const_marker")))]
     fn eq(l, r) { str_slice_eq(l, r) };
 }
 

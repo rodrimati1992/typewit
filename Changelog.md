@@ -4,14 +4,14 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 ### 1.6.0
 
-Added `"nightly_const_marker"` feature.
+Added `"adt_const_marker"` feature.
 
 Added `BoolWit` in `typewit::const_marker`
 
-Added these structs in `typewit::const_marker`(under the `"nightly_const_marker"` feature):
+Added these structs in `typewit::const_marker`(under the `"adt_const_marker"` feature):
 - `Str` (unit struct)
 
-Added these structs in `typewit::const_marker::slice`(under the `"nightly_const_marker"` feature):
+Added these structs in `typewit::const_marker::slice`(under the `"adt_const_marker"` feature):
 - `BoolSlice` (unit struct)
 - `CharSlice` (unit struct)
 - `I8Slice` (unit struct)

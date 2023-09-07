@@ -42,16 +42,16 @@ mod const_witnesses;
 
 pub use const_witnesses::*;
 
-#[cfg(feature = "nightly_const_marker")]
+#[cfg(feature = "adt_const_marker")]
 mod slice_const_markers;
 
-#[cfg(feature = "nightly_const_marker")]
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "nightly_const_marker")))]
+#[cfg(feature = "adt_const_marker")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "adt_const_marker")))]
 pub use slice_const_markers::Str;
 
 /// Marker types for `const FOO: &'static [T]` parameters.
-#[cfg(feature = "nightly_const_marker")]
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "nightly_const_marker")))]
+#[cfg(feature = "adt_const_marker")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "adt_const_marker")))]
 pub mod slice {
     pub use super::slice_const_markers::{
         BoolSlice,
@@ -151,7 +151,18 @@ macro_rules! declare_const_param_type {
 } pub(crate) use declare_const_param_type;
 
 
-declare_const_param_type!{Bool(bool)}
+declare_const_param_type!{
+    Bool(bool)
+
+    /// 
+    /// For getting a type witness that
+    /// `Bool<B>` is either `Bool<true>` or `Bool<false>`,
+    /// you can use [`BoolWit`].
+
+
+    /// 
+    fn eq;
+}
 declare_const_param_type!{Char(char)}
 
 declare_const_param_type!{U8(u8)}

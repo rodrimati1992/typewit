@@ -4,7 +4,7 @@ use typewit::const_marker::{
 };
 
 
-#[cfg(feature = "nightly_const_marker")]
+#[cfg(feature = "adt_const_marker")]
 mod slice_const_marker_tests;
 
 
