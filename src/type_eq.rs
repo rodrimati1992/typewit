@@ -174,9 +174,31 @@ pub type __ProjectedTypeEq<F, L, R> = TypeEq<CallFn<F, L>, CallFn<F, R>>;
 ///     const MAKE: Self = Self::Char(type_eq());
 /// }
 /// ```
-/// The `Wit` type definition and its impls can also be written using 
-/// the [`simple_type_witness`] macro:
+/// The code above can be written more concisly using 
+/// the [`polymatch`](crate::polymatch) and [`simple_type_witness`] macros:
 /// ```rust
+/// # use typewit::{MakeTypeWitness, TypeWitnessTypeArg, TypeEq, type_eq};
+/// # 
+/// # assert_eq!(ascii_to_upper(b'a'), b'A');
+/// # assert_eq!(ascii_to_upper(b'f'), b'F');
+/// # assert_eq!(ascii_to_upper(b'B'), b'B');
+/// # assert_eq!(ascii_to_upper(b'0'), b'0');
+/// # 
+/// # assert_eq!(ascii_to_upper('c'), 'C');
+/// # assert_eq!(ascii_to_upper('e'), 'E');
+/// # assert_eq!(ascii_to_upper('H'), 'H');
+/// # assert_eq!(ascii_to_upper('@'), '@');
+/// # 
+/// const fn ascii_to_upper<T>(c: T) -> T 
+/// where
+///     Wit<T>: MakeTypeWitness,
+/// {
+///     // deduplicating identical match arms using the `polymatch` macro.
+///     typewit::polymatch!{MakeTypeWitness::MAKE;
+///         Wit::U8(te) | Wit::Char(te) => te.to_left(te.to_right(c).to_ascii_uppercase())
+///     }
+/// }
+///
 /// // This macro declares a type witness
 /// typewit::simple_type_witness! {
 ///     // Declares `enum Wit<__Wit>`
