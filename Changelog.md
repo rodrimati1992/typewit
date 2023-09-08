@@ -2,6 +2,10 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.7.0
+
+Added `polymatch` macro.
+
 ### 1.6.0
 
 Added `"adt_const_marker"` feature.
