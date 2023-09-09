@@ -109,7 +109,7 @@
 //!         }
 //!         IndexWitness::Range(arg_te) => {
 //!             let range: Range<usize> = arg_te.to_right(idx);
-//!             let ret: &[T] = slice_range(slice, range);
+//!             let ret: &[T] = ::konst::slice::slice_range(slice, range.start, range.end);
 //!             arg_te.project::<FnSliceIndexRet<T>>().in_ref().to_left(ret)
 //!         }
 //!     }
@@ -151,21 +151,6 @@
 //!
 //!     impl<I: SliceIndex<T>> I => SliceIndexRet<I, T>
 //! }
-//! # // would use `konst::slice::slice_range`,
-//! # // but it would become a cyclic dependency.
-//! # const fn slice_range<T>(mut slice: &[T], Range{mut start, end}: Range<usize>) -> &[T] {
-//! #     assert!(start <= end && end <= slice.len());
-//! #     let mut removed_end = slice.len() - end;
-//! #     while let ([_, rem @ ..], 1..) = (slice, start) {
-//! #         start -= 1;
-//! #         slice = rem;
-//! #     }
-//! #     while let ([rem @ .., _], 1..) = (slice, removed_end) {
-//! #         removed_end -= 1;
-//! #         slice = rem;
-//! #     }
-//! #     slice
-//! # }
 //! ```
 //! 
 //! When the wrong type is passed for the index,
@@ -228,6 +213,156 @@
 //!     struct GArr;
 //! 
 //!     impl<const N: usize> Usize<N> => Arr<N>
+//! }
+//! ```
+//! 
+//! ### Builder
+//! 
+//! Using a type witness to help encode a type-level enum,
+//! and matcing on that type-level enum inside of a function.
+//! 
+//! The type-level enum is used to track the initialization of fields in a builder.
+//! 
+//! This example requires Rust 1.65.0, because it uses Generic Associated Types.
+#![cfg_attr(not(feature = "rust_stable"), doc = "```ignore")]
+#![cfg_attr(feature = "rust_stable", doc = "```rust")]
+//! use typewit::HasTypeWitness;
+//! 
+//! fn main() {
+//!     // all default fields
+//!     assert_eq!(
+//!         StructBuilder::new().build(), 
+//!         Struct{foo: "default value".into(), bar: vec![3, 5, 8]},
+//!     );
+//! 
+//!     // defaulted bar field
+//!     assert_eq!(
+//!         StructBuilder::new().foo("hello").build(), 
+//!         Struct{foo: "hello".into(), bar: vec![3, 5, 8]},
+//!     );
+//! 
+//!     // defaulted foo field
+//!     assert_eq!(
+//!         StructBuilder::new().bar([13, 21, 34]).build(), 
+//!         Struct{foo: "default value".into(), bar: vec![13, 21, 34]},
+//!     );
+//! 
+//!     // all initialized fields
+//!     assert_eq!(
+//!         StructBuilder::new().foo("world").bar([55, 89]).build(), 
+//!         Struct{foo: "world".into(), bar: vec![55, 89]},
+//!     );
+//! }
+//! 
+//! 
+//! #[derive(Debug, PartialEq, Eq)]
+//! struct Struct {
+//!     foo: String,
+//!     bar: Vec<u32>,
+//! }
+//! 
+//! struct StructBuilder<FooInit: InitState, BarInit: InitState> {
+//!     // If `FooInit` is `Uninit`, then this field is a `()`
+//!     // If `FooInit` is `Init`, then this field is a `String`
+//!     foo: InitStateBF<FooInit, String>,
+//!
+//!     // If `BarInit` is `Uninit`, then this field is a `()`
+//!     // If `BarInit` is `Init`, then this field is a `Vec<u32>`
+//!     bar: InitStateBF<BarInit, Vec<u32>>,
+//! }
+//! 
+//! impl StructBuilder<Uninit, Uninit> {
+//!     pub const fn new() -> Self {
+//!         Self {
+//!             foo: (),
+//!             bar: (),
+//!         }
+//!     }
+//! }
+//! 
+//! impl<FooInit: InitState, BarInit: InitState> StructBuilder<FooInit, BarInit> {
+//!     /// Sets the `foo` field
+//!     pub fn foo(self, foo: impl Into<String>) -> StructBuilder<Init, BarInit> {
+//!         StructBuilder {
+//!             foo: foo.into(),
+//!             bar: self.bar,
+//!         }
+//!     }
+//!
+//!     /// Sets the `bar` field
+//!     pub fn bar(self, bar: impl Into<Vec<u32>>) -> StructBuilder<FooInit, Init> {
+//!         StructBuilder {
+//!             foo: self.foo,
+//!             bar: bar.into(),
+//!         }
+//!     }
+//! 
+//!     /// Builds `Struct`, 
+//!     /// providing default values for fields that haven't been set.
+//!     pub fn build(self) -> Struct {
+//!         typewit::type_fn! {
+//!             struct HelperFn<T>;
+//!             impl<I: InitState> I => InitStateBF<I, T>
+//!         }
+//! 
+//!         Struct {
+//!             // matching on the type-level `InitState` enum by using `InitWit`.
+//!             // `WITNESS` comes from the `HasTypeWitness` trait
+//!             foo: match FooInit::WITNESS {
+//!                 // `te: TypeEq<FooInit, Init>`
+//!                 InitWit::InitW(te) => {
+//!                     te.map(HelperFn::NEW) //: TypeEq<InitStateBF<FooInit, String>, String>
+//!                       .to_right(self.foo)
+//!                 }
+//!                 InitWit::UninitW(_) => "default value".to_string(),
+//!             },
+//!             bar: match BarInit::WITNESS {
+//!                 // `te: TypeEq<BarInit, Init>`
+//!                 InitWit::InitW(te) => {
+//!                     te.map(HelperFn::NEW) //: TypeEq<InitStateBF<BarInit, Vec<u32>>, Vec<u32>>
+//!                       .to_right(self.bar)
+//!                 }
+//!                 InitWit::UninitW(_) => vec![3, 5, 8],
+//!             },
+//!         }
+//!     }
+//! }
+//! 
+//! // Emulates a type-level `enum InitState`.
+//! trait InitState: Sized + HasTypeWitness<InitWit<Self>> {
+//!     // how a builder represents an initialized/uninitialized field
+//!     type BuilderField<T>;
+//! }
+//! 
+//! // If `IS` is `Uninit`, then this evaluates to `()`
+//! // If `IS` is `Init`, then this evaluates to `T`
+//! type InitStateBF<IS, T> = <IS as InitState>::BuilderField::<T>;
+//! 
+//! // Emulates a type-level `InitState::Init` variant.
+//! // Marks a field as initialized.
+//! enum Init {}
+//! 
+//! impl InitState for Init {
+//!     type BuilderField<T> = T;
+//! }
+//! 
+//! // Emulates a type-level `InitState::Uninit` variant
+//! // Marks a field as uninitialized.
+//! enum Uninit {}
+//! 
+//! impl InitState for Uninit {
+//!     type BuilderField<T> = ();
+//! }
+//! 
+//! typewit::simple_type_witness! {
+//!     // Declares `enum InitWit<__Wit>`, a type witness.
+//!     // (the `__Wit` type parameter is implicitly added after all generics)
+//!     enum InitWit {
+//!         // This variant requires `__Wit == Init`
+//!         InitW = Init,
+//!         // This variant requires `__Wit == Uninit`
+//!         UninitW = Uninit,
+//!     }
 //! }
 //! ```
 //! 
@@ -357,3 +492,9 @@ pub mod __ {
     };
 
 }
+
+
+
+#[cfg(all(doctest, feature = "rust_stable", feature = "const_marker"))]
+#[doc = include_str!("../README.md")]
+pub struct ReadmeTest;
