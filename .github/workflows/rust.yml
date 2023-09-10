@@ -17,13 +17,17 @@ jobs:
     strategy:
       max-parallel: 2
       matrix:
-        rust: [stable, beta, nightly, 1.61.0, 1.57.0]
+        rust: [stable, beta, nightly, 1.65.0, 1.61.0, 1.57.0]
 
     steps:
     - uses: actions/checkout@v2
     - name: enable-rust-1_61
       if: matrix.rust == '1.61.0'
       run: echo "rustv=rust_1_61" >> $GITHUB_ENV
+
+    - name: enable-rust-1_65
+      if: matrix.rust == '1.65.0'
+      run: echo "rustv=rust_1_65" >> $GITHUB_ENV
 
     - name: enable-rust-stable
       if: matrix.rust == 'stable' || matrix.rust == 'beta' || matrix.rust == 'nightly'

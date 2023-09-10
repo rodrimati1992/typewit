@@ -31,6 +31,7 @@ use crate::{
 ///         impl<const B: bool> Bool<B> => Incrementor<B>
 ///     }
 /// 
+///     // The example below this one shows how to write this match more concisely
 ///     match BoolWit::MAKE {
 ///         // `bw: TypeEq<Bool<B>, Bool<true>>`
 ///         BoolWit::True(bw) => {
@@ -75,6 +76,49 @@ use crate::{
 /// }
 /// 
 /// ```
+/// 
+/// ### Using `polymatch` for conciseness
+/// 
+/// The [`polymatch`](crate::polymatch) macro can be used to 
+/// more concisely implement the `call_next` function.
+/// 
+/// ```
+/// # use typewit::{const_marker::{Bool, BoolWit}, MakeTypeWitness};
+/// # 
+/// const fn call_next<const B: bool>(incrementor: Incrementor<B>) -> Incrementor<B> {
+///     typewit::type_fn! {
+///         struct IncrementorFn;
+///         impl<const B: bool> Bool<B> => Incrementor<B>
+///     }
+/// 
+///     // expands to a match with two arms, 
+///     // one for `BoolWit::True` and one for `BoolWit::False`,
+///     // copying the expression to the right of the `=>` to both arms.
+///     typewit::polymatch! {BoolWit::MAKE;
+///         BoolWit::True(bw) | BoolWit::False(bw) => {
+///             let te = bw.project::<IncrementorFn>();
+///             te.to_left(te.to_right(incrementor).next())
+///         }
+///     }
+/// }
+/// # 
+/// # #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+/// # struct Incrementor<const GO_UP: bool>(usize);
+/// # 
+/// # const GO_UP: bool = true;
+/// # const GO_DOWN: bool = false;
+/// # 
+/// # impl Incrementor<GO_DOWN> {
+/// #     #[track_caller]
+/// #     pub const fn next(self) -> Self { unimplemented!() }
+/// # }
+/// # 
+/// # impl Incrementor<GO_UP> {
+/// #     pub const fn next(self) -> Self { unimplemented!() }
+/// # }
+/// ```
+/// 
+/// ### What happens without `BoolWit`
 /// 
 /// If the `call_next` function was defined like this:
 /// ```rust,compile_fail
