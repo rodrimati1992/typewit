@@ -71,9 +71,9 @@
 //! This function demonstrates const fn polymorphism
 //! and projecting [`TypeEq`] by implementing [`TypeFn`].
 //! 
-//! (this example requires Rust 1.65.0, because it uses the `konst = "0.3"` crate.
-#![cfg_attr(not(feature = "rust_1_65"), doc = "```ignore")]
-#![cfg_attr(feature = "rust_1_65", doc = "```rust")]
+//! (this example requires Rust 1.71.0, because it uses `<[T]>::split_at` in a const context.
+#![cfg_attr(not(feature = "rust_stable"), doc = "```ignore")]
+#![cfg_attr(feature = "rust_stable", doc = "```rust")]
 //! use std::ops::Range;
 //! 
 //! use typewit::{HasTypeWitness, TypeEq};
@@ -109,7 +109,7 @@
 //!         }
 //!         IndexWitness::Range(arg_te) => {
 //!             let range: Range<usize> = arg_te.to_right(idx);
-//!             let ret: &[T] = ::konst::slice::slice_range(slice, range.start, range.end);
+//!             let ret: &[T] = slice_range(slice, range);
 //!             arg_te.project::<FnSliceIndexRet<T>>().in_ref().to_left(ret)
 //!         }
 //!     }
@@ -151,6 +151,12 @@
 //!
 //!     impl<I: SliceIndex<T>> I => SliceIndexRet<I, T>
 //! }
+//! 
+//! const fn slice_range<T>(slice: &[T], range: Range<usize>) -> &[T] {
+//!     let suffix = slice.split_at(range.start).1;
+//!     suffix.split_at(range.end - range.start).0
+//! }
+//! 
 //! ```
 //! 
 //! When the wrong type is passed for the index,
@@ -497,6 +503,6 @@ pub mod __ {
 
 
 
-#[cfg(all(doctest, feature = "rust_1_65", feature = "const_marker"))]
+#[cfg(all(doctest, feature = "rust_stable", feature = "const_marker"))]
 #[doc = include_str!("../README.md")]
 pub struct ReadmeTest;

@@ -32,7 +32,7 @@ fn test_nexted_or_patterns() {
             _ => false
         );
 
-        assert_eq!(expected, actual, "int: {int}");
+        assert_eq!(expected, actual, "int: {}", int);
     }
 
     assert_eq!(Foo::bar(), 0x600D);

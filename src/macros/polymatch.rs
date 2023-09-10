@@ -32,7 +32,7 @@
 /// 
 /// fn debugify(res: Result<u32, &'static str>) -> String {
 ///     typewit::polymatch! {res; 
-///         Ok(x) | Err(x) => format!("{x:?}")
+///         Ok(x) | Err(x) => format!("{:?}", x)
 ///     }
 /// }
 /// ```
@@ -45,8 +45,8 @@
 /// # 
 /// # fn debugify(res: Result<u32, &'static str>) -> String {
 ///     match res {
-///         Ok(x) => format!("{x:?}"),
-///         Err(x) => format!("{x:?}"),
+///         Ok(x) => format!("{:?}", x),
+///         Err(x) => format!("{:?}", x),
 ///     }
 /// # }
 /// ```

@@ -75,7 +75,7 @@ typewit::simple_type_witness! {
 This function demonstrates const fn polymorphism
 and projecting [`TypeEq`] by implementing [`TypeFn`].
 
-(this example requires Rust 1.65.0, because it uses the `konst = "0.3"` crate.
+(this example requires Rust 1.71.0, because it uses `<[T]>::split_at` in a const context.
 ```rust
 use std::ops::Range;
 
@@ -112,7 +112,7 @@ where
         }
         IndexWitness::Range(arg_te) => {
             let range: Range<usize> = arg_te.to_right(idx);
-            let ret: &[T] = ::konst::slice::slice_range(slice, range.start, range.end);
+            let ret: &[T] = slice_range(slice, range);
             arg_te.project::<FnSliceIndexRet<T>>().in_ref().to_left(ret)
         }
     }
@@ -154,6 +154,12 @@ typewit::type_fn! {
 
     impl<I: SliceIndex<T>> I => SliceIndexRet<I, T>
 }
+
+const fn slice_range<T>(slice: &[T], range: Range<usize>) -> &[T] {
+    let suffix = slice.split_at(range.start).1;
+    suffix.split_at(range.end - range.start).0
+}
+
 ```
 
 When the wrong type is passed for the index,
