@@ -7,7 +7,7 @@ This crate provides abstractions for creating
 [type witnesses](#what-are-type-witnesses).
 
 The inciting motivation for this crate is emulating trait polymorphism in `const fn`
-(as of 2023-07-31, it's not possible to call trait methods in const contexts on stable).
+(as of 2023-09-10, it's not possible to call trait methods in const contexts on stable).
 
 # What are type witnesses
 
@@ -27,7 +27,7 @@ which can coerce between a type parameter and as many types as there are variant
 ### Polymorphic function
 
 This demonstrates how one can write a return-type-polymorphic `const fn`
-(as of 2023-07-31, trait methods can't be called in const fns)
+(as of 2023-09-10, trait methods can't be called in const fns on stable)
 
 ```rust
 use typewit::{MakeTypeWitness, TypeEq};
@@ -75,7 +75,7 @@ typewit::simple_type_witness! {
 This function demonstrates const fn polymorphism
 and projecting [`TypeEq`] by implementing [`TypeFn`].
 
-(this example requires Rust 1.61.0, because of the `I: SliceIndex<T>,` bound)
+(this example requires Rust 1.65.0, because it uses the `konst = "0.3"` crate.
 ```rust
 use std::ops::Range;
 
@@ -220,7 +220,7 @@ typewit::type_fn!{
 ### Builder
 
 Using a type witness to help encode a type-level enum,
-and matcing on that type-level enum inside of a function.
+and to match on that type-level enum inside of a function.
 
 The type-level enum is used to track the initialization of fields in a builder.
 

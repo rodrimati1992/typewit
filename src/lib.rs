@@ -3,7 +3,7 @@
 //! [type witnesses](#what-are-type-witnesses).
 //! 
 //! The inciting motivation for this crate is emulating trait polymorphism in `const fn`
-//! (as of 2023-07-31, it's not possible to call trait methods in const contexts on stable).
+//! (as of 2023-09-10, it's not possible to call trait methods in const contexts on stable).
 //! 
 //! # What are type witnesses
 //! 
@@ -23,7 +23,7 @@
 //! ### Polymorphic function
 //! 
 //! This demonstrates how one can write a return-type-polymorphic `const fn`
-//! (as of 2023-04-30, trait methods can't be called in const fns)
+//! (as of 2023-09-10, trait methods can't be called in const fns on stable)
 //! 
 //! ```rust
 //! use typewit::{MakeTypeWitness, TypeEq};
@@ -71,9 +71,9 @@
 //! This function demonstrates const fn polymorphism
 //! and projecting [`TypeEq`] by implementing [`TypeFn`].
 //! 
-//! (this example requires Rust 1.61.0, because of the `I: SliceIndex<T>,` bound)
-#![cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
-#![cfg_attr(feature = "rust_1_61", doc = "```rust")]
+//! (this example requires Rust 1.65.0, because it uses the `konst = "0.3"` crate.
+#![cfg_attr(not(feature = "rust_1_65"), doc = "```ignore")]
+#![cfg_attr(feature = "rust_1_65", doc = "```rust")]
 //! use std::ops::Range;
 //! 
 //! use typewit::{HasTypeWitness, TypeEq};
@@ -219,13 +219,13 @@
 //! ### Builder
 //! 
 //! Using a type witness to help encode a type-level enum,
-//! and matcing on that type-level enum inside of a function.
+//! and to match on that type-level enum inside of a function.
 //! 
 //! The type-level enum is used to track the initialization of fields in a builder.
 //! 
 //! This example requires Rust 1.65.0, because it uses Generic Associated Types.
-#![cfg_attr(not(feature = "rust_stable"), doc = "```ignore")]
-#![cfg_attr(feature = "rust_stable", doc = "```rust")]
+#![cfg_attr(not(feature = "rust_1_65"), doc = "```ignore")]
+#![cfg_attr(feature = "rust_1_65", doc = "```rust")]
 //! use typewit::HasTypeWitness;
 //! 
 //! fn main() {
@@ -497,6 +497,6 @@ pub mod __ {
 
 
 
-#[cfg(all(doctest, feature = "rust_stable", feature = "const_marker"))]
+#[cfg(all(doctest, feature = "rust_1_65", feature = "const_marker"))]
 #[doc = include_str!("../README.md")]
 pub struct ReadmeTest;
