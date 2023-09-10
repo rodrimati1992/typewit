@@ -264,11 +264,11 @@
 //! struct StructBuilder<FooInit: InitState, BarInit: InitState> {
 //!     // If `FooInit` is `Uninit`, then this field is a `()`
 //!     // If `FooInit` is `Init`, then this field is a `String`
-//!     foo: InitStateBF<FooInit, String>,
+//!     foo: BuilderField<FooInit, String>,
 //!
 //!     // If `BarInit` is `Uninit`, then this field is a `()`
 //!     // If `BarInit` is `Init`, then this field is a `Vec<u32>`
-//!     bar: InitStateBF<BarInit, Vec<u32>>,
+//!     bar: BuilderField<BarInit, Vec<u32>>,
 //! }
 //! 
 //! impl StructBuilder<Uninit, Uninit> {
@@ -302,7 +302,7 @@
 //!     pub fn build(self) -> Struct {
 //!         typewit::type_fn! {
 //!             struct HelperFn<T>;
-//!             impl<I: InitState> I => InitStateBF<I, T>
+//!             impl<I: InitState> I => BuilderField<I, T>
 //!         }
 //! 
 //!         Struct {
@@ -311,7 +311,7 @@
 //!             foo: match FooInit::WITNESS {
 //!                 // `te: TypeEq<FooInit, Init>`
 //!                 InitWit::InitW(te) => {
-//!                     te.map(HelperFn::NEW) //: TypeEq<InitStateBF<FooInit, String>, String>
+//!                     te.map(HelperFn::NEW) //: TypeEq<BuilderField<FooInit, String>, String>
 //!                       .to_right(self.foo)
 //!                 }
 //!                 InitWit::UninitW(_) => "default value".to_string(),
@@ -319,7 +319,7 @@
 //!             bar: match BarInit::WITNESS {
 //!                 // `te: TypeEq<BarInit, Init>`
 //!                 InitWit::InitW(te) => {
-//!                     te.map(HelperFn::NEW) //: TypeEq<InitStateBF<BarInit, Vec<u32>>, Vec<u32>>
+//!                     te.map(HelperFn::NEW) //: TypeEq<BuilderField<BarInit, Vec<u32>>, Vec<u32>>
 //!                       .to_right(self.bar)
 //!                 }
 //!                 InitWit::UninitW(_) => vec![3, 5, 8],
@@ -328,15 +328,17 @@
 //!     }
 //! }
 //! 
-//! // Emulates a type-level `enum InitState`.
+//! // Emulates a type-level `enum InitState { Init, Uninit }`
 //! trait InitState: Sized + HasTypeWitness<InitWit<Self>> {
-//!     // how a builder represents an initialized/uninitialized field
+//!     // How a builder represents an initialized/uninitialized field.
+//!     // If `Self` is `Uninit`, then this is `()`.
+//!     // If `Self` is `Init`, then this is `T`.
 //!     type BuilderField<T>;
 //! }
 //! 
-//! // If `IS` is `Uninit`, then this evaluates to `()`
-//! // If `IS` is `Init`, then this evaluates to `T`
-//! type InitStateBF<IS, T> = <IS as InitState>::BuilderField::<T>;
+//! // If `I` is `Uninit`, then this evaluates to `()`
+//! // If `I` is `Init`, then this evaluates to `T`
+//! type BuilderField<I, T> = <I as InitState>::BuilderField::<T>;
 //! 
 //! // Emulates a type-level `InitState::Init` variant.
 //! // Marks a field as initialized.

@@ -1,12 +1,14 @@
 
 /// Match which expands top-level `|` patterns to multiple match arms.
 /// 
-/// "top-level `|` pattern" means that the `|` is not inside some other pattern.
-/// <br>The pattern in `Foo(x) | Bar(x) => ` is a top-level `|` pattern.
-/// <br>The pattern in `(Foo(x) | Bar(x)) => ` is not a top-level `|` pattern, 
-/// because the `|` is inside parentheses.
-/// 
 /// [**examples below**](#examples)
+/// 
+/// ### Clarification
+/// 
+/// "top-level `|` patterns" means that the `|` is not inside some other pattern.
+/// <br>E.g.: the pattern in `Foo(x) | Bar(x) => ` is a top-level `|` pattern.
+/// <br>E.g.: the pattern in `(Foo(x) | Bar(x)) => ` is not a top-level `|` pattern, 
+/// because the `|` is inside parentheses.
 /// 
 /// # Syntax
 /// 
@@ -29,13 +31,6 @@
 /// assert_eq!(debugify(Err("hello")), r#""hello""#);
 /// 
 /// fn debugify(res: Result<u32, &'static str>) -> String {
-///     // this macro invocation expands to:
-///     // ```rust
-///     // match res {
-///     //     Ok(x) => format!("{x:?}"),
-///     //     Err(x) => format!("{x:?}"),
-///     // }
-///     // ```
 ///     typewit::polymatch! {res; 
 ///         Ok(x) | Err(x) => format!("{x:?}")
 ///     }
