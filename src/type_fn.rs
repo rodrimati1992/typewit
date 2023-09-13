@@ -2,6 +2,21 @@
 
 use core::marker::PhantomData;
 
+#[cfg(feature = "inj_type_fn")]
+pub mod injective;
+
+#[cfg(feature = "inj_type_fn")]
+#[doc(no_inline)]
+pub use self::injective::*;
+
+#[cfg(feature = "inj_type_fn")]
+#[doc(no_inline)]
+pub use crate::inj_type_fn;
+
+#[doc(no_inline)]
+pub use crate::type_fn;
+
+
 /// A function that operates purely on the level of types.
 /// 
 /// These can be used in `typewit` to 

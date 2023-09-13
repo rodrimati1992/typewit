@@ -470,6 +470,10 @@ pub use crate::{
 #[doc(no_inline)]
 pub use crate::type_fn::{CallFn, TypeFn};
 
+#[cfg(feature = "inj_type_fn")]
+#[doc(no_inline)]
+pub use crate::type_fn::{UncallFn, CoInjTypeFn, InjTypeFn};
+
 #[doc(hidden)]
 pub mod __ {
     pub use core::{
