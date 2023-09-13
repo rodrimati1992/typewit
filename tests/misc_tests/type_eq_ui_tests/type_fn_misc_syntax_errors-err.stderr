@@ -17,7 +17,7 @@ error: invalid argument for `type_fn` macro
 7 | | }
   | |_^
   |
-  = note: this error originates in the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+  = note: this error originates in the macro `$crate::__type_fn` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: expected `impl`, found `() =>`
        helo: `impl () =>` is likely to work.
