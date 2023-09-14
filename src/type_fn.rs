@@ -6,7 +6,8 @@
 //! 
 //! # Injective
 //! 
-//! An injective function is any function `f` for which `a != b` implies `f(a) != f(b)`
+//! An injective function is any function `f` for which `a != b` implies `f(a) != f(b)`.
+//! <br>(For both injective and non-injective functions, `f(a) != f(b)` implies `a != b`)
 //! 
 //! The [`InjTypeFn`] trait encodes injective type-level functions,
 //! requiring the type to implement both [`TypeFn`] and [`RevTypeFn`].
@@ -36,7 +37,7 @@
 //! # use typewit::UncallFn;
 //! #
 //! let _: UncallFn<Upcast, u16> = 3u8;
-//! let _: UncallFn<Upcast, u32> = 5u16;
+//! let _: UncallFn<Upcast, u128> = 5u64;
 //! # 
 //! # typewit::inj_type_fn!{
 //! #     struct Upcast;
@@ -168,6 +169,12 @@ pub trait TypeFn<T: ?Sized> {
 }
 
 /// Calls the `F` [type-level function](TypeFn) with `T` as its argument.
+/// 
+#[cfg_attr(feature = "inj_type_fn", doc = "\
+    For `F:`[`InjTypeFn<T>`](crate::InjTypeFn), it's better to \
+    use [`CallInjFn`](crate::CallInjFn) instead of this type alias.\
+")]
+/// 
 /// 
 /// # Example
 /// 

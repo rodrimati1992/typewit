@@ -3,6 +3,8 @@
 
 use crate::TypeFn;
 
+use core::marker::PhantomData;
+
 /// An 
 /// [injective type-level function](mod@crate::type_fn#injective)
 /// 
@@ -67,6 +69,8 @@ where
 /// 
 /// # Example
 /// 
+/// ### Macro-based impl
+/// 
 /// ```rust
 /// use std::ops::Range;
 ///
@@ -75,16 +79,37 @@ where
 /// let array = [3usize, 5];
 ///
 /// // Getting the argument of `ArrayFn` from its return value
-/// let value: <ArrayFn<2> as RevTypeFn<[usize; 2]>>::Arg = array[0];
-/// // more concise way to write the above line
-/// let other: UncallFn<ArrayFn<2>, [usize; 2]> = array[0];
+/// let value: UncallFn<ArrayFn<2>, [usize; 2]> = array[0];
 ///
 /// assert_eq!(value, 3usize);
-/// assert_eq!(other, 3usize);
 ///
 /// typewit::inj_type_fn!{
 ///     struct ArrayFn<const N: usize>;
 ///     impl<T> T => [T; N]
+/// }
+/// ```
+/// 
+/// ### Manual impl
+/// 
+/// ```rust
+/// use std::ops::Range;
+///
+/// use typewit::{RevTypeFn, TypeFn, UncallFn};
+///
+/// let array = [3usize, 5];
+///
+/// // Getting the argument of `ArrayFn` from its return value
+/// let value: UncallFn<ArrayFn<2>, [usize; 2]> = array[0];
+///
+/// assert_eq!(value, 3usize);
+///
+/// struct ArrayFn<const N: usize>;
+///
+/// impl<T, const N: usize> TypeFn<T> for ArrayFn<N> {
+///     type Output = [T; N];
+/// }
+/// impl<T, const N: usize> RevTypeFn<[T; N]> for ArrayFn<N> {
+///     type Arg = T;
 /// }
 /// ```
 /// 
@@ -114,7 +139,60 @@ pub trait RevTypeFn<Ret: ?Sized>: TypeFn<Self::Arg, Output = Ret> {
 pub type UncallFn<F, Ret> = <F as RevTypeFn<Ret>>::Arg;
 
 
-/// [`CallFn`] with an additional `F:`[`InjTypeFn<A>`] requirement.
+/// [`CallFn`](crate::CallFn) with an additional `F:`[`InjTypeFn<A>`] requirement,
+/// which helps with type inference.
+///
+/// # Example
+///
+/// ```rust
+/// use typewit::{InjTypeFn, CallInjFn};
+/// 
+/// // inferred return type
+/// let inferred_ret = upcast(3u8);
+/// assert_eq!(inferred_ret, 3);
+/// 
+/// // inferred argument type
+/// let inferred_arg: u32 = upcast(5);
+/// assert_eq!(inferred_arg, 5);
+/// 
+/// // Because the return type is `CallInjFn<_, I>`,
+/// // this can infer `I` from the return type,
+/// fn upcast<I>(int: I) -> CallInjFn<Upcast, I>
+/// where
+///     Upcast: InjTypeFn<I>,
+///     CallInjFn<Upcast, I>: From<I>,
+/// {
+///     int.into()
+/// }
+/// 
+/// 
+/// typewit::inj_type_fn!{
+///     struct Upcast;
+///     
+///     impl u8 => u16;
+///     impl u16 => u32;
+///     impl u32 => u64;
+///     impl u64 => u128;
+/// }
+/// ```
+/// 
+/// As of September 2023, replacing `CallInjFn` with `CallFn` can cause type inference errors:
+/// 
+/// ```text
+/// error[E0277]: the trait bound `Upcast: TypeFn<{integer}>` is not satisfied
+///   --> src/type_fn/injective.rs:132:32
+///    |
+/// 11 | let inferred_arg: u32 = upcast(5);
+///    |                         ------ ^ the trait `TypeFn<{integer}>` is not implemented for `Upcast`
+///    |                         |
+///    |                         required by a bound introduced by this call
+///    |
+///    = help: the following other types implement trait `TypeFn<T>`:
+///              <Upcast as TypeFn<u16>>
+///              <Upcast as TypeFn<u32>>
+///              <Upcast as TypeFn<u64>>
+///              <Upcast as TypeFn<u8>>
+/// ```
 #[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 pub type CallInjFn<F, A> = <F as InjTypeFn<A>>::Ret;
 
@@ -137,3 +215,83 @@ macro_rules! simple_inj_type_fn {
         }
     };
 } pub(crate) use simple_inj_type_fn;
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+/// Reverses an [`InjTypeFn`], its arguments become return values, 
+/// and its return values become arguments.
+/// 
+/// # Examples
+///
+/// ### Permutations
+///
+/// The different ways this function can be combined with [`CallFn`] and 
+/// [`UncallFn`] 
+///
+/// ```rust
+/// use typewit::type_fn::{CallFn, FnRev, UncallFn};
+/// 
+/// let _: CallFn<FnRev<Swap>, Right> = Left;
+/// let _: UncallFn<    Swap,  Right> = Left;
+/// 
+/// let _: CallFn<        Swap,  Up> = Down;
+/// let _: UncallFn<FnRev<Swap>, Up> = Down;
+/// 
+/// typewit::inj_type_fn!{
+///     struct Swap;
+/// 
+///     impl Left => Right;
+///     impl Up   => Down;
+/// }
+/// 
+/// struct Left;
+/// struct Right;
+/// struct Up;
+/// struct Down;
+/// ```
+/// 
+/// [`CallFn`]: crate::CallFn
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
+pub struct FnRev<F: ?Sized>(PhantomData<fn() -> F>);
+
+
+impl<F: ?Sized> FnRev<F> {
+    /// Constructs a `FnRev`.
+    pub const NEW: Self = Self(PhantomData);
+}
+
+impl<F> FnRev<F> {
+    /// Constructs a `FnRev` from `&F`
+    pub const fn from_ref(_f: &F) -> Self {
+        Self::NEW
+    }
+}
+
+impl<F, A: ?Sized> TypeFn<A> for FnRev<F>
+where
+    F: RevTypeFn<A>
+{
+    type Output = UncallFn<F, A>;
+}
+
+impl<F, R: ?Sized> RevTypeFn<R> for FnRev<F>
+where
+    F: InjTypeFn<R>
+{
+    type Arg = CallInjFn<F, R>;
+}
+
+#[test]
+fn test_fnrev_equivalence(){
+    fn foo<A, F: InjTypeFn<A>>() {
+        use crate::CallFn;
+
+        let _ = crate::TypeEq::<CallInjFn<FnRev<F>, F::Ret>, UncallFn<F, F::Ret>>::NEW;
+        
+        let _ = crate::TypeEq::<UncallFn<FnRev<F>, A>, CallInjFn<F, A>>::NEW;
+    }
+}
+
+
+
