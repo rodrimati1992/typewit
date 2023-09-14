@@ -114,6 +114,15 @@ pub(crate) use simple_inj_type_fn;
 /// Type-level functions can also be declared with the 
 /// [`type_fn`](macro@crate::type_fn) macro.
 /// 
+/// # Properties
+/// 
+/// These are properties about `TypeFn` implementors that users can rely on.
+/// 
+/// For any given `F: TypeFn<A> + TypeFn<B>` these hold:
+/// 
+/// 1. If `A == B`, then `CallFn<F, A> == CallFn<F, B>`.
+/// 2. If `CallFn<F, A> != CallFn<F, B>`, then `À != B`. 
+/// 
 /// # Examples
 /// 
 /// ### Manual Implementation
@@ -166,6 +175,9 @@ pub(crate) use simple_inj_type_fn;
 pub trait TypeFn<T: ?Sized> {
     /// The return value of the function
     type Output: ?Sized;
+
+    /// Helper constant for adding asserts in the `TypeFn` impl;
+    const TYPE_FN_ASSERTS: () = ();
 }
 
 /// Calls the `F` [type-level function](TypeFn) with `T` as its argument.

@@ -17,106 +17,12 @@ use core::{
 #[cfg(feature = "alloc")]
 use alloc::boxed::Box;
 
-
-macro_rules! projected_type_eq {
-    // Since `$L` and `$R` are used only once
-    // it's safe to declare them as `:ty` (safe against malicious type macros).
-    ($type_eq:expr, $L:ty, $R:ty, $F:ty) => ({
-        // safety: 
-        // This macro takes a `TypeEq<$L, $R>` value,
-        // which requires `$L == $R` to be constructed,
-        // therefore `CallFn<F, $L> == CallFn<F, $R>`
-        unsafe {
-            $crate::type_eq::__ProjectVars::<$F, $L, $R> {
-                te: $type_eq,
-                projected_te: $crate::TypeEq::new_unchecked(),
-            }.projected_te
-        }
-    })
+crate::type_eq_ne_guts::declare_type_cmp_helpers!{
+    $
+    TypeEq
+    TypeFn
+    CallFn
 }
-
-struct __ProjectVars<F, L: ?Sized, R: ?Sized> 
-where
-    InvokeAlias<F>: TypeFn<L> + TypeFn<R>
-{
-    #[allow(dead_code)]
-    te: TypeEq<L, R>,
-
-    //         TypeEq<L, R> 
-    // implies TypeEq<CallFn<F, L>, CallFn<F, R>>
-    projected_te: TypeEq<CallFn<InvokeAlias<F>, L>, CallFn<InvokeAlias<F>, R>>,
-}
-
-
-macro_rules! __zip_impl {
-    // Using `:ident` to prevent usage of macros,
-    // which can expand to different values on each use
-    ($( $type_eq:ident [$L:ident, $R:ident] ),* $(,)*) => {
-        $(
-            let _te: $crate::TypeEq<$L, $R> = $type_eq;
-        )*
-
-        // SAFETY: 
-        // `$L == $R` for every passed `$type_eq`
-        // implies `(L0, L1, ...) == (R0, R1, ...)`
-        unsafe {
-            $crate::TypeEq::<($($L,)*), ($($R,)*)>::new_unchecked()
-        }
-    }
-}
-
-
-// Equivalent to `type_eq.zip(other_type_eq).project::<Func>()`,
-// defined to ensure that methods which do zip+project have 0 overhead in debug builds.
-macro_rules! zip_project {
-    // Since `$L0`, `$L1`,`$R0`, and `$R1` are all used only once,
-    // it's safe to declare them as `:ty` (safe against malicious type macros).
-    (
-        $left_type_eq:expr,
-        $right_type_eq:expr,
-        $F: ty,
-        ($L0:ty, $R0:ty),
-        ($L1:ty, $R1:ty),
-    ) => ({
-        $crate::type_eq::__ZipProjectVars::<$F, $L0, $R0, $L1, $R1> {
-            left_te: $left_type_eq,
-            right_te: $right_type_eq,
-            projected_te: {
-                // SAFETY: 
-                // `$L0 == $R0` and `$L1 == $R1` implies `($L0, $L1) == ($R0, $R1)`,
-                // 
-                // Using `$F` only once, as a type argument,
-                // to protect against type-position macros that expand to 
-                // different types on each use.
-                unsafe {
-                    $crate::TypeEq::new_unchecked()
-                }
-            }
-        }.projected_te
-    });
-}
-
-struct __ZipProjectVars<F, L0, R0, L1, R1> 
-where
-    F: TypeFn<(L0, L1)> + TypeFn<(R0, R1)>
-{
-    #[allow(dead_code)]
-    left_te: TypeEq<L0, R0>,
-
-    #[allow(dead_code)]
-    right_te: TypeEq<L1, R1>,
-
-    //         (TypeEq<L0, R0>, TypeEq<L1, R1>) 
-    // implies TypeEq<(L0, L1), (R0, R1)> 
-    // implies TypeEq<CallFn<F, (L0, L1)>, CallFn<F, (R0, R1)>>
-    projected_te: TypeEq<CallFn<F, (L0, L1)>, CallFn<F, (R0, R1)>>,
-}
-
-
-/// A [`TypeEq`] whose type arguments are projected using the 
-/// `F` [type-level function](crate::type_fn::TypeFn).
-#[doc(hidden)]
-pub type __ProjectedTypeEq<F, L, R> = TypeEq<CallFn<F, L>, CallFn<F, R>>;
 
 
 /// Constructs a [`TypeEq<T, T>`](TypeEq)
@@ -532,7 +438,7 @@ impl<L0, R0> TypeEq<L0, R0> {
         self: TypeEq<L0, R0>,
         other: TypeEq<L1, R1>,
     ) -> TypeEq<(L0, L1), (R0, R1)> {
-        __zip_impl!{self[L0, R0], other[L1, R1]}
+        zip_impl!{self[L0, R0], other[L1, R1]}
     }
 
     /// Combines three `TypeEq<L*, R*>` to produce a
@@ -562,7 +468,7 @@ impl<L0, R0> TypeEq<L0, R0> {
         other1: TypeEq<L1, R1>,
         other2: TypeEq<L2, R2>,
     ) -> TypeEq<(L0, L1, L2), (R0, R1, R2)> {
-        __zip_impl!{
+        zip_impl!{
             self[L0, R0],
             other1[L1, R1],
             other2[L2, R2],
@@ -601,7 +507,7 @@ impl<L0, R0> TypeEq<L0, R0> {
         other2: TypeEq<L2, R2>,
         other3: TypeEq<L3, R3>,
     ) -> TypeEq<(L0, L1, L2, L3), (R0, R1, R2, R3)> {
-        __zip_impl!{
+        zip_impl!{
             self[L0, R0],
             other1[L1, R1],
             other2[L2, R2],

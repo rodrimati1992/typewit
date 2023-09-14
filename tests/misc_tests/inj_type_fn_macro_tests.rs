@@ -97,3 +97,15 @@ typewit::inj_type_fn! {
 fn test_injtypefn_cfg() {
     let _: AssertEq<CallFn<CfgAttr, u8>, ()>;
 }
+
+
+typewit::inj_type_fn! {
+    struct IntoUnsized;
+    impl str => [u8];
+}
+
+
+#[test]
+fn test_injtypefn_unsized() {
+    let _: AssertEq<CallFn<IntoUnsized, str>, [u8]>;
+}

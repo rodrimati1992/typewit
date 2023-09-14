@@ -456,6 +456,7 @@ mod all_init_bytes;
 mod utils;
 mod macros;
 mod type_eq;
+mod type_eq_ne_guts;
 mod type_identity;
 mod type_ne;
 mod type_witness_traits;

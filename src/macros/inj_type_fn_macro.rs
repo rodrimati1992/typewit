@@ -80,6 +80,8 @@ macro_rules! __tyfn_injtypefn_impl {
             $($where_preds)*
         {
             type Output = $ret_ty;
+
+            const TYPE_FN_ASSERTS: () = { let _: $crate::CallInjFn<Self, $ty_arg>; };
         }
 
         $(#[$attrs])*

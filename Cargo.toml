@@ -26,7 +26,7 @@ default-features = false
 version = "1.0"
 
 [features]
-default = ["const_marker"]
+default = ["const_marker", "inj_type_fn"]
 rust_1_61 = []
 # mostly for doc examples
 rust_1_65 = ["rust_1_61"]
