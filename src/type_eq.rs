@@ -19,7 +19,7 @@ use alloc::boxed::Box;
 
 
 macro_rules! projected_type_eq {
-    // Since `$L` and `$R` are used only onces
+    // Since `$L` and `$R` are used only once
     // it's safe to declare them as `:ty` (safe against malicious type macros).
     ($type_eq:expr, $L:ty, $R:ty, $F:ty) => ({
         // safety: 

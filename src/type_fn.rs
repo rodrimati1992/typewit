@@ -1,13 +1,84 @@
 //! Type-level functions.
+//! 
+//! Type-level functions come in two flavors: 
+//! [injective](#injective), and [non-injective](#non-injective)
+//! 
+//! 
+//! # Injective
+//! 
+//! An injective function is any function `f` for which `a != b` implies `f(a) != f(b)`
+//! 
+//! The [`InjTypeFn`] trait encodes injective type-level functions,
+//! requiring the type to implement both [`TypeFn`] and [`RevTypeFn`].
+//! 
+//! 
+//! ### Example: injective function
+//!
+//! ```rust
+//! # use typewit::CallInjFn;
+//! #
+//! typewit::inj_type_fn!{
+//!     struct Upcast;
+//!     
+//!     impl u8 => u16;
+//!     impl u16 => u32;
+//!     impl u32 => u64;
+//!     impl u64 => u128;
+//! }
+//! let _: CallInjFn<Upcast, u8> = 3u16;
+//! let _: CallInjFn<Upcast, u16> = 5u32;
+//! ```
+//! 
+//! Because `Upcast` is injective, 
+//! it is possible to query the argument from the returned value:
+//! 
+//! ```rust
+//! # use typewit::UncallFn;
+//! #
+//! let _: UncallFn<Upcast, u16> = 3u8;
+//! let _: UncallFn<Upcast, u32> = 5u16;
+//! # 
+//! # typewit::inj_type_fn!{
+//! #     struct Upcast;
+//! #     
+//! #     impl u8 => u16;
+//! #     impl u16 => u32;
+//! #     impl u32 => u64;
+//! #     impl u64 => u128;
+//! # }
+//! ```
+//! 
+//! # Non-injective
+//! 
+//! The [`TypeFn`] trait allows implementors to be non-injective.
+//!
+//! ### Example: non-injective function
+//!
+//! ```rust
+//! typewit::type_fn!{
+//!     struct Bar;
+//!     
+//!     impl<T> Vec<T> => T;
+//!     impl<T> Box<T> => T;
+//! }
+//! ```
+//! `Bar` is *non*-injective because it maps both `Vec<T>` and `Box<T>` to `T`.
+//! 
+//! 
+//! [`TypeFn`]: crate::type_fn::TypeFn
+//! [`CallFn`]: crate::type_fn::CallFn
+//! 
 
 use core::marker::PhantomData;
 
 #[cfg(feature = "inj_type_fn")]
-pub mod injective;
+mod injective;
 
 #[cfg(feature = "inj_type_fn")]
-#[doc(no_inline)]
 pub use self::injective::*;
+
+#[cfg(feature = "inj_type_fn")]
+pub(crate) use self::injective::simple_inj_type_fn;
 
 #[cfg(feature = "inj_type_fn")]
 #[doc(no_inline)]
@@ -15,6 +86,23 @@ pub use crate::inj_type_fn;
 
 #[doc(no_inline)]
 pub use crate::type_fn;
+
+
+#[cfg(not(feature = "inj_type_fn"))]
+macro_rules! simple_inj_type_fn {
+    (
+        impl[$($impl:tt)*] ($arg:ty => $ret:ty) for $func:ty
+        $(where[$($where:tt)*])?
+    ) => {
+        impl<$($impl)*> crate::TypeFn<$arg> for $func
+        $(where $($where)*)?
+        {
+            type Output = $ret;
+        }
+    }
+}
+#[cfg(not(feature = "inj_type_fn"))]
+pub(crate) use simple_inj_type_fn;
 
 
 /// A function that operates purely on the level of types.
@@ -118,8 +206,8 @@ impl<'a> GRef<'a> {
     pub const NEW: Self = Self(PhantomData);
 }
 
-impl<'a, T: 'a + ?Sized> TypeFn<T> for GRef<'a> {
-    type Output = &'a T;
+simple_inj_type_fn!{
+    impl['a, T: 'a + ?Sized] (T => &'a T) for GRef<'a>
 }
 
 ////////////////
@@ -132,8 +220,8 @@ impl<'a> GRefMut<'a> {
     pub const NEW: Self = Self(PhantomData);
 }
 
-impl<'a, T: 'a + ?Sized> TypeFn<T> for GRefMut<'a> {
-    type Output = &'a mut T;
+simple_inj_type_fn!{
+    impl['a, T: 'a + ?Sized] (T => &'a mut T) for GRefMut<'a>
 }
 
 ////////////////
@@ -144,8 +232,8 @@ impl<'a, T: 'a + ?Sized> TypeFn<T> for GRefMut<'a> {
 pub struct GBox;
 
 #[cfg(feature = "alloc")]
-impl<T: ?Sized> TypeFn<T> for GBox {
-    type Output = alloc::boxed::Box<T>;
+simple_inj_type_fn!{
+    impl[T: ?Sized] (T => alloc::boxed::Box<T>) for GBox
 }
 
 ////////////////
@@ -153,8 +241,8 @@ impl<T: ?Sized> TypeFn<T> for GBox {
 /// Type-level identity function
 pub struct FnIdentity;
 
-impl<T: ?Sized> TypeFn<T> for FnIdentity {
-    type Output = T;
+simple_inj_type_fn!{
+    impl[T: ?Sized] (T => T) for FnIdentity
 }
 
 ////////////////
@@ -177,6 +265,16 @@ where
 {
     type Output = CallFn<F, T>;
 }
+
+#[cfg(feature = "inj_type_fn")]
+impl<F, R: ?Sized> RevTypeFn<R> for Invoke<F> 
+where
+    F: RevTypeFn<R>,
+{
+    type Arg = UncallFn<F, R>;
+}
+
+
 
 
 // This type alias makes it so that docs for newer Rust versions don't
