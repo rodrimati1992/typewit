@@ -1,10 +1,7 @@
 //! Injective type-level functions
 
 
-use crate::{CallFn, TypeFn};
-
-use core::marker::PhantomData;
-
+use crate::TypeFn;
 
 /// An 
 /// [injective type-level function](mod@crate::type_fn#injective)
@@ -50,6 +47,7 @@ use core::marker::PhantomData;
 /// 
 /// ```
 /// 
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 pub trait InjTypeFn<A: ?Sized>: TypeFn<A, Output = Self::Ret> + RevTypeFn<Self::Ret, Arg = A> {
     /// Return value of the function
     type Ret: ?Sized;
@@ -90,6 +88,7 @@ where
 /// }
 /// ```
 /// 
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 pub trait RevTypeFn<Ret: ?Sized>: TypeFn<Self::Arg, Output = Ret> {
     /// The argument to this function with `Ret` as the return value.
     type Arg: ?Sized;
@@ -111,10 +110,12 @@ pub trait RevTypeFn<Ret: ?Sized>: TypeFn<Self::Arg, Output = Ret> {
 ///     impl<T> T => Vec<T>
 /// }
 /// ```
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 pub type UncallFn<F, Ret> = <F as RevTypeFn<Ret>>::Arg;
 
 
 /// [`CallFn`] with an additional `F:`[`InjTypeFn<A>`] requirement.
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 pub type CallInjFn<F, A> = <F as InjTypeFn<A>>::Ret;
 
 
