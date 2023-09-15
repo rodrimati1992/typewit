@@ -1,5 +1,26 @@
 // $type_cmp is either TypeEq or TypeNe
-macro_rules! declare_type_cmp_helpers {($_:tt $type_cmp_ty:ident $tyfn:ident $callfn:ident) => {
+macro_rules! declare_zip_helper {($_:tt $type_cmp_ty:ident) => {
+    macro_rules! zip_impl {
+        // Using `:ident` to prevent usage of macros,
+        // which can expand to different values on each use
+        ($_( $type_cmp:ident [$L:ident, $R:ident] ),* $_(,)*) => {
+            $_(
+                let _te: $type_cmp_ty<$L, $R> = $type_cmp;
+            )*
+
+            // SAFETY: 
+            // `$type_cmp_ty<$L, $R>` for every passed `$type_cmp`
+            // implies `$type_cmp_ty<(L0, L1, ...), (R0, R1, ...)>`
+            unsafe {
+                $type_cmp_ty::<($_($L,)*), ($_($R,)*)>::new_unchecked()
+            }
+        }
+    }
+
+}} pub(crate) use declare_zip_helper;
+
+// $type_cmp is either TypeEq or TypeNe
+macro_rules! declare_helpers {($_:tt $type_cmp_ty:ident $tyfn:ident $callfn:ident) => {
     macro_rules! projected_type_cmp {
         ($type_cmp:expr, $L:ty, $R:ty, $F:ty) => ({
             // Safety(TypeEq): 
@@ -66,25 +87,6 @@ macro_rules! declare_type_cmp_helpers {($_:tt $type_cmp_ty:ident $tyfn:ident $ca
         unprojected_te: $type_cmp_ty<UncallFn<InvokeAlias<F>, L>, UncallFn<InvokeAlias<F>, R>>,
     }
 
-
-    macro_rules! zip_impl {
-        // Using `:ident` to prevent usage of macros,
-        // which can expand to different values on each use
-        ($_( $type_cmp:ident [$L:ident, $R:ident] ),* $_(,)*) => {
-            $_(
-                let _te: $type_cmp_ty<$L, $R> = $type_cmp;
-            )*
-
-            // SAFETY: 
-            // `$type_cmp_ty<$L, $R>` for every passed `$type_cmp`
-            // implies `$type_cmp_ty<(L0, L1, ...), (R0, R1, ...)>`
-            unsafe {
-                $type_cmp_ty::<($_($L,)*), ($_($R,)*)>::new_unchecked()
-            }
-        }
-    }
-
-
     // Equivalent to `type_cmp.zip(other_type_eq).project::<Func>()`,
     // defined to ensure that methods which do zip+project have 0 overhead in debug builds.
     macro_rules! zip_project {
@@ -131,6 +133,6 @@ macro_rules! declare_type_cmp_helpers {($_:tt $type_cmp_ty:ident $tyfn:ident $ca
         // implies $type_cmp_ty<$callfn<F, (L0, L1)>, $callfn<F, (R0, R1)>>
         projected_te: $type_cmp_ty<$callfn<F, (L0, L1)>, $callfn<F, (R0, R1)>>,
     }
-}} pub(crate) use declare_type_cmp_helpers;
+}} pub(crate) use declare_helpers;
 
 

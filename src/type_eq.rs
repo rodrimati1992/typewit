@@ -20,11 +20,15 @@ use core::{
 #[cfg(feature = "alloc")]
 use alloc::boxed::Box;
 
-crate::type_eq_ne_guts::declare_type_cmp_helpers!{
+crate::type_eq_ne_guts::declare_helpers!{
     $
     TypeEq
     TypeFn
     CallFn
+}
+
+crate::type_eq_ne_guts::declare_zip_helper!{
+    $ TypeEq
 }
 
 
@@ -725,6 +729,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     }
 }
 
+#[cfg(feature = "inj_type_fn")]
 #[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// Maps the type arguments of this `TypeEq`
