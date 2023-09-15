@@ -5,6 +5,10 @@ use core::{
 };
 
 
+#[cfg(feature = "inj_type_fn")]
+mod extra_type_ne_methods;
+
+
 pub use self::type_ne_::TypeNe;
 
 mod type_ne_ {

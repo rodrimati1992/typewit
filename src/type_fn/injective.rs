@@ -13,7 +13,7 @@ use core::marker::PhantomData;
 /// 
 /// # Properties
 /// 
-/// These are properties about `InjTypeFn` implementors that users can rely on.
+/// These are properties about `InjTypeFn` that users can rely on.
 /// 
 /// All the [properties of `TypeFn`](TypeFn#properties) apply to `InjTypeFn`.
 /// 
@@ -83,7 +83,7 @@ where
 /// 
 /// # Properties
 /// 
-/// These are properties about `InjTypeFn` implementors that users can rely on.
+/// These are properties about `InjTypeFn` that users can rely on.
 /// 
 /// For any given `F: RevTypeFn<R> + RevTypeFn<S>` these hold:
 /// 
@@ -93,7 +93,7 @@ where
 /// 
 /// Disclaimer: this trait **does not** by itself ensure that a function is 
 /// [injective],
-/// since `RevTypeFn` can't know if `Self::Arg` is the only argument 
+/// since `RevTypeFn<Ret>` can't know if `Self::Arg` is the only argument 
 /// that could produce `Ret`.
 /// 
 /// # Example

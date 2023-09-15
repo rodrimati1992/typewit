@@ -17,6 +17,23 @@ pub fn assert_type_eq<T, Expected>(_: T, _: Expected) {
 }
 
 
+#[track_caller]
+pub fn assert_not_type<T, Unexpected>(_: T) {
+    assert_ne!(
+        std::any::type_name::<T>(),
+        std::any::type_name::<Unexpected>()
+    );
+}
+
+#[track_caller]
+pub fn assert_type_ne<T, Unexpected>(_: T, _: Unexpected) {
+    assert_ne!(
+        std::any::type_name::<T>(),
+        std::any::type_name::<Unexpected>()
+    );
+}
+
+
 pub struct AssertEq<L, R>(std::marker::PhantomData<(fn() -> L, fn() -> R)>)
 where
     L: ?Sized + Identity<Type = R>,
