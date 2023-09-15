@@ -2,9 +2,15 @@
 macro_rules! declare_type_cmp_helpers {($_:tt $type_cmp_ty:ident $tyfn:ident $callfn:ident) => {
     macro_rules! projected_type_cmp {
         ($type_cmp:expr, $L:ty, $R:ty, $F:ty) => ({
-            // safety: 
-            // This macro takes a `$type_cmp_ty<$L, $R>` value,
-            // which implies `$type_cmp_ty<$callfn<F, $L>, $callfn<F, $R>>`
+            // Safety(TypeEq): 
+            // this takes a `TypeEq<$L, $R>`,
+            // which implies `TypeEq<CallFn<$tyfn, $L>, CallFn<$tyfn, $R>>`.
+            //
+            // Safety(TypeNe): 
+            // this takes a `TypeNe<$L, $R>`,
+            // and requires `$tyfn: InjTypeFn<$L> + InjTypeFn<$R>`,
+            // (`InjTypeFn` guarantees that unequal arguments map to unequal return values),
+            // which implies `TypeNe<CallInjFn<$tyfn, $L>, CallInjFn<$tyfn, $R>>`.
             unsafe {
                 __ProjectVars::<$F, $L, $R> {
                     te: $type_cmp,

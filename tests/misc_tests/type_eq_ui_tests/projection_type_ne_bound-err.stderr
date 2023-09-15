@@ -1,0 +1,99 @@
+error[E0277]: the trait bound `Mapper: RevTypeFn<[L; 1]>` is not satisfied
+  --> tests/misc_tests/type_eq_ui_tests/projection_type_ne_bound-err.rs:10:12
+   |
+10 |     te.map(Mapper)
+   |        --- ^^^^^^ the trait `RevTypeFn<[L; 1]>` is not implemented for `Mapper`
+   |        |
+   |        required by a bound introduced by this call
+   |
+   = help: the following other types implement trait `RevTypeFn<Ret>`:
+             <FnRev<F> as RevTypeFn<R>>
+             <GRef<'a> as RevTypeFn<&'a T>>
+             <GRefMut<'a> as RevTypeFn<&'a mut T>>
+             <GBox as RevTypeFn<Box<T>>>
+             <FnIdentity as RevTypeFn<T>>
+             <Invoke<F> as RevTypeFn<R>>
+   = note: required for `Mapper` to implement `InjTypeFn<L>`
+note: required by a bound in `typewit::type_ne::extra_type_ne_methods::<impl TypeNe<L, R>>::map`
+  --> src/type_ne/extra_type_ne_methods.rs
+   |
+   |     pub const fn map<F>(
+   |                  --- required by a bound in this associated function
+...
+   |         InvokeAlias<F>: InjTypeFn<L> + InjTypeFn<R>
+   |                         ^^^^^^^^^^^^ required by this bound in `typewit::type_ne::extra_type_ne_methods::<impl TypeNe<L, R>>::map`
+
+error[E0277]: the trait bound `Mapper: RevTypeFn<[R; 1]>` is not satisfied
+  --> tests/misc_tests/type_eq_ui_tests/projection_type_ne_bound-err.rs:10:12
+   |
+10 |     te.map(Mapper)
+   |        --- ^^^^^^ the trait `RevTypeFn<[R; 1]>` is not implemented for `Mapper`
+   |        |
+   |        required by a bound introduced by this call
+   |
+   = help: the following other types implement trait `RevTypeFn<Ret>`:
+             <FnRev<F> as RevTypeFn<R>>
+             <GRef<'a> as RevTypeFn<&'a T>>
+             <GRefMut<'a> as RevTypeFn<&'a mut T>>
+             <GBox as RevTypeFn<Box<T>>>
+             <FnIdentity as RevTypeFn<T>>
+             <Invoke<F> as RevTypeFn<R>>
+   = note: required for `Mapper` to implement `InjTypeFn<R>`
+note: required by a bound in `typewit::type_ne::extra_type_ne_methods::<impl TypeNe<L, R>>::map`
+  --> src/type_ne/extra_type_ne_methods.rs
+   |
+   |     pub const fn map<F>(
+   |                  --- required by a bound in this associated function
+...
+   |         InvokeAlias<F>: InjTypeFn<L> + InjTypeFn<R>
+   |                                        ^^^^^^^^^^^^ required by this bound in `typewit::type_ne::extra_type_ne_methods::<impl TypeNe<L, R>>::map`
+
+error[E0277]: the trait bound `Mapper: RevTypeFn<[L; 1]>` is not satisfied
+  --> tests/misc_tests/type_eq_ui_tests/projection_type_ne_bound-err.rs:13:18
+   |
+13 |     te.project::<Mapper>()
+   |        -------   ^^^^^^ the trait `RevTypeFn<[L; 1]>` is not implemented for `Mapper`
+   |        |
+   |        required by a bound introduced by this call
+   |
+   = help: the following other types implement trait `RevTypeFn<Ret>`:
+             <FnRev<F> as RevTypeFn<R>>
+             <GRef<'a> as RevTypeFn<&'a T>>
+             <GRefMut<'a> as RevTypeFn<&'a mut T>>
+             <GBox as RevTypeFn<Box<T>>>
+             <FnIdentity as RevTypeFn<T>>
+             <Invoke<F> as RevTypeFn<R>>
+   = note: required for `Mapper` to implement `InjTypeFn<L>`
+note: required by a bound in `typewit::type_ne::extra_type_ne_methods::<impl TypeNe<L, R>>::project`
+  --> src/type_ne/extra_type_ne_methods.rs
+   |
+   |     pub const fn project<F>(
+   |                  ------- required by a bound in this associated function
+...
+   |         InvokeAlias<F>: InjTypeFn<L> + InjTypeFn<R>
+   |                         ^^^^^^^^^^^^ required by this bound in `typewit::type_ne::extra_type_ne_methods::<impl TypeNe<L, R>>::project`
+
+error[E0277]: the trait bound `Mapper: RevTypeFn<[R; 1]>` is not satisfied
+  --> tests/misc_tests/type_eq_ui_tests/projection_type_ne_bound-err.rs:13:18
+   |
+13 |     te.project::<Mapper>()
+   |        -------   ^^^^^^ the trait `RevTypeFn<[R; 1]>` is not implemented for `Mapper`
+   |        |
+   |        required by a bound introduced by this call
+   |
+   = help: the following other types implement trait `RevTypeFn<Ret>`:
+             <FnRev<F> as RevTypeFn<R>>
+             <GRef<'a> as RevTypeFn<&'a T>>
+             <GRefMut<'a> as RevTypeFn<&'a mut T>>
+             <GBox as RevTypeFn<Box<T>>>
+             <FnIdentity as RevTypeFn<T>>
+             <Invoke<F> as RevTypeFn<R>>
+   = note: required for `Mapper` to implement `InjTypeFn<R>`
+note: required by a bound in `typewit::type_ne::extra_type_ne_methods::<impl TypeNe<L, R>>::project`
+  --> src/type_ne/extra_type_ne_methods.rs
+   |
+   |     pub const fn project<F>(
+   |                  ------- required by a bound in this associated function
+...
+   |         InvokeAlias<F>: InjTypeFn<L> + InjTypeFn<R>
+   |                                        ^^^^^^^^^^^^ required by this bound in `typewit::type_ne::extra_type_ne_methods::<impl TypeNe<L, R>>::project`

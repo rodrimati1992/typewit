@@ -83,7 +83,7 @@ where
 /// 
 /// # Properties
 /// 
-/// These are properties about `InjTypeFn` that users can rely on.
+/// These are properties about `RevTypeFn` that users can rely on.
 /// 
 /// For any given `F: RevTypeFn<R> + RevTypeFn<O>` these hold:
 /// 

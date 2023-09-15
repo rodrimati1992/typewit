@@ -84,7 +84,6 @@ fn assert_type_eq_as_type_witness() {
 
 
 #[test]
-#[cfg(feature = "rust_1_61")]
 fn map_test() {
     assert_type_eq(TypeEq::new::<u8>().map(GRef::NEW), TypeEq::new::<&u8>());
     assert_type_eq(TypeEq::new::<u8>().map(GRefMut::NEW), TypeEq::new::<&mut u8>());
@@ -95,7 +94,6 @@ fn map_test() {
 }
 
 #[test]
-#[cfg(feature = "rust_1_61")]
 fn project_test() {
     #[derive(Debug, PartialEq)]
     struct Foo<T>(T);
