@@ -35,3 +35,44 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     }
 }
 
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
+impl<L0, R0> TypeNe<L0, R0> {
+    /// Combines two `TypeNe<L*, R*>` to produce a
+    /// `TypeNe<(L0, L1), (R0, R1)>`.
+    pub const fn zip<L1, R1>(
+        self: TypeNe<L0, R0>,
+        other: TypeNe<L1, R1>,
+    ) -> TypeNe<(L0, L1), (R0, R1)> {
+        zip_impl!{self[L0, R0], other[L1, R1]}
+    }
+
+    /// Combines three `TypeNe<L*, R*>` to produce a
+    /// `TypeNe<(L0, L1, L2), (R0, R1, R2)>`.
+    pub const fn zip3<L1, R1, L2, R2>(
+        self: TypeNe<L0, R0>,
+        other1: TypeNe<L1, R1>,
+        other2: TypeNe<L2, R2>,
+    ) -> TypeNe<(L0, L1, L2), (R0, R1, R2)> {
+        zip_impl!{
+            self[L0, R0],
+            other1[L1, R1],
+            other2[L2, R2],
+        }
+    }
+
+    /// Combines four `TypeNe<L*, R*>` to produce a
+    /// `TypeNe<(L0, L1, L2, L3), (R0, R1, R2, R3)>`.
+    pub const fn zip4<L1, R1, L2, R2, L3, R3>(
+        self: TypeNe<L0, R0>,
+        other1: TypeNe<L1, R1>,
+        other2: TypeNe<L2, R2>,
+        other3: TypeNe<L3, R3>,
+    ) -> TypeNe<(L0, L1, L2, L3), (R0, R1, R2, R3)> {
+        zip_impl!{
+            self[L0, R0],
+            other1[L1, R1],
+            other2[L2, R2],
+            other3[L3, R3],
+        }
+    }
+}
