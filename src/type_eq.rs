@@ -6,6 +6,9 @@ use crate::{
 #[cfg(feature = "const_marker")]
 use crate::const_marker::Usize;
 
+#[cfg(feature = "inj_type_fn")]
+use crate::{RevTypeFn, UncallFn};
+
 
 use core::{
     cmp::{Ordering, Eq, Ord, PartialEq, PartialOrd},
@@ -684,7 +687,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
         InvokeAlias<F>: crate::TypeFn<L> + crate::TypeFn<R>
     {
         core::mem::forget(func);
-        projected_type_eq!{self, L, R, InvokeAlias<F>}
+        projected_type_cmp!{self, L, R, F}
     }
 
     /// Maps the type arguments of this `TypeEq`
@@ -718,9 +721,105 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     where
         InvokeAlias<F>: crate::TypeFn<L> + crate::TypeFn<R>
     {
-        projected_type_eq!{self, L, R, InvokeAlias<F>}
+        projected_type_cmp!{self, L, R, F}
+    }
+}
+
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
+impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
+    /// Maps the type arguments of this `TypeEq`
+    /// by using the [reversed](crate::RevTypeFn) 
+    /// version of the `F` type-level function.
+    /// 
+    /// Use this function over [`unproject`](Self::unproject) 
+    /// if you want the type of the passed in function to be inferred.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeEq, UncallFn};
+    /// 
+    /// assert_eq!(first_int(&[3, 5, 8, 13], TypeEq::NEW), 3);
+    /// 
+    /// const fn first_int<T, const N: usize>(
+    ///     array: &[T; N],
+    ///     te_slice: TypeEq<[T], [u8]>,
+    /// ) -> u8 {
+    ///     let te: TypeEq<T, u8> = te_slice.unmap(Slice);
+    ///
+    ///     let te_ref: TypeEq<&T, &u8> = te.in_ref();
+    ///
+    ///     *te_ref.to_right(&array[0])
+    /// }
+    ///
+    /// typewit::inj_type_fn! {
+    ///     struct Slice;
+    /// 
+    ///     impl<T> T => [T]
+    /// }
+    /// ```
+    pub const fn unmap<F>(
+        self,
+        func: F,
+    ) -> TypeEq<UncallFn<InvokeAlias<F>, L>, UncallFn<InvokeAlias<F>, R>>
+    where
+        InvokeAlias<F>: crate::RevTypeFn<L> + crate::RevTypeFn<R>
+    {
+        core::mem::forget(func);
+        
+        unprojected_type_cmp!{self, L, R, F}
     }
 
+    /// Maps the type arguments of this `TypeEq`
+    /// by using the [reversed](crate::RevTypeFn) 
+    /// version of the `F` type-level function.
+    /// 
+    /// Use this function over [`unmap`](Self::unmap) 
+    /// if you want to specify the type of the passed in function explicitly.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::TypeEq;
+    /// use std::ops::{Range, RangeInclusive as RangeInc};
+    /// 
+    /// assert_eq!(usize_bounds(3..=5, TypeEq::NEW), (3, 5));
+    /// 
+    /// const fn usize_bounds<T>(
+    ///     range: RangeInc<T>,
+    ///     te_range: TypeEq<Range<T>, Range<usize>>,
+    /// ) -> (usize, usize) {
+    ///     let te: TypeEq<T, usize> = te_range.unproject::<RangeFn>();
+    ///     
+    ///     let te_range_inc: TypeEq<RangeInc<T>, RangeInc<usize>> = te.project::<RangeIncFn>();
+    ///     
+    ///     let range: RangeInc<usize> = te_range_inc.to_right(range);
+    ///     
+    ///     (*range.start(), *range.end())
+    /// }
+    /// 
+    /// typewit::inj_type_fn! {
+    ///     struct RangeFn;
+    /// 
+    ///     impl<T> T => Range<T>
+    /// }
+    /// typewit::inj_type_fn! {
+    ///     struct RangeIncFn;
+    /// 
+    ///     impl<T> T => RangeInc<T>
+    /// }
+    /// ```
+    pub const fn unproject<F>(
+        self,
+    ) -> TypeEq<UncallFn<InvokeAlias<F>, L>, UncallFn<InvokeAlias<F>, R>>
+    where
+        InvokeAlias<F>: crate::RevTypeFn<L> + crate::RevTypeFn<R>
+    {
+        unprojected_type_cmp!{self, L, R, F}
+    }
+}
+
+impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// Converts a `TypeEq<L, R>` to `TypeEq<&L, &R>`
     /// 
     /// # Example
@@ -757,7 +856,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// ```
     /// 
     pub const fn in_ref<'a>(self) -> TypeEq<&'a L, &'a R> {
-        projected_type_eq!{self, L, R, type_fn::GRef<'a>}
+        projected_type_cmp!{self, L, R, type_fn::GRef<'a>}
     }
 
     crate::utils::conditionally_const!{
@@ -807,7 +906,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
         /// ```
         /// 
         pub fn in_mut['a](self) -> TypeEq<&'a mut L, &'a mut R> {
-            projected_type_eq!{self, L, R, type_fn::GRefMut<'a>}
+            projected_type_cmp!{self, L, R, type_fn::GRefMut<'a>}
         }
     }
 
@@ -852,7 +951,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     #[cfg(feature = "alloc")]
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "alloc")))]
     pub const fn in_box(self) -> TypeEq<Box<L>, Box<R>> {
-        projected_type_eq!{self, L, R, type_fn::GBox}
+        projected_type_cmp!{self, L, R, type_fn::GBox}
     }
 }
 

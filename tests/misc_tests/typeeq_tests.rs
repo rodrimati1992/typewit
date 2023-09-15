@@ -1,6 +1,5 @@
 use typewit::{HasTypeWitness, MakeTypeWitness, TypeEq};
 
-#[cfg(feature = "rust_1_61")]
 use typewit::type_fn::{GRef, GRefMut, TypeFn};
 
 use crate::misc_tests::test_utils::{assert_type, assert_type_eq};
@@ -113,6 +112,40 @@ fn project_test() {
         te.project::<FooFn>().to_right(x)
     }
     assert_eq!(te_map(TypeEq::new::<u8>(), Foo(8u8)), Foo(8u8));
+}
+
+#[test]
+#[cfg(feature = "inj_type_fn")]
+fn unmap_test() {
+    assert_type_eq(TypeEq::new::<&u8>().unmap(GRef::NEW), TypeEq::new::<u8>());
+    assert_type_eq(TypeEq::new::<&mut u16>().unmap(GRefMut::NEW), TypeEq::new::<u16>());
+    const fn te_unmap<'a, T>(te: TypeEq<&'a T, &'a u32>, x: T) -> u32 {
+        te.unmap(GRef::NEW).to_right(x)
+    }
+    assert_eq!(te_unmap(TypeEq::new::<&u32>(), 8), 8u32);
+}
+
+#[test]
+#[cfg(feature = "inj_type_fn")]
+fn unproject_test() {
+    #[derive(Debug, PartialEq)]
+    struct Foo<T>(T);
+
+    struct FooFn;
+    impl<T> TypeFn<T> for FooFn {
+        type Output = Foo<T>;
+    }
+    impl<T> typewit::RevTypeFn<Foo<T>> for FooFn {
+        type Arg = T;
+    }
+
+
+    assert_type_eq(TypeEq::new::<&u8>().unproject::<GRef<'_>>(), TypeEq::new::<u8>());
+    assert_type_eq(TypeEq::new::<&mut u16>().unproject::<GRefMut<'_>>(), TypeEq::new::<u16>());
+    const fn te_unmap<'a, T>(te: TypeEq<Foo<T>, Foo<u8>>, x: T) -> u8 {
+        te.unproject::<FooFn>().to_right(x)
+    }
+    assert_eq!(te_unmap(TypeEq::new::<Foo<u8>>(), 8u8), 8u8);
 }
 
 #[test]

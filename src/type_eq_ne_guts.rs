@@ -1,8 +1,6 @@
 // $type_cmp is either TypeEq or TypeNe
 macro_rules! declare_type_cmp_helpers {($_:tt $type_cmp_ty:ident $tyfn:ident $callfn:ident) => {
-    macro_rules! projected_type_eq {
-        // Since `$L` and `$R` are used only once
-        // it's safe to declare them as `:ty` (safe against malicious type macros).
+    macro_rules! projected_type_cmp {
         ($type_cmp:expr, $L:ty, $R:ty, $F:ty) => ({
             // safety: 
             // This macro takes a `$type_cmp_ty<$L, $R>` value,
@@ -26,6 +24,40 @@ macro_rules! declare_type_cmp_helpers {($_:tt $type_cmp_ty:ident $tyfn:ident $ca
         //         $type_cmp_ty<L, R> 
         // implies $type_cmp_ty<$callfn<F, L>, $callfn<F, R>>
         projected_te: $type_cmp_ty<$callfn<InvokeAlias<F>, L>, $callfn<InvokeAlias<F>, R>>,
+    }
+
+    #[cfg(feature = "inj_type_fn")]
+    macro_rules! unprojected_type_cmp {
+        ($type_cmp:expr, $L:ty, $R:ty, $F:ty) => ({
+            // safety: 
+            // This macro takes a `$type_cmp_ty<$L, $R>` value,
+            // which implies `$type_cmp_ty<UncallFn<F, $L>, UncallFn<F, $R>>`
+            //  
+            // The properties section of RevTypeFn guarantees this for 
+            // both TypeEq and TypeNe
+            unsafe {
+                __UnprojectVars::<$F, $L, $R> {
+                    te: $type_cmp,
+                    unprojected_te: $type_cmp_ty::new_unchecked(),
+                }.unprojected_te
+            }
+        })
+    }
+
+    #[cfg(feature = "inj_type_fn")]
+    struct __UnprojectVars<F, L: ?Sized, R: ?Sized> 
+    where
+        InvokeAlias<F>: crate::RevTypeFn<L> + crate::RevTypeFn<R>
+    {
+        #[allow(dead_code)]
+        te: $type_cmp_ty<L, R>,
+
+        //         $type_cmp_ty<L, R> 
+        // implies $type_cmp_ty<UncallFn<F, L>, UncallFn<F, R>>
+        //  
+        // The properties section of RevTypeFn guarantees this for 
+        // both TypeEq and TypeNe
+        unprojected_te: $type_cmp_ty<UncallFn<InvokeAlias<F>, L>, UncallFn<InvokeAlias<F>, R>>,
     }
 
 

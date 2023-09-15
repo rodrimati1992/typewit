@@ -85,11 +85,11 @@ where
 /// 
 /// These are properties about `InjTypeFn` that users can rely on.
 /// 
-/// For any given `F: RevTypeFn<R> + RevTypeFn<S>` these hold:
+/// For any given `F: RevTypeFn<R> + RevTypeFn<O>` these hold:
 /// 
-/// 1. If `R == S`, then `UncallFn<F, R> == UncallFn<F, S>`
+/// 1. If `R == O`, then `UncallFn<F, R> == UncallFn<F, O>`
 /// 
-/// 2. If `R != S`, then `UncallFn<F, R> != UncallFn<F, S>`
+/// 2. If `R != O`, then `UncallFn<F, R> != UncallFn<F, O>`
 /// 
 /// Disclaimer: this trait **does not** by itself ensure that a function is 
 /// [injective],

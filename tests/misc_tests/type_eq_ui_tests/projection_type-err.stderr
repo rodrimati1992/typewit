@@ -107,23 +107,45 @@ error[E0308]: mismatched types
               found struct `TypeEq<[L; 1], [R; 1]>`
 
 error[E0308]: mismatched types
-  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:44:5
+  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:30:5
    |
-41 | fn in_array_to_different_type<'a, L, R>(
+29 | fn unmap_to_different_type<'a, L, R>(te: TypeEq<[L; 1], [R; 1]>) -> TypeEq<u8, u16> {
+   |                                - this type parameter                --------------- expected `TypeEq<u8, u16>` because of return type
+30 |     te.unmap(Mapper)
+   |     ^^^^^^^^^^^^^^^^ expected `TypeEq<u8, u16>`, found `TypeEq<L, R>`
+   |
+   = note: expected struct `TypeEq<u8, u16>`
+              found struct `TypeEq<L, R>`
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:33:5
+   |
+32 | fn unproject_to_different_type<'a, L, R>(te: TypeEq<[L; 1], [R; 1]>) -> TypeEq<u8, u16> {
+   |                                    - this type parameter                --------------- expected `TypeEq<u8, u16>` because of return type
+33 |     te.unproject::<Mapper>()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^ expected `TypeEq<u8, u16>`, found `TypeEq<L, R>`
+   |
+   = note: expected struct `TypeEq<u8, u16>`
+              found struct `TypeEq<L, R>`
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:53:5
+   |
+50 | fn in_array_to_different_type<'a, L, R>(
    |                                   - this type parameter
-42 |     te: TypeEq<L, R>
-43 | ) -> TypeEq<[u8; 1], [u16; 1]> {
+51 |     te: TypeEq<L, R>
+52 | ) -> TypeEq<[u8; 1], [u16; 1]> {
    |      ------------------------- expected `TypeEq<[u8; 1], [u16; 1]>` because of return type
-44 |     te.in_array(TypeEq::new::<Usize<1>>())
+53 |     te.in_array(TypeEq::new::<Usize<1>>())
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `TypeEq<[u8; 1], [u16; 1]>`, found `TypeEq<[L; 1], [R; 1]>`
    |
    = note: expected struct `TypeEq<[u8; 1], [u16; 1]>`
               found struct `TypeEq<[L; 1], [R; 1]>`
 
 error[E0308]: mismatched types
-  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:52:17
+  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:61:17
    |
-52 |     te.in_array(te_len)
+61 |     te.in_array(te_len)
    |        -------- ^^^^^^ expected `1`, found `A`
    |        |
    |        arguments to this method are incorrect
