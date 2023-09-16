@@ -386,7 +386,15 @@ These are the features of this crates:
 - `"alloc"`: enable items that use anything from the standard `alloc` crate.
 
 - `"const_marker"`(enabled by default): enables the [`const_marker`] module,
+the `"cmp"` crate feature,
 and all items that depend on it.
+
+- `"cmp"`(enabled by default): enables the [`TypeCmp`] type.
+
+- `"inj_type_fn"`(enabled by default): 
+Enables `type_fn::{CallInjFn, FnRev, InjTypeFn, RevTypeFn, UncallFn}`,
+[`TypeEq`]`::{unmap, unproject}`, 
+and all [`TypeNe`] functions that project its type arguments.
 
 - `"adt_const_marker"`(requires the nightly compiler):
 enables the `"rust_stable"` and `"const_marker"` crate features,
@@ -421,6 +429,8 @@ need to be explicitly enabled with crate features.
 
 
 
+[`TypeCmp`]: https://docs.rs/typewit/latest/typewit/enum.TypeCmp.html
 [`TypeEq`]: https://docs.rs/typewit/latest/typewit/struct.TypeEq.html
+[`TypeNe`]: https://docs.rs/typewit/latest/typewit/struct.TypeEq.html
 [`TypeFn`]: https://docs.rs/typewit/latest/typewit/type_fn/trait.TypeFn.html
 [`const_marker`]: https://docs.rs/typewit/latest/typewit/const_marker/index.html

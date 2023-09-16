@@ -385,7 +385,15 @@
 //! - `"alloc"`: enable items that use anything from the standard `alloc` crate.
 //! 
 //! - `"const_marker"`(enabled by default): enables the [`const_marker`] module,
+//! the `"cmp"` crate feature,
 //! and all items that depend on it.
+//! 
+//! - `"cmp"`(enabled by default): enables the [`TypeCmp`] type.
+//! 
+//! - `"inj_type_fn"`(enabled by default): 
+//! Enables `type_fn::{CallInjFn, FnRev, InjTypeFn, RevTypeFn, UncallFn}`,
+//! [`TypeEq`]`::{unmap, unproject}`, 
+//! and all [`TypeNe`] functions that project its type arguments.
 //! 
 //! - `"adt_const_marker"`(requires the nightly compiler):
 //! enables the `"rust_stable"` and `"const_marker"` crate features,
@@ -417,7 +425,9 @@
 //! 
 //! 
 //! 
+//! [`TypeCmp`]: crate::TypeCmp
 //! [`TypeEq`]: crate::TypeEq
+//! [`TypeNe`]: crate::TypeNe
 //! [`TypeFn`]: crate::type_fn::TypeFn
 //! [`const_marker`]: crate::const_marker
 #![no_std]
@@ -455,6 +465,10 @@ mod all_init_bytes;
 
 mod utils;
 mod macros;
+
+#[cfg(feature = "cmp")]
+mod type_cmp;
+
 mod type_eq;
 mod type_eq_ne_guts;
 mod type_identity;
@@ -467,6 +481,10 @@ pub use crate::{
     type_witness_traits::*,
     type_identity::Identity,
 };
+
+
+#[cfg(feature = "cmp")]
+pub use crate::type_cmp::TypeCmp;
 
 #[doc(no_inline)]
 pub use crate::type_fn::{CallFn, TypeFn};

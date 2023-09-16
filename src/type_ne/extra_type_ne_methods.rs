@@ -2,10 +2,7 @@
 use alloc::boxed::Box;
 
 
-use crate::{
-    type_fn::{InjTypeFn, InvokeAlias, CallInjFn, UncallFn},
-    TypeNe,
-};
+use crate::type_fn::{InjTypeFn, InvokeAlias, CallInjFn, UncallFn};
 
 #[cfg(feature = "const_marker")]
 use crate::const_marker::Usize;
@@ -99,7 +96,7 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     }
 }
 
-
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     /// Converts a `TypeNe<L, R>` to `TypeNe<&L, &R>`
     pub const fn in_ref<'a>(self) -> TypeNe<&'a L, &'a R> {

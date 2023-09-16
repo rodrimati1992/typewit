@@ -131,8 +131,10 @@ impl<L0, R0> TypeNe<L0, R0> {
 
 
 
+// using this instead of `mod extra_type_ne_methods;`
+// to document the impls in the submodule below the constructors.
 #[cfg(feature = "inj_type_fn")]
-mod extra_type_ne_methods;
+include!{"./type_ne/extra_type_ne_methods.rs"}
 
 
 
