@@ -136,3 +136,22 @@ macro_rules! declare_helpers {($_:tt $type_cmp_ty:ident $tyfn:ident $callfn:iden
 }} pub(crate) use declare_helpers;
 
 
+
+#[cfg(feature = "const_marker")]
+mod uses_const_marker {
+    use crate::const_marker::Usize;
+
+    pub(crate) struct PairToArray;
+
+    impl<T, const N: usize> crate::TypeFn<(T, Usize<N>)> for PairToArray {
+        type Output = [T; N];
+    }
+
+    #[cfg(feature = "inj_type_fn")]
+    impl<T, const N: usize> crate::RevTypeFn<[T; N]> for PairToArray {
+        type Arg = (T, Usize<N>);
+    }
+} 
+
+#[cfg(feature = "const_marker")]
+pub(crate) use uses_const_marker::*;

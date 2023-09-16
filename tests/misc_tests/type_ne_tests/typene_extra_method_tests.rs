@@ -71,3 +71,39 @@ fn unproject_test() {
     }
     assert_eq!(typene::<Foo<u8>, Foo<u16>>().unproject::<FooFn>(), typene::<u8, u16>());
 }
+
+
+
+
+#[test]
+fn in_ref_test() {
+    assert_type::<_, TypeNe<&u8, &u16>>(typene::<u8, u16>().in_ref());
+}
+
+#[test]
+fn in_mut_test() {
+    assert_type::<_, TypeNe<&mut u8, &mut u16>>(typene::<u8, u16>().in_mut());
+
+    #[cfg(feature = "mut_refs")]
+    {
+        const fn in_mut<T>(te: TypeNe<T, u8>) {
+            let _: TypeNe<&mut T, &mut u8> = te.in_mut();
+        }
+    }
+}
+
+#[cfg(feature = "alloc")]
+#[test]
+fn in_box_test() {    
+    assert_type::<_, TypeNe<Box<u8>, Box<u16>>>(typene::<u8, u16>().in_box());
+}
+
+
+#[cfg(feature = "const_marker")]
+#[test]
+fn test_in_array() {
+    use typewit::const_marker::Usize;
+
+    let ne = typene::<u8, u16>().in_array(Usize::<1>.eq(Usize::<2>).unwrap_err());
+    assert_type::<_, TypeNe<[u8; 1], [u16; 2]>>(ne);
+}

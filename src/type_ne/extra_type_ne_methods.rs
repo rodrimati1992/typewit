@@ -1,8 +1,15 @@
+#[cfg(feature = "alloc")]
+use alloc::boxed::Box;
+
+
 use crate::{
     type_fn::{InjTypeFn, InvokeAlias, CallInjFn, UncallFn},
-    TypeEq,
     TypeNe,
 };
+
+#[cfg(feature = "const_marker")]
+use crate::const_marker::Usize;
+
 
 crate::type_eq_ne_guts::declare_helpers!{
     $
@@ -89,5 +96,63 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
         InvokeAlias<F>: crate::RevTypeFn<L> + crate::RevTypeFn<R>
     {
         unprojected_type_cmp!{self, L, R, F}
+    }
+}
+
+
+impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
+    /// Converts a `TypeNe<L, R>` to `TypeNe<&L, &R>`
+    pub const fn in_ref<'a>(self) -> TypeNe<&'a L, &'a R> {
+        projected_type_cmp!{self, L, R, crate::type_fn::GRef<'a>}
+    }
+
+    crate::utils::conditionally_const!{
+        feature = "mut_refs";
+
+        /// Converts a `TypeNe<L, R>` to `TypeNe<&mut L, &mut R>`
+        /// 
+        /// # Constness
+        /// 
+        /// This requires either of the `"mut_refs"` or `"const_mut_refs"` 
+        /// crate features to be enabled to be a `const fn`.
+        /// 
+        pub fn in_mut['a](self) -> TypeNe<&'a mut L, &'a mut R> {
+            projected_type_cmp!{self, L, R, crate::type_fn::GRefMut<'a>}
+        }
+    }
+
+    /// Converts a `TypeNe<L, R>` to `TypeNe<Box<L>, Box<R>>`
+    #[cfg(feature = "alloc")]
+    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "alloc")))]
+    pub const fn in_box(self) -> TypeNe<Box<L>, Box<R>> {
+        projected_type_cmp!{self, L, R, crate::type_fn::GBox}
+    }
+}
+
+#[cfg(feature = "const_marker")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "const_marker")))]
+impl<L: Sized, R: Sized> TypeNe<L, R> {
+    /// Combines `TypeNe<L, R>` and `TypeNe<Usize<UL>, Usize<UR>>`
+    /// into `TypeNe<[L; UL], [R; UR]>`
+    /// 
+    /// # Note
+    /// 
+    /// This method is only necessary when both the element type and the length
+    /// must be different. 
+    /// 
+    /// When only one of the element type or the length needs to be different, 
+    /// you can [`.project`](Self::project) the `TypeNe` to have array arguments with a 
+    /// custom [`InjTypeFn`].
+    pub const fn in_array<const UL: usize, const UR: usize>(
+        self,
+        other: TypeNe<Usize<UL>, Usize<UR>>,
+    ) -> TypeNe<[L; UL], [R; UR]> {
+        zip_project!{
+            self,
+            other,
+            crate::type_eq_ne_guts::PairToArray,
+            (L, R),
+            (Usize<UL>, Usize<UR>),
+        }
     }
 }

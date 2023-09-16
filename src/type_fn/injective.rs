@@ -19,7 +19,7 @@ use core::marker::PhantomData;
 /// 
 /// For any given `F: InjTypeFn<A> + InjTypeFn<B>` these hold:
 /// 
-/// 1. If `À != B`, then `CallInjFn<F, A> != CallInjFn<F, B>`.
+/// 1. If `A != B`, then `CallInjFn<F, A> != CallInjFn<F, B>`.
 /// 
 /// # Example
 /// 

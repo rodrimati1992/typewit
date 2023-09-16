@@ -768,7 +768,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
         func: F,
     ) -> TypeEq<UncallFn<InvokeAlias<F>, L>, UncallFn<InvokeAlias<F>, R>>
     where
-        InvokeAlias<F>: crate::RevTypeFn<L> + crate::RevTypeFn<R>
+        InvokeAlias<F>: RevTypeFn<L> + RevTypeFn<R>
     {
         core::mem::forget(func);
         
@@ -1041,16 +1041,10 @@ impl<L: Sized, R: Sized> TypeEq<L, R> {
         self,
         other: TypeEq<Usize<UL>, Usize<UR>>,
     ) -> TypeEq<[L; UL], [R; UR]> {
-        struct PairToArray;
-
-        impl<T, const N: usize> TypeFn<(T, Usize<N>)> for PairToArray {
-            type Output = [T; N];
-        }
-
         zip_project!{
             self,
             other,
-            PairToArray,
+            crate::type_eq_ne_guts::PairToArray,
             (L, R),
             (Usize<UL>, Usize<UR>),
         }

@@ -121,7 +121,7 @@ pub(crate) use simple_inj_type_fn;
 /// For any given `F: TypeFn<A> + TypeFn<B>` these hold:
 /// 
 /// 1. If `A == B`, then `CallFn<F, A> == CallFn<F, B>`.
-/// 2. If `CallFn<F, A> != CallFn<F, B>`, then `À != B`. 
+/// 2. If `CallFn<F, A> != CallFn<F, B>`, then `A != B`. 
 /// 
 /// # Examples
 /// 
