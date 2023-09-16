@@ -37,8 +37,8 @@ error[E0308]: mismatched types
 note: method defined here
  --> src/type_eq.rs
   |
-  |         pub const fn join<O: ?Sized>(self: TypeEq<L, R>, _other: TypeEq<R, O>) -> TypeEq<L, O> {
-  |                      ^^^^
+  |     pub const fn join<O: ?Sized>(self: TypeEq<L, R>, _other: TypeEq<R, O>) -> TypeEq<L, O> {
+  |                  ^^^^
 
 error[E0308]: mismatched types
   --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:12:24
@@ -59,8 +59,8 @@ error[E0308]: mismatched types
 note: method defined here
   --> src/type_eq.rs
    |
-   |         pub const fn join<O: ?Sized>(self: TypeEq<L, R>, _other: TypeEq<R, O>) -> TypeEq<L, O> {
-   |                      ^^^^
+   |     pub const fn join<O: ?Sized>(self: TypeEq<L, R>, _other: TypeEq<R, O>) -> TypeEq<L, O> {
+   |                  ^^^^
 
 error[E0308]: mismatched types
   --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:16:5

@@ -19,6 +19,14 @@ fn to_left_to_right() {
 }
 
 #[test]
+fn with_any_test() {
+    assert!(TypeEq::<u32, i32>::with_any().is_none());
+    
+    let _: TypeEq<u32, u32> = TypeEq::<u32, u32>::with_any().unwrap();
+    let _: TypeEq<i32, i32> = TypeEq::<i32, i32>::with_any().unwrap();
+}
+
+#[test]
 fn flip_method() {
     fn flipper<L, R>(te: TypeEq<L, R>) {
         assert_type_eq(te.flip(), te);

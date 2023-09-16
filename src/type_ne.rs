@@ -1,4 +1,5 @@
 use core::{
+    any::{Any, TypeId},
     cmp::{Ordering, Eq, Ord, PartialEq, PartialOrd},
     hash::{Hash, Hasher},
     fmt::{self, Debug},
@@ -46,6 +47,20 @@ mod type_ne_ {
 
 
 impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
+    /// Constructs `TypeNe<L, R>` if `L != R`, otherwise returns None.
+    pub fn with_any() -> Option<Self>
+    where
+        L: Sized + Any,
+        R: Sized + Any,
+    {
+        if TypeId::of::<L>() != TypeId::of::<R>() {
+            // SAFETY: the two TypeIds compare unequal, so L != R
+            unsafe { Some(TypeNe::new_unchecked()) }
+        } else {
+            None
+        }
+    }
+
     /// Swaps the type arguments of this `TypeNe`
     pub const fn flip(self: TypeNe<L, R>) -> TypeNe<R, L> {
         // SAFETY: type inequality is commutative

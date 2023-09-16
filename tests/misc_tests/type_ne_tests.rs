@@ -18,6 +18,15 @@ const fn typene<L, R>() -> TypeNe<L, R> {
     }
 }
 
+
+#[test]
+fn with_any_test() {
+    assert!(TypeNe::<u32, u32>::with_any().is_none());
+    assert!(TypeNe::<i32, i32>::with_any().is_none());
+    
+    let _: TypeNe<u32, i32> = TypeNe::<u32, i32>::with_any().unwrap();
+}
+
 #[test]
 fn flip_method() {
     fn flipper<L, R>(te: TypeNe<L, R>) {

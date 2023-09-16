@@ -135,11 +135,13 @@ pub const fn type_eq<T: ?Sized>() -> TypeEq<T, T> {
 }
 
 
-
 // Declaring `TypeEq` in a submodule to prevent "safely" constructing `TypeEq` with
 // two different type arguments in the `crate::type_eq` module.
 mod type_eq_ {
-    use core::marker::PhantomData;
+    use core::{
+        any::{Any, TypeId},
+        marker::PhantomData,
+    };
 
     /// Value-level proof that `L` is the same type as `R`
     ///
@@ -296,6 +298,50 @@ mod type_eq_ {
     }
 
     impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
+        /// Constructs `TypeEq<L, R>` if `L == R`, otherwise returns None.
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// use typewit::TypeEq;
+        /// 
+        /// use std::any::Any;
+        /// 
+        /// assert_eq!(sum_u32s(&[3u32, 5, 8]), Some(16));
+        /// assert_eq!(sum_u32s(&[3i32, 5, 8]), None);
+        /// 
+        /// 
+        /// fn sum_u32s<T: Clone + Any>(foo: &[T]) -> Option<u32> {
+        ///     downcast_slice::<T, u32>(foo)
+        ///         .map(|foo: &[u32]| foo.iter().copied().sum())
+        /// }
+        /// 
+        /// fn downcast_slice<T: Any, U: Any>(foo: &[T]) -> Option<&[U]> {
+        ///     struct Slice;
+        ///     impl<T> typewit::TypeFn<T> for Slice {
+        ///         type Output = [T];
+        ///     }
+        /// 
+        ///     TypeEq::<T, U>::with_any().map(|te: TypeEq<T, U>|{
+        ///         te.map(Slice) // TypeEq<[T], [U]>
+        ///           .in_ref()   // TypeEq<&[T]>, &[U]>
+        ///           .to_right(foo) // identity cast from `&[T]` to `&[U]`
+        ///     })
+        /// }
+        /// ```
+        pub fn with_any() -> Option<Self>
+        where
+            L: Sized + Any,
+            R: Sized + Any,
+        {
+            if TypeId::of::<L>() == TypeId::of::<R>() {
+                // SAFETY: the two TypeIds compare equal, so L == R
+                unsafe { Some(TypeEq::new_unchecked()) }
+            } else {
+                None
+            }
+        }
+
         /// Constructs a `TypeEq<L, R>`.
         ///
         /// # Safety
@@ -334,58 +380,6 @@ mod type_eq_ {
         pub const unsafe fn new_unchecked() -> TypeEq<L, R> {
             TypeEq(PhantomData)
         }
-
-        /// Swaps the type parameters of this `TypeEq`
-        /// 
-        /// # Example
-        /// 
-        /// ```rust
-        /// use typewit::TypeEq;
-        /// 
-        /// assert_eq!(flip_bytes([3, 5], TypeEq::NEW), [5, 3]);
-        /// 
-        /// const fn flip_bytes<T>(val: T, te: TypeEq<T, [u8; 2]>) -> T {
-        ///     bar(val, te.flip())
-        /// }
-        /// const fn bar<T>(val: T, te: TypeEq<[u8; 2], T>) -> T {
-        ///     let [l, r] = te.to_left(val);
-        ///     te.to_right([r, l])
-        /// }
-        /// ```
-        /// 
-        #[inline(always)]
-        pub const fn flip(self: TypeEq<L, R>) -> TypeEq<R, L> {
-            TypeEq(PhantomData)
-        }
-
-        /// Joins this `TypeEq<L, R>` with a `TypeEq<R, O>`, producing a `TypeEq<L, O>`.
-        /// 
-        /// The returned `TypeEq` can then be used to coerce between `L` and `O`.
-        /// 
-        /// # Example
-        /// 
-        /// ```rust
-        /// use typewit::TypeEq;
-        /// 
-        /// assert_eq!(foo(TypeEq::NEW, TypeEq::NEW, Some(3)), Some(3));
-        /// assert_eq!(foo(TypeEq::NEW, TypeEq::NEW, None), None);
-        /// 
-        /// 
-        /// fn foo<L, X>(
-        ///     this: TypeEq<L, Option<X>>,
-        ///     that: TypeEq<Option<X>, Option<u32>>,
-        ///     value: Option<u32>,
-        /// ) -> L {
-        ///     let te: TypeEq<L, Option<u32>> = this.join(that);
-        ///     te.to_left(value)
-        /// }
-        /// 
-        /// ```
-        /// 
-        #[inline(always)]
-        pub const fn join<O: ?Sized>(self: TypeEq<L, R>, _other: TypeEq<R, O>) -> TypeEq<L, O> {
-            TypeEq(PhantomData)
-        }
     }
 }
 pub use type_eq_::TypeEq;
@@ -395,6 +389,62 @@ impl<L: ?Sized, R: ?Sized> Copy for TypeEq<L, R> {}
 impl<L: ?Sized, R: ?Sized> Clone for TypeEq<L, R> {
     fn clone(&self) -> Self {
         *self
+    }
+}
+
+impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
+    /// Swaps the type parameters of this `TypeEq`
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::TypeEq;
+    /// 
+    /// assert_eq!(flip_bytes([3, 5], TypeEq::NEW), [5, 3]);
+    /// 
+    /// const fn flip_bytes<T>(val: T, te: TypeEq<T, [u8; 2]>) -> T {
+    ///     bar(val, te.flip())
+    /// }
+    /// const fn bar<T>(val: T, te: TypeEq<[u8; 2], T>) -> T {
+    ///     let [l, r] = te.to_left(val);
+    ///     te.to_right([r, l])
+    /// }
+    /// ```
+    /// 
+    #[inline(always)]
+    pub const fn flip(self: TypeEq<L, R>) -> TypeEq<R, L> {
+        // SAFETY: L == R implies R == L
+        unsafe { TypeEq::new_unchecked() }
+    }
+
+    /// Joins this `TypeEq<L, R>` with a `TypeEq<R, O>`, producing a `TypeEq<L, O>`.
+    /// 
+    /// The returned `TypeEq` can then be used to coerce between `L` and `O`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::TypeEq;
+    /// 
+    /// assert_eq!(foo(TypeEq::NEW, TypeEq::NEW, Some(3)), Some(3));
+    /// assert_eq!(foo(TypeEq::NEW, TypeEq::NEW, None), None);
+    /// 
+    /// 
+    /// fn foo<L, X>(
+    ///     this: TypeEq<L, Option<X>>,
+    ///     that: TypeEq<Option<X>, Option<u32>>,
+    ///     value: Option<u32>,
+    /// ) -> L {
+    ///     let te: TypeEq<L, Option<u32>> = this.join(that);
+    ///     te.to_left(value)
+    /// }
+    /// 
+    /// ```
+    /// 
+    #[inline(always)]
+    pub const fn join<O: ?Sized>(self: TypeEq<L, R>, _other: TypeEq<R, O>) -> TypeEq<L, O> {
+        // SAFETY: (L == R, R == O) implies L == O
+        unsafe { TypeEq::new_unchecked() }
     }
 }
 
