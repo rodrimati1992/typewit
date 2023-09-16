@@ -1,10 +1,13 @@
 use typewit::{TypeEq, TypeNe};
-use typewit::type_fn::{GRef, GRefMut, TypeFn};
 
-use crate::misc_tests::test_utils::{assert_not_type, assert_type, assert_type_ne};
+use crate::misc_tests::test_utils::{assert_type, assert_type_ne};
 
 use std::mem::{align_of, size_of};
 
+mod typene_extra_method_tests;
+
+
+#[track_caller]
 const fn typene<L, R>() -> TypeNe<L, R> {
     assert!(size_of::<L>() != size_of::<R>() || align_of::<L>() != align_of::<R>());
 
@@ -41,33 +44,6 @@ fn join_right_method() {
     }
     joiner(typene::<u8, u16>(), TypeEq::NEW);
 }
-
-
-#[test]
-fn map_test() {
-    assert_type::<_, TypeNe<&u8, &u16>>(typene::<u8, u16>().map(GRef::NEW));
-    assert_type::<_, TypeNe<&mut u8, &mut u16>>(typene::<u8, u16>().map(GRefMut::NEW));
-}
-
-#[test]
-fn project_test() {
-    #[derive(Debug, PartialEq)]
-    struct Foo<T>(T);
-
-    struct FooFn;
-    impl<T> TypeFn<T> for FooFn {
-        type Output = Foo<T>;
-    }
-    impl<T> typewit::RevTypeFn<Foo<T>> for FooFn {
-        type Arg = T;
-    }
-
-
-    assert_type::<_, TypeNe<&u8, &u16>>(typene::<u8, u16>().project::<GRef<'_>>());
-    assert_type::<_, TypeNe<&mut u8, &mut u16>>(typene::<u8, u16>().project::<GRefMut<'_>>());
-    assert_type::<_, TypeNe<Foo<u8>, Foo<u16>>>(typene::<u8, u16>().project::<FooFn>());
-}
-
 
 
 #[test]

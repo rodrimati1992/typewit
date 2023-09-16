@@ -17,8 +17,7 @@ mod misc_tests {
     #[cfg(feature = "inj_type_fn")]
     mod inj_type_fn_macro_tests;
     
-    #[cfg(feature = "inj_type_fn")]
-    mod typene_extra_method_tests;
+    mod type_ne_tests;
     
     mod type_identity;
 }

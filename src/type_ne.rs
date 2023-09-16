@@ -53,7 +53,7 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     }
 
     /// Joins a proof of `L != R` with a proof of `J == L`,
-    /// creating a proof of `J != R.`
+    /// creating a proof of `J != R`.
     pub const fn join_left<J: ?Sized>(self: TypeNe<L, R>, _eq: TypeEq<J, L>) -> TypeNe<J, R> {
         // SAFETY: (L != R, J == L) implies J != R
         unsafe { TypeNe::<J, R>::new_unchecked() }
