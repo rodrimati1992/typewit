@@ -10,13 +10,10 @@ use core::{
 /// The result of comparing two types for equality.
 pub enum TypeCmp<L: ?Sized, R: ?Sized>{
     ///
-    TEq(TypeEq<L, R>),
+    Eq(TypeEq<L, R>),
     ///
-    TNe(TypeNe<L, R>),
+    Ne(TypeNe<L, R>),
 }
-
-use TypeCmp::{TEq, TNe};
-
 
 impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// Constructs a `TypeCmp<L, R>` of types that implement `Any`.
@@ -26,9 +23,9 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
         R: Sized + Any,
     {
         if let Some(equal) = TypeEq::with_any() {
-            TEq(equal)
+            TypeCmp::Eq(equal)
         } else if let Some(unequal) = TypeNe::with_any() {
-            TNe(unequal)
+            TypeCmp::Ne(unequal)
         } else {
             unreachable!()
         }
@@ -37,51 +34,51 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// Swaps the type arguments of this `TypeCmp`
     pub const fn flip(self) -> TypeCmp<R, L> {
         match self {
-            TEq(te) => TEq(te.flip()),
-            TNe(te) => TNe(te.flip()),
+            TypeCmp::Eq(te) => TypeCmp::Eq(te.flip()),
+            TypeCmp::Ne(te) => TypeCmp::Ne(te.flip()),
         }
     }
 
     /// Joins this `TypeCmp<L, R>` with a `TypeEq<Q, L>`, producing a `TypeCmp<Q, R>`.
     pub const fn join_left<Q: ?Sized>(self, left: TypeEq<Q, L>) -> TypeCmp<Q, R> {
         match self {
-            TEq(te) => TEq(left.join(te)),
-            TNe(te) => TNe(te.join_left(left)),
+            TypeCmp::Eq(te) => TypeCmp::Eq(left.join(te)),
+            TypeCmp::Ne(te) => TypeCmp::Ne(te.join_left(left)),
         }
     }
 
     /// Joins this `TypeCmp<L, R>` with a `TypeEq<R, Q>`, producing a `TypeCmp<L, Q>`.
     pub const fn join_right<Q: ?Sized>(self, right: TypeEq<R, Q>) -> TypeCmp<L, Q> {
         match self {
-            TEq(te) => TEq(te.join(right)),
-            TNe(te) => TNe(te.join_right(right)),
+            TypeCmp::Eq(te) => TypeCmp::Eq(te.join(right)),
+            TypeCmp::Ne(te) => TypeCmp::Ne(te.join_right(right)),
         }
     }
 
     /// Converts this `TypeCmp<L, R>` into an `Option<TypeEq<L, R>>`.
-    pub const fn teq(self) -> Option<TypeEq<L, R>> {
+    pub const fn eq(self) -> Option<TypeEq<L, R>> {
         match self {
-            TEq(te) => Some(te),
-            TNe(_) => None,
+            TypeCmp::Eq(te) => Some(te),
+            TypeCmp::Ne(_) => None,
         }
     }
 
     /// Converts this `TypeCmp<L, R>` into an `Option<TypeNe<L, R>>`.
-    pub const fn tne(self) -> Option<TypeNe<L, R>> {
+    pub const fn ne(self) -> Option<TypeNe<L, R>> {
         match self {
-            TEq(_) => None,
-            TNe(te) => Some(te),
+            TypeCmp::Eq(_) => None,
+            TypeCmp::Ne(te) => Some(te),
         }
     }
 
-    /// Returns whether this `TypeCmp` is a `TEq`.
-    pub const fn is_teq(self) -> bool {
-        matches!(self, TEq(_))
+    /// Returns whether this `TypeCmp` is a `TypeCmp::Eq`.
+    pub const fn is_eq(self) -> bool {
+        matches!(self, TypeCmp::Eq(_))
     }
 
-    /// Returns whether this `TypeCmp` is a `TNe`.
-    pub const fn is_tne(self) -> bool {
-        matches!(self, TNe(_))
+    /// Returns whether this `TypeCmp` is a `TypeCmp::Ne`.
+    pub const fn is_ne(self) -> bool {
+        matches!(self, TypeCmp::Ne(_))
     }
 
     /// Returns the contained `TypeEq`
@@ -90,10 +87,10 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// 
     /// Panics if the contained value is a `TypeNe`.
     #[track_caller]
-    pub const fn unwrap_teq(self) -> TypeEq<L, R> {
+    pub const fn unwrap_eq(self) -> TypeEq<L, R> {
         match self {
-            TEq(te) => te,
-            TNe(_) => panic!("called `TypeCmp::unwrap_teq` on a `TypeNe` value"),
+            TypeCmp::Eq(te) => te,
+            TypeCmp::Ne(_) => panic!("called `TypeCmp::unwrap_eq` on a `TypeNe` value"),
         }
     }
 
@@ -103,10 +100,10 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// 
     /// Panics if the contained value is a `TypeEq`.
     #[track_caller]
-    pub const fn unwrap_tne(self) -> TypeNe<L, R> {
+    pub const fn unwrap_ne(self) -> TypeNe<L, R> {
         match self {
-            TEq(_) => panic!("called `TypeCmp::unwrap_tne` on a `TypeEq` value"),
-            TNe(te) => te,
+            TypeCmp::Eq(_) => panic!("called `TypeCmp::unwrap_ne` on a `TypeEq` value"),
+            TypeCmp::Ne(te) => te,
         }
     }
 }
@@ -128,27 +125,27 @@ impl<L: ?Sized, R: ?Sized> Clone for TypeCmp<L, R> {
 impl<L: ?Sized, R: ?Sized> Debug for TypeCmp<L, R> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            TEq(x) => Debug::fmt(x, f),
-            TNe(x) => Debug::fmt(x, f),
+            TypeCmp::Eq(x) => Debug::fmt(x, f),
+            TypeCmp::Ne(x) => Debug::fmt(x, f),
         }
     }
 }
 
 impl<L: ?Sized, R: ?Sized> PartialEq for TypeCmp<L, R> {
     fn eq(&self, other: &Self) -> bool {
-        self.is_teq() == other.is_teq()
+        self.is_eq() == other.is_eq()
     }
 }
 
 impl<L: ?Sized, R: ?Sized> PartialOrd for TypeCmp<L, R> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.is_teq().partial_cmp(&other.is_teq())
+        self.is_eq().partial_cmp(&other.is_eq())
     }
 }
 
 impl<L: ?Sized, R: ?Sized> Ord for TypeCmp<L, R> {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.is_teq().cmp(&other.is_teq())
+        self.is_eq().cmp(&other.is_eq())
     }
 }
 
@@ -159,8 +156,8 @@ impl<L: ?Sized, R: ?Sized> Hash for TypeCmp<L, R> {
     where H: Hasher
     {
         match self {
-            TEq(x) => Hash::hash(x, state),
-            TNe(x) => Hash::hash(x, state),
+            TypeCmp::Eq(x) => Hash::hash(x, state),
+            TypeCmp::Ne(x) => Hash::hash(x, state),
         }
     }
 }

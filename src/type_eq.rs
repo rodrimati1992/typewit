@@ -1060,7 +1060,7 @@ impl<L: Sized, R: Sized> TypeEq<L, R> {
     /// (this example requires Rust 1.61.0, because it uses trait bounds in const fns)
     #[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
     #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
-    /// use typewit::{const_marker::Usize, TypeEq};
+    /// use typewit::{const_marker::Usize, TypeCmp, TypeEq};
     /// 
     /// use std::num::Wrapping;
     /// 
@@ -1069,7 +1069,7 @@ impl<L: Sized, R: Sized> TypeEq<L, R> {
     /// 
     /// const fn map_wrapping<T: Copy, const LEN: usize>(arr: [T; LEN]) -> [Wrapping<T>; LEN] {
     ///     // `teq` is a `TypeEq<Usize<LEN>, Usize<0>>`
-    ///     if let Ok(teq) = Usize::<LEN>.eq(Usize::<0>) {
+    ///     if let TypeCmp::Eq(teq) = Usize::<LEN>.equals(Usize::<0>) {
     ///         return TypeEq::new::<Wrapping<T>>()
     ///             .in_array(teq) // `TypeEq<[Wrapping<T>; LEN], [Wrapping<T>; 0]>`
     ///             .to_left([]);

@@ -15,11 +15,13 @@ use core::marker::PhantomData;
 /// 
 /// These are properties about `InjTypeFn` that users can rely on.
 /// 
-/// All the [properties of `TypeFn`](TypeFn#properties) apply to `InjTypeFn`.
-/// 
 /// For any given `F: InjTypeFn<A> + InjTypeFn<B>` these hold:
 /// 
-/// 1. If `A != B`, then `CallInjFn<F, A> != CallInjFn<F, B>`.
+/// 1. If `A == B`, then `CallInjFn<F, A> == CallInjFn<F, B>`.
+/// 2. If `CallInjFn<F, A> == CallInjFn<F, B>`, then `A == B`.
+/// 3. If `A != B`, then `CallInjFn<F, A> != CallInjFn<F, B>`.
+/// 4. If `CallInjFn<F, A> != CallInjFn<F, B>`, then `A != B`.
+/// 
 /// 
 /// # Example
 /// 

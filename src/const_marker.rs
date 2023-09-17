@@ -6,7 +6,7 @@
 //! eliding a `.clone()` call when the created array is only one element long.
 //! 
 //! ```rust
-//! use typewit::{const_marker::Usize, TypeEq};
+//! use typewit::{const_marker::Usize, TypeCmp, TypeEq};
 //! 
 //! let arr = [3u8, 5, 8];
 //! 
@@ -19,7 +19,7 @@
 //! 
 //! fn repeat<T: Clone, const OUT: usize>(val: T) -> [T; OUT] {
 //!     // `te_len` ìs a `TypeEq<Usize<OUT>, Usize<1>>`
-//!     if let Ok(te_len) = Usize::<OUT>.eq(Usize::<1>) {
+//!     if let TypeCmp::Eq(te_len) = Usize::<OUT>.equals(Usize::<1>) {
 //!         // This branch is ran when `OUT == 1`
 //!         TypeEq::new::<T>()    // returns `TypeEq<T, T>`
 //!             .in_array(te_len) // returns `TypeEq<[T; OUT], [T; 1]>`
@@ -34,6 +34,7 @@
 //! 
 
 use crate::{
+    TypeCmp,
     TypeEq,
     TypeNe,
 };
@@ -72,6 +73,9 @@ pub mod slice {
     };
 }
 
+struct Helper<L, R>(L, R);
+
+
 
 macro_rules! __const_eq_with {
     ($L:ident, $R:ident) => {
@@ -91,7 +95,7 @@ macro_rules! declare_const_param_type {
 
         $(
             $(#[$eq_docs:meta])*
-            fn eq $(($L:ident, $R:ident) $comparator:block)?;
+            fn equals $(($L:ident, $R:ident) $comparator:block)?;
         )?
     ) => {
         #[doc = concat!(
@@ -102,6 +106,34 @@ macro_rules! declare_const_param_type {
         #[derive(Debug, Copy, Clone)]
         pub struct $struct<const VAL: $prim>;
 
+        impl<const L: $prim, const R: $prim> $crate::const_marker::Helper<$struct<L>, $struct<R>> {
+            const EQ: Result<
+                TypeEq<$struct<L>, $struct<R>>,
+                TypeNe<$struct<L>, $struct<R>>,
+            > = if crate::const_marker::__const_eq_with!(
+                L,
+                R
+                $($(, ($L, $R) $comparator)?)?
+            ) {
+                // SAFETY: `L == R` (both are std types with sensible Eq impls)
+                // therefore `$struct<L> == $struct<R>`
+                unsafe {
+                    Ok(TypeEq::<$struct<L>, $struct<R>>::new_unchecked())
+                }
+            } else {
+                // SAFETY: `L != R` (both are std types with sensible Eq impls)
+                // therefore `$struct<L> != $struct<R>`
+                unsafe {
+                    Err(TypeNe::<$struct<L>, $struct<R>>::new_unchecked())
+                }
+            };
+
+            const EQUALS: crate::TypeCmp<$struct<L>, $struct<R>> = match Self::EQ {
+                Ok(x) => crate::TypeCmp::Eq(x),
+                Err(x) => crate::TypeCmp::Ne(x),
+            };
+        }
+
         impl<const VAL: $prim> $struct<VAL> {
             /// Compares `self` and `other` for equality.
             ///
@@ -109,8 +141,8 @@ macro_rules! declare_const_param_type {
             /// - `Ok(TypeEq)`: if `VAL == OTHER`
             /// - `Err(TypeNe)`: if `VAL != OTHER`
             ///
-            $($(#[$eq_docs])*)?
             #[inline(always)]
+            #[deprecated(note = "superceeded by `equals` method", since = "1.8.0")]
             pub const fn eq<const OTHER: $prim>(
                 self, 
                 _other: $struct<OTHER>,
@@ -118,35 +150,24 @@ macro_rules! declare_const_param_type {
                 TypeEq<$struct<VAL>, $struct<OTHER>>,
                 TypeNe<$struct<VAL>, $struct<OTHER>>,
             > {
-                struct Helper<const L: $prim, const R: $prim>;
+                $crate::const_marker::Helper::<$struct<VAL>, $struct<OTHER>>::EQ
+            }
 
-                impl<const L: $prim, const R: $prim> Helper<L, R> {
-                    const EQ: Result<
-                        TypeEq<$struct<L>, $struct<R>>,
-                        TypeNe<$struct<L>, $struct<R>>,
-                    > = if crate::const_marker::__const_eq_with!(
-                        L,
-                        R
-                        $($(, ($L, $R) $comparator)?)?
-                    ) {
-                        // SAFETY: `L == R` (both are std types with sensible Eq impls)
-                        // therefore `$struct<L> == $struct<R>`
-                        unsafe {
-                            Ok(TypeEq::<$struct<L>, $struct<R>>::new_unchecked())
-                        }
-                    } else {
-                        // SAFETY: `L != R` (both are std types with sensible Eq impls)
-                        // therefore `$struct<L> != $struct<R>`
-                        unsafe {
-                            Err(TypeNe::<$struct<L>, $struct<R>>::new_unchecked())
-                        }
-                    };
-                }
-
-                Helper::<VAL, OTHER>::EQ
+            /// Compares `self` and `other` for equality.
+            ///
+            /// Returns:
+            /// - `TypeCmp::Eq(TypeEq)`: if `VAL == OTHER`
+            /// - `TypeCmp::Ne(TypeNe)`: if `VAL != OTHER`
+            ///
+            $($(#[$eq_docs])*)?
+            #[inline(always)]
+            pub const fn equals<const OTHER: $prim>(
+                self, 
+                _other: $struct<OTHER>,
+            ) -> crate::TypeCmp<$struct<VAL>, $struct<OTHER>> {
+                $crate::const_marker::Helper::<$struct<VAL>, $struct<OTHER>>::EQUALS
             }
         }
-
     };
 } pub(crate) use declare_const_param_type;
 
@@ -161,7 +182,7 @@ declare_const_param_type!{
 
 
     /// 
-    fn eq;
+    fn equals;
 }
 declare_const_param_type!{Char(char)}
 
@@ -184,7 +205,7 @@ declare_const_param_type!{
     /// (this example requires Rust 1.61.0, because it uses trait bounds in const fns)
     #[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
     #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
-    /// use typewit::{const_marker::Usize, TypeEq};
+    /// use typewit::{const_marker::Usize, TypeCmp, TypeEq};
     /// 
     /// assert_eq!(try_from_pair::<_, 0>((3, 5)), Ok([]));
     /// assert_eq!(try_from_pair::<_, 1>((3, 5)), Ok([3]));
@@ -193,7 +214,7 @@ declare_const_param_type!{
     /// 
     /// 
     /// const fn try_from_pair<T: Copy, const LEN: usize>(pair: (T, T)) -> Result<[T; LEN], (T, T)> {
-    ///     if let Ok(te_len) = Usize::<LEN>.eq(Usize::<0>) {
+    ///     if let TypeCmp::Eq(te_len) = Usize::<LEN>.equals(Usize::<0>) {
     ///         // this branch is ran on `LEN == 0`
     ///         // `te_len` is a `TypeEq<Usize<LEN>, Usize<0>>`
     ///         Ok(
@@ -201,11 +222,11 @@ declare_const_param_type!{
     ///                 .in_array(te_len) // `TypeEq<[T; LEN], [T; 0]>`
     ///                 .to_left([])      // Goes from `[T; 0]` to `[T; LEN]`
     ///         )
-    ///     } else if let Ok(te_len) = Usize.eq(Usize) {
+    ///     } else if let TypeCmp::Eq(te_len) = Usize.equals(Usize) {
     ///         // this branch is ran on `LEN == 1`
     ///         // `te_len` is inferred to be `TypeEq<Usize<LEN>, Usize<1>>`
     ///         Ok(TypeEq::NEW.in_array(te_len).to_left([pair.0]))
-    ///     } else if let Ok(te_len) = Usize.eq(Usize) {
+    ///     } else if let TypeCmp::Eq(te_len) = Usize.equals(Usize) {
     ///         // this branch is ran on `LEN == 2`
     ///         // `te_len` is inferred to be `TypeEq<Usize<LEN>, Usize<2>>`
     ///         Ok(TypeEq::NEW.in_array(te_len).to_left([pair.0, pair.1]))
@@ -222,7 +243,7 @@ declare_const_param_type!{
     /// const-generic struct to a function expecting a concrete type of that struct.
     /// 
     /// ```rust
-    /// use typewit::const_marker::Usize;
+    /// use typewit::{const_marker::Usize, TypeCmp};
     /// 
     /// assert_eq!(mutate(Array([])), Array([]));
     /// assert_eq!(mutate(Array([3])), Array([3]));
@@ -235,10 +256,10 @@ declare_const_param_type!{
     /// struct Array<const CAP: usize>([u32; CAP]);
     /// 
     /// const fn mutate<const LEN: usize>(arr: Array<LEN>) -> Array<LEN> {
-    ///     match Usize::<LEN>.eq(Usize::<3>) {
+    ///     match Usize::<LEN>.equals(Usize::<3>) {
     ///         // `te_len` is a `TypeEq<Usize<LEN>, Usize<3>>`
     ///         // this branch is ran on `LEN == 3`
-    ///         Ok(te_len) => {
+    ///         TypeCmp::Eq(te_len) => {
     ///             // `te` is a `TypeEq<Array<LEN>, Array<3>>`
     ///             let te = te_len.project::<GArray>();
     /// 
@@ -248,7 +269,7 @@ declare_const_param_type!{
     ///             // `te.to_left(...)` here goes from `Array<3>` to `Array<LEN>`
     ///             te.to_left(ret)
     ///         }
-    ///         Err(_) => arr,
+    ///         TypeCmp::Ne(_) => arr,
     ///     }
     /// }
     /// 
@@ -263,7 +284,7 @@ declare_const_param_type!{
     ///     impl<const LEN: usize> Usize<LEN> => Array<LEN>
     /// }
     /// ```
-    fn eq;
+    fn equals;
 }
 
 declare_const_param_type!{I8(i8)}

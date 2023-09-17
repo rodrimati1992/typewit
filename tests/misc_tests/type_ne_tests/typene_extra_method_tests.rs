@@ -102,6 +102,6 @@ fn in_box_test() {
 fn test_in_array() {
     use typewit::const_marker::Usize;
 
-    let ne = typene::<u8, u16>().in_array(Usize::<1>.eq(Usize::<2>).unwrap_err());
+    let ne = typene::<u8, u16>().in_array(Usize::<1>.equals(Usize::<2>).unwrap_ne());
     assert_type::<_, TypeNe<[u8; 1], [u16; 2]>>(ne);
 }

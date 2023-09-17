@@ -186,7 +186,7 @@ a concrete instance of that type.
 This example requires the `"const_marker"` feature (enabled by default).
 
 ```rust
-use typewit::{const_marker::Usize, TypeEq};
+use typewit::{const_marker::Usize, TypeCmp};
 
 assert_eq!(*mutate(&mut Arr([])), Arr([]));
 assert_eq!(*mutate(&mut Arr([1])), Arr([1]));
@@ -198,7 +198,7 @@ assert_eq!(*mutate(&mut Arr([1, 2, 3, 4])), Arr([1, 2, 3, 4]));
 struct Arr<const N: usize>([u8; N]);
 
 fn mutate<const N: usize>(arr: &mut Arr<N>) -> &mut Arr<N> {
-    if let Ok(te) =  Usize::<N>.eq(Usize::<3>) {
+    if let TypeCmp::Eq(te) =  Usize::<N>.equals(Usize::<3>) {
         let tem = te // `te` is a `TypeEq<Usize<N>, Usize<3>>`
             .project::<GArr>() // returns `TypeEq<Arr<N>, Arr<3>>`
             .in_mut(); // returns `TypeEq<&mut Arr<N>, &mut Arr<3>>`

@@ -1,6 +1,9 @@
-use typewit::const_marker::{
-    Bool, Char,
-    U8, U16, U32, U64, U128, Usize, I8, I16, I32, I64, I128, Isize,
+use typewit::{
+    const_marker::{
+        Bool, Char,
+        U8, U16, U32, U64, U128, Usize, I8, I16, I32, I64, I128, Isize,
+    },
+    TypeCmp,
 };
 
 
@@ -20,49 +23,49 @@ fn test_integer_const_marker() {
             const Z: $prim = 0;
             const P: $prim = 1;
 
-            match $ty::<N>.eq($ty::<Z>) {
-                Ok(typewit::TypeEq::<$ty<N>, $ty<Z>>{..}) => panic!("OH NO"),
-                Err(typewit::TypeNe::<$ty<N>, $ty<Z>>{..}) => (),
+            match $ty::<N>.equals($ty::<Z>) {
+                TypeCmp::Eq(typewit::TypeEq::<$ty<N>, $ty<Z>>{..}) => panic!("OH NO"),
+                TypeCmp::Ne(typewit::TypeNe::<$ty<N>, $ty<Z>>{..}) => (),
             }
 
-            match $ty::<Z>.eq($ty::<N>) {
-                Ok(typewit::TypeEq::<$ty<Z>, $ty<N>>{..}) => panic!("OH NO"),
-                Err(typewit::TypeNe::<$ty<Z>, $ty<N>>{..}) => (),
+            match $ty::<Z>.equals($ty::<N>) {
+                TypeCmp::Eq(typewit::TypeEq::<$ty<Z>, $ty<N>>{..}) => panic!("OH NO"),
+                TypeCmp::Ne(typewit::TypeNe::<$ty<Z>, $ty<N>>{..}) => (),
             }
 
-            match $ty::<P>.eq($ty::<N>) {
-                Ok(typewit::TypeEq::<$ty<P>, $ty<N>>{..}) => panic!("OH NO"),
-                Err(typewit::TypeNe::<$ty<P>, $ty<N>>{..}) => (),
+            match $ty::<P>.equals($ty::<N>) {
+                TypeCmp::Eq(typewit::TypeEq::<$ty<P>, $ty<N>>{..}) => panic!("OH NO"),
+                TypeCmp::Ne(typewit::TypeNe::<$ty<P>, $ty<N>>{..}) => (),
             }
 
-            match $ty::<N>.eq($ty::<P>) {
-                Ok(typewit::TypeEq::<$ty<N>, $ty<P>>{..}) => panic!("OH NO"),
-                Err(typewit::TypeNe::<$ty<N>, $ty<P>>{..}) => (),
+            match $ty::<N>.equals($ty::<P>) {
+                TypeCmp::Eq(typewit::TypeEq::<$ty<N>, $ty<P>>{..}) => panic!("OH NO"),
+                TypeCmp::Ne(typewit::TypeNe::<$ty<N>, $ty<P>>{..}) => (),
             }
 
-            match $ty::<P>.eq($ty::<Z>) {
-                Ok(typewit::TypeEq::<$ty<P>, $ty<Z>>{..}) => panic!("OH NO"),
-                Err(typewit::TypeNe::<$ty<P>, $ty<Z>>{..}) => (),
+            match $ty::<P>.equals($ty::<Z>) {
+                TypeCmp::Eq(typewit::TypeEq::<$ty<P>, $ty<Z>>{..}) => panic!("OH NO"),
+                TypeCmp::Ne(typewit::TypeNe::<$ty<P>, $ty<Z>>{..}) => (),
             }
 
-            match $ty::<Z>.eq($ty::<P>) {
-                Ok(typewit::TypeEq::<$ty<Z>, $ty<P>>{..}) => panic!("OH NO"),
-                Err(typewit::TypeNe::<$ty<Z>, $ty<P>>{..}) => (),
+            match $ty::<Z>.equals($ty::<P>) {
+                TypeCmp::Eq(typewit::TypeEq::<$ty<Z>, $ty<P>>{..}) => panic!("OH NO"),
+                TypeCmp::Ne(typewit::TypeNe::<$ty<Z>, $ty<P>>{..}) => (),
             }
 
-            match $ty::<N>.eq($ty::<N>) {
-                Ok(typewit::TypeEq::<$ty<N>, $ty<N>>{..}) => (),
-                Err(typewit::TypeNe::<$ty<N>, $ty<N>>{..}) => panic!("OH NO"),
+            match $ty::<N>.equals($ty::<N>) {
+                TypeCmp::Eq(typewit::TypeEq::<$ty<N>, $ty<N>>{..}) => (),
+                TypeCmp::Ne(typewit::TypeNe::<$ty<N>, $ty<N>>{..}) => panic!("OH NO"),
             }
 
-            match $ty::<Z>.eq($ty::<Z>) {
-                Ok(typewit::TypeEq::<$ty<Z>, $ty<Z>>{..}) => (),
-                Err(typewit::TypeNe::<$ty<Z>, $ty<Z>>{..}) => panic!("OH NO"),
+            match $ty::<Z>.equals($ty::<Z>) {
+                TypeCmp::Eq(typewit::TypeEq::<$ty<Z>, $ty<Z>>{..}) => (),
+                TypeCmp::Ne(typewit::TypeNe::<$ty<Z>, $ty<Z>>{..}) => panic!("OH NO"),
             }
 
-            match $ty::<P>.eq($ty::<P>) {
-                Ok(typewit::TypeEq::<$ty<P>, $ty<P>>{..}) => (),
-                Err(typewit::TypeNe::<$ty<P>, $ty<P>>{..}) => panic!("OH NO"),
+            match $ty::<P>.equals($ty::<P>) {
+                TypeCmp::Eq(typewit::TypeEq::<$ty<P>, $ty<P>>{..}) => (),
+                TypeCmp::Ne(typewit::TypeNe::<$ty<P>, $ty<P>>{..}) => panic!("OH NO"),
             }
         });
     }
@@ -84,36 +87,36 @@ fn test_integer_const_marker() {
 
 #[test]
 fn test_char_const_marker() {
-    match Char::<'a'>.eq(Char::<'4'>) {
-        Ok(typewit::TypeEq::<Char<'a'>, Char<'4'>>{..}) => panic!("OH NO"),
-        Err(typewit::TypeNe::<Char<'a'>, Char<'4'>>{..}) => (),
+    match Char::<'a'>.equals(Char::<'4'>) {
+        TypeCmp::Eq(typewit::TypeEq::<Char<'a'>, Char<'4'>>{..}) => panic!("OH NO"),
+        TypeCmp::Ne(typewit::TypeNe::<Char<'a'>, Char<'4'>>{..}) => (),
     }
 
-    match Char::<'4'>.eq(Char::<'4'>) {
-        Ok(typewit::TypeEq::<Char<'4'>, Char<'4'>>{..}) => (),
-        Err(typewit::TypeNe::<Char<'4'>, Char<'4'>>{..}) => panic!("OH NO"),
+    match Char::<'4'>.equals(Char::<'4'>) {
+        TypeCmp::Eq(typewit::TypeEq::<Char<'4'>, Char<'4'>>{..}) => (),
+        TypeCmp::Ne(typewit::TypeNe::<Char<'4'>, Char<'4'>>{..}) => panic!("OH NO"),
     }
 }
 
 #[test]
 fn test_bool_const_marker() {
-    match Bool::<false>.eq(Bool::<true>) {
-        Ok(typewit::TypeEq::<Bool<false>, Bool<true>>{..}) => panic!("OH NO"),
-        Err(typewit::TypeNe::<Bool<false>, Bool<true>>{..}) => (),
+    match Bool::<false>.equals(Bool::<true>) {
+        TypeCmp::Eq(typewit::TypeEq::<Bool<false>, Bool<true>>{..}) => panic!("OH NO"),
+        TypeCmp::Ne(typewit::TypeNe::<Bool<false>, Bool<true>>{..}) => (),
     }
 
-    match Bool::<true>.eq(Bool::<false>) {
-        Ok(typewit::TypeEq::<Bool<true>, Bool<false>>{..}) => panic!("OH NO"),
-        Err(typewit::TypeNe::<Bool<true>, Bool<false>>{..}) => (),
+    match Bool::<true>.equals(Bool::<false>) {
+        TypeCmp::Eq(typewit::TypeEq::<Bool<true>, Bool<false>>{..}) => panic!("OH NO"),
+        TypeCmp::Ne(typewit::TypeNe::<Bool<true>, Bool<false>>{..}) => (),
     }
 
-    match Bool::<false>.eq(Bool::<false>) {
-        Ok(typewit::TypeEq::<Bool<false>, Bool<false>>{..}) => (),
-        Err(typewit::TypeNe::<Bool<false>, Bool<false>>{..}) => panic!("OH NO"),
+    match Bool::<false>.equals(Bool::<false>) {
+        TypeCmp::Eq(typewit::TypeEq::<Bool<false>, Bool<false>>{..}) => (),
+        TypeCmp::Ne(typewit::TypeNe::<Bool<false>, Bool<false>>{..}) => panic!("OH NO"),
     }
 
-    match Bool::<true>.eq(Bool::<true>) {
-        Ok(typewit::TypeEq::<Bool<true>, Bool<true>>{..}) => (),
-        Err(typewit::TypeNe::<Bool<true>, Bool<true>>{..}) => panic!("OH NO"),
+    match Bool::<true>.equals(Bool::<true>) {
+        TypeCmp::Eq(typewit::TypeEq::<Bool<true>, Bool<true>>{..}) => (),
+        TypeCmp::Ne(typewit::TypeNe::<Bool<true>, Bool<true>>{..}) => panic!("OH NO"),
     }
 }

@@ -237,9 +237,9 @@ fn zip4_test() {
 fn test_in_array() {
     use typewit::const_marker::Usize;
 
-    Usize::<0>.eq(Usize::<1>).unwrap_err();
+    Usize::<0>.equals(Usize::<1>).unwrap_ne();
 
-    let te = TypeEq::new::<Vec<u8>>().in_array(Usize::<1>.eq(Usize::<1>).unwrap());
+    let te = TypeEq::new::<Vec<u8>>().in_array(Usize::<1>.equals(Usize::<1>).unwrap_eq());
     assert_type::<_, TypeEq<[Vec<u8>; 1], [Vec<u8>; 1]>>(te);
     assert_eq!(te.to_left([vec![3, 5, 8]]), [vec![3, 5, 8]]);
 }

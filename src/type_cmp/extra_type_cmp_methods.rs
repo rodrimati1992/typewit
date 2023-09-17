@@ -30,8 +30,8 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
         InvokeAlias<F>: InjTypeFn<L> + InjTypeFn<R>
     {
         match self {
-            TEq(te) => TEq(te.map::<F>(func)),
-            TNe(te) => TNe(te.map::<F>(func)),
+            TypeCmp::Eq(te) => TypeCmp::Eq(te.map::<F>(func)),
+            TypeCmp::Ne(te) => TypeCmp::Ne(te.map::<F>(func)),
         }
     }
 
@@ -48,8 +48,8 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
         InvokeAlias<F>: InjTypeFn<L> + InjTypeFn<R>
     {
         match self {
-            TEq(te) => TEq(te.project::<F>()),
-            TNe(te) => TNe(te.project::<F>()),
+            TypeCmp::Eq(te) => TypeCmp::Eq(te.project::<F>()),
+            TypeCmp::Ne(te) => TypeCmp::Ne(te.project::<F>()),
         }
     }
 
@@ -68,8 +68,8 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
         InvokeAlias<F>: crate::RevTypeFn<L> + crate::RevTypeFn<R>
     {
         match self {
-            TEq(te) => TEq(te.unmap::<F>(func)),
-            TNe(te) => TNe(te.unmap::<F>(func)),
+            TypeCmp::Eq(te) => TypeCmp::Eq(te.unmap::<F>(func)),
+            TypeCmp::Ne(te) => TypeCmp::Ne(te.unmap::<F>(func)),
         }
     }
     /// Maps the type arguments of this `TypeCmp`
@@ -86,16 +86,16 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
         InvokeAlias<F>: crate::RevTypeFn<L> + crate::RevTypeFn<R>
     {
         match self {
-            TEq(te) => TEq(te.unproject::<F>()),
-            TNe(te) => TNe(te.unproject::<F>()),
+            TypeCmp::Eq(te) => TypeCmp::Eq(te.unproject::<F>()),
+            TypeCmp::Ne(te) => TypeCmp::Ne(te.unproject::<F>()),
         }
     }
 
     /// Converts a `TypeCmp<L, R>` to `TypeCmp<&L, &R>`
     pub const fn in_ref<'a>(self) -> TypeCmp<&'a L, &'a R> {
         match self {
-            TEq(te) => TEq(te.in_ref()),
-            TNe(te) => TNe(te.in_ref()),
+            TypeCmp::Eq(te) => TypeCmp::Eq(te.in_ref()),
+            TypeCmp::Ne(te) => TypeCmp::Ne(te.in_ref()),
         }
     }
 
@@ -111,8 +111,8 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
         /// 
         pub fn in_mut['a](self) -> TypeCmp<&'a mut L, &'a mut R> {
             match self {
-                TEq(te) => TEq(te.in_mut()),
-                TNe(te) => TNe(te.in_mut()),
+                TypeCmp::Eq(te) => TypeCmp::Eq(te.in_mut()),
+                TypeCmp::Ne(te) => TypeCmp::Ne(te.in_mut()),
             }
         }
     }
@@ -122,8 +122,8 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "alloc")))]
     pub const fn in_box(self) -> TypeCmp<Box<L>, Box<R>> {
         match self {
-            TEq(te) => TEq(te.in_box()),
-            TNe(te) => TNe(te.in_box()),
+            TypeCmp::Eq(te) => TypeCmp::Eq(te.in_box()),
+            TypeCmp::Ne(te) => TypeCmp::Ne(te.in_box()),
         }
     }
 }
