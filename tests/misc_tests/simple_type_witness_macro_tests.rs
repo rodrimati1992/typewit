@@ -1,5 +1,6 @@
 #![allow(unused_lifetimes)]
 
+#[cfg(feature = "rust_1_61")]
 use crate::misc_tests::test_utils::assert_type;
 
 use typewit::{HasTypeWitness, MakeTypeWitness, TypeEq};

@@ -1,7 +1,11 @@
 
-use typewit::TypeCmp::{self, TEq, TNe};
+use typewit::{TypeCmp::{self, TEq, TNe}, TypeEq, TypeNe};
 
 use crate::misc_tests::test_utils::assert_type;
+
+
+#[cfg(feature = "inj_type_fn")]
+mod typecmp_extra_method_tests;
 
 
 #[test]
@@ -9,12 +13,12 @@ fn test_with_any() {
     {
         let x = TypeCmp::<u8, u8>::with_any();
         assert_type::<_, TypeCmp<u8, u8>>(x);
-        assert!(match!(x, TEq(_)));
+        assert!(matches!(x, TEq(_)));
     }
     {
         let x = TypeCmp::<u8, i8>::with_any();
         assert_type::<_, TypeCmp<u8, i8>>(x);
-        assert!(match!(x, TNe(_)));
+        assert!(matches!(x, TNe(_)));
     }
 }
 
@@ -37,7 +41,14 @@ fn test_join_left() {
         cmp.join_left(left)
     }
 
-    let _ = const_callable(TypeEq::NEW, TypeCmp::TEq(TypeEq::NEW));
+    {
+        let x = const_callable::<u8, u8, u8>(TypeEq::NEW, TypeCmp::with_any());
+        assert_type::<_, TypeCmp<u8, u8>>(x);
+    }
+    {
+        let x = const_callable::<u8, u8, i8>(TypeEq::NEW, TypeCmp::with_any());
+        assert_type::<_, TypeCmp<u8, i8>>(x);
+    }
 }
 
 #[test]
@@ -46,10 +57,17 @@ fn test_join_right() {
         cmp: TypeCmp<T, U>,
         right: TypeEq<U, R>,
     ) -> TypeCmp<T, R> {
-        cmp.join_right(left)
+        cmp.join_right(right)
     }
 
-    let _ = const_callable(TypeCmp::TEq(TypeEq::NEW), TypeEq::NEW);
+    {
+        let x = const_callable::<u8, u8, u8>(TypeCmp::with_any(), TypeEq::NEW);
+        assert_type::<_, TypeCmp<u8, u8>>(x);
+    }
+    {
+        let x = const_callable::<u8, i8, i8>(TypeCmp::with_any(), TypeEq::NEW);
+        assert_type::<_, TypeCmp<u8, i8>>(x);
+    }
 }
 
 #[test]
@@ -62,12 +80,12 @@ fn test_teq() {
     {
         let x = const_callable(TypeCmp::<u8, i8>::with_any()).teq();
         assert_type::<_, Option<TypeEq<u8, i8>>>(x);
-        assert_eq!(matches!(x, None{}));
+        assert!(matches!(x, None{}));
     }
     {
         let x = const_callable(TypeCmp::<u8, u8>::with_any()).teq();
         assert_type::<_, Option<TypeEq<u8, u8>>>(x);
-        assert_eq!(matches!(x, Some(_)));
+        assert!(matches!(x, Some(_)));
     }
 }
 
@@ -81,12 +99,12 @@ fn test_tne() {
     {
         let x = const_callable(TypeCmp::<u8, i8>::with_any()).tne();
         assert_type::<_, Option<TypeNe<u8, i8>>>(x);
-        assert_eq!(matches!(x, Some(_)));
+        assert!(matches!(x, Some(_)));
     }
     {
         let x = const_callable(TypeCmp::<u8, u8>::with_any()).tne();
         assert_type::<_, Option<TypeNe<u8, u8>>>(x);
-        assert_eq!(matches!(x, None{}));
+        assert!(matches!(x, None{}));
     }
 }
 

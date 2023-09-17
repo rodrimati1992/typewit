@@ -1,11 +1,10 @@
 use crate::{TypeEq, TypeNe};
 
 use core::{
-    any::{Any, TypeId},
+    any::Any,
     cmp::{Ordering, Eq, Ord, PartialEq, PartialOrd},
     hash::{Hash, Hasher},
     fmt::{self, Debug},
-    mem::discriminant,
 };
 
 /// The result of comparing two types for equality.
@@ -112,7 +111,10 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     }
 }
 
-
+// using this instead of `mod extra_type_cmp_methods;`
+// to document the impls in the submodule below the constructors.
+#[cfg(feature = "inj_type_fn")]
+include!{"./type_cmp/extra_type_cmp_methods.rs"}
 
 
 impl<L: ?Sized, R: ?Sized> Copy for TypeCmp<L, R> {}

@@ -5,8 +5,12 @@
 // - where clauses that don't wrap the predicates in `[]`
 // - generic parameters of the enum
 
-use typewit::{Identity, HasTypeWitness, MakeTypeWitness, simple_type_witness};
+use typewit::{Identity, MakeTypeWitness, simple_type_witness};
 
+#[cfg(feature = "rust_1_61")]
+use typewit::HasTypeWitness;
+
+#[cfg(feature = "rust_1_61")]
 use std::{
     cmp::PartialEq,
     fmt::Debug,

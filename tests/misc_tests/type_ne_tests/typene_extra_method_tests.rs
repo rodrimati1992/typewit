@@ -1,9 +1,7 @@
-use typewit::{TypeEq, TypeNe};
+use typewit::TypeNe;
 use typewit::type_fn::{GRef, GRefMut, TypeFn};
 
-use std::mem::{align_of, size_of};
-
-use crate::misc_tests::test_utils::{assert_not_type, assert_type, assert_type_eq, assert_type_ne};
+use crate::misc_tests::test_utils::{assert_type, assert_type_eq};
 
 use super::typene;
 

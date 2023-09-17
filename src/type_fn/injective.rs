@@ -344,9 +344,7 @@ where
 
 #[test]
 fn test_fnrev_equivalence(){
-    fn foo<A, F: InjTypeFn<A>>() {
-        use crate::CallFn;
-
+    fn _foo<A, F: InjTypeFn<A>>() {
         let _ = crate::TypeEq::<CallInjFn<FnRev<F>, F::Ret>, UncallFn<F, F::Ret>>::NEW;
         
         let _ = crate::TypeEq::<UncallFn<FnRev<F>, A>, CallInjFn<F, A>>::NEW;

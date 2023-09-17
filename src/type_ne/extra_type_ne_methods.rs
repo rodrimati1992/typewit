@@ -94,10 +94,7 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     {
         unprojected_type_cmp!{self, L, R, F}
     }
-}
 
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
-impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     /// Converts a `TypeNe<L, R>` to `TypeNe<&L, &R>`
     pub const fn in_ref<'a>(self) -> TypeNe<&'a L, &'a R> {
         projected_type_cmp!{self, L, R, crate::type_fn::GRef<'a>}

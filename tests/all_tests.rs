@@ -8,6 +8,7 @@ mod misc_tests {
     mod const_marker_tests;
 
     mod ui_tests;
+    mod type_cmp_tests;
     mod typeeq_tests;
     mod simple_type_witness_macro_tests;
     mod polymatch_tests;

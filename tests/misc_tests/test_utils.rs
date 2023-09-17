@@ -17,6 +17,7 @@ pub fn assert_type_eq<T, Expected>(_: T, _: Expected) {
 }
 
 
+#[allow(dead_code)]
 #[track_caller]
 pub fn assert_not_type<T, Unexpected>(_: T) {
     assert_ne!(
