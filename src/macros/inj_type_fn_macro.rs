@@ -32,6 +32,63 @@
 /// }
 /// ```
 /// 
+/// <details>
+/// <summary>
+/// <p>
+/// 
+/// the above `inj_type_fn` macro invocation roughly expands to this code
+/// </p>
+/// </summary>
+///
+/// ```rust
+/// struct ToSigned;
+/// 
+/// impl ToSigned {
+///     const NEW: Self = Self;
+/// }
+/// 
+/// impl ::typewit::TypeFn<u128> for ToSigned {
+///     type Output = i128;
+/// }
+/// 
+/// impl ::typewit::RevTypeFn<i128> for ToSigned {
+///     type Arg = u128;
+/// }
+/// 
+/// impl ::typewit::TypeFn<u64> for ToSigned {
+///     type Output = i64;
+/// }
+/// 
+/// impl ::typewit::RevTypeFn<i64> for ToSigned {
+///     type Arg = u64;
+/// }
+/// 
+/// impl ::typewit::TypeFn<u32> for ToSigned {
+///     type Output = i32;
+/// }
+/// 
+/// impl ::typewit::RevTypeFn<i32> for ToSigned {
+///     type Arg = u32;
+/// }
+/// 
+/// impl ::typewit::TypeFn<u16> for ToSigned {
+///     type Output = i16;
+/// }
+/// 
+/// impl ::typewit::RevTypeFn<i16> for ToSigned {
+///     type Arg = u16;
+/// }
+/// 
+/// impl ::typewit::TypeFn<u8> for ToSigned {
+///     type Output = i8;
+/// }
+/// 
+/// impl ::typewit::RevTypeFn<i8> for ToSigned {
+///     type Arg = u8;
+/// }
+/// ```
+/// </details>
+/// 
 /// [`type_fn`]: macro@crate::type_fn
 /// [`TypeFn`]: crate::type_fn::TypeFn
 /// [`InjTypeFn`]: crate::type_fn::InjTypeFn
