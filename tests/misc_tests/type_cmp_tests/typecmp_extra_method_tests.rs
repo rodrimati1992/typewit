@@ -114,7 +114,7 @@ fn test_in_ref() {
 #[test]
 fn test_in_mut() {
     #[cfg(feature = "mut_refs")]
-    const fn constness<L: ?Sized, R: ?Sized>(cmp: TypeCmp<L, R>) {
+    const fn _constness<L: ?Sized, R: ?Sized>(cmp: TypeCmp<L, R>) {
         let _ = cmp.in_mut();
     }
 

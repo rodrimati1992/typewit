@@ -1,5 +1,9 @@
 use typewit::{TypeEq, TypeNe};
 
+#[cfg(feature = "cmp")]
+use typewit::TypeCmp;
+
+
 use crate::misc_tests::test_utils::{assert_type, assert_type_ne};
 
 use std::mem::{align_of, size_of};
@@ -57,39 +61,171 @@ fn join_right_method() {
 
 #[test]
 fn zip_test() {
-    const fn do_zip<A, B>(
-        left: TypeNe<A, u8>,
-        right: TypeNe<B, &'static str>,
-    ) -> TypeNe<(A, B), (u8, &'static str)> {
-        left.zip(right)
+    {
+        const fn do_zip<A, B>(
+            left: TypeNe<A, u8>,
+            right: TypeNe<B, &'static str>,
+        ) -> TypeNe<(A, B), (u8, &'static str)> {
+            left.zip(right)
+        }
+
+        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>());
     }
 
-    let _ = do_zip(typene::<u16, _>(), typene::<u16, _>());
+    {
+        const fn do_zip<A, B>(
+            left: TypeNe<A, u8>,
+            right: TypeEq<B, &'static str>,
+        ) -> TypeNe<(A, B), (u8, &'static str)> {
+            left.zip(right)
+        }
+
+        let _ = do_zip(typene::<u16, _>(), TypeEq::NEW);        
+    }
+
+    #[cfg(feature = "cmp")]
+    {
+        const fn do_zip<A, B>(
+            left: TypeNe<A, u8>,
+            right: TypeCmp<B, &'static str>,
+        ) -> TypeNe<(A, B), (u8, &'static str)> {
+            left.zip(right)
+        }
+
+        let _ = do_zip(typene::<u16, _>(), TypeCmp::Ne(typene::<u16, _>()));
+        let _ = do_zip(typene::<u16, _>(), TypeCmp::Eq(TypeEq::NEW));
+    }
 }
 
 #[test]
 fn zip3_test() {
-    const fn do_zip<A, B, C>(
-        a: TypeNe<A, u8>,
-        b: TypeNe<B, &'static str>,
-        c: TypeNe<C, Vec<u8>>,
-    ) -> TypeNe<(A, B, C), (u8, &'static str, Vec<u8>)> {
-        a.zip3(b, c)
+    {
+        const fn do_zip<A, B, C>(
+            a: TypeNe<A, u8>,
+            b: TypeNe<B, &'static str>,
+            c: TypeNe<C, Vec<u8>>,
+        ) -> TypeNe<(A, B, C), (u8, &'static str, Vec<u8>)> {
+            a.zip3(b, c)
+        }
+
+        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), typene::<u16, _>());
     }
 
-    let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), typene::<u16, _>());
+    {
+        const fn do_zip<A, B, C>(
+            a: TypeNe<A, u8>,
+            b: TypeEq<B, &'static str>,
+            c: TypeNe<C, Vec<u8>>,
+        ) -> TypeNe<(A, B, C), (u8, &'static str, Vec<u8>)> {
+            a.zip3(b, c)
+        }
+
+        let _ = do_zip(typene::<u16, _>(), TypeEq::NEW, typene::<u16, _>());
+    }
+
+    {
+        const fn do_zip<A, B, C>(
+            a: TypeNe<A, u8>,
+            b: TypeNe<B, &'static str>,
+            c: TypeEq<C, Vec<u8>>,
+        ) -> TypeNe<(A, B, C), (u8, &'static str, Vec<u8>)> {
+            a.zip3(b, c)
+        }
+
+        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), TypeEq::NEW);
+    }
+
+    #[cfg(feature = "cmp")]
+    {
+        const fn do_zip<A, B, C>(
+            a: TypeNe<A, u8>,
+            b: TypeNe<B, &'static str>,
+            c: TypeCmp<C, Vec<u8>>,
+        ) -> TypeNe<(A, B, C), (u8, &'static str, Vec<u8>)> {
+            a.zip3(b, c)
+        }
+
+        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), TypeCmp::Ne(typene::<u16, _>()));
+        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), TypeCmp::Eq(TypeEq::NEW));
+    }
 }
 
 #[test]
 fn zip4_test() {
-    const fn do_zip<A, B, C, D>(
-        a: TypeNe<A, u8>,
-        b: TypeNe<B, &'static str>,
-        c: TypeNe<C, Vec<u8>>,
-        d: TypeNe<D, [u8; 2]>,
-    ) -> TypeNe<(A, B, C, D), (u8, &'static str, Vec<u8>, [u8; 2])> {
-        a.zip4(b, c, d)
+    {
+        const fn do_zip<A, B, C, D>(
+            a: TypeNe<A, u8>,
+            b: TypeNe<B, &'static str>,
+            c: TypeNe<C, Vec<u8>>,
+            d: TypeNe<D, [u8; 2]>,
+        ) -> TypeNe<(A, B, C, D), (u8, &'static str, Vec<u8>, [u8; 2])> {
+            a.zip4(b, c, d)
+        }
+
+        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), typene::<u16, _>(), typene::<u16, _>());
     }
 
-    let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), typene::<u16, _>(), typene::<u16, _>());
+    {
+        const fn do_zip<A, B, C, D>(
+            a: TypeNe<A, u8>,
+            b: TypeEq<B, &'static str>,
+            c: TypeNe<C, Vec<u8>>,
+            d: TypeNe<D, [u8; 2]>,
+        ) -> TypeNe<(A, B, C, D), (u8, &'static str, Vec<u8>, [u8; 2])> {
+            a.zip4(b, c, d)
+        }
+
+        let _ = do_zip(typene::<u16, _>(), TypeEq::NEW, typene::<u16, _>(), typene::<u16, _>());
+    }
+
+    {
+        const fn do_zip<A, B, C, D>(
+            a: TypeNe<A, u8>,
+            b: TypeCmp<B, &'static str>,
+            c: TypeNe<C, Vec<u8>>,
+            d: TypeNe<D, [u8; 2]>,
+        ) -> TypeNe<(A, B, C, D), (u8, &'static str, Vec<u8>, [u8; 2])> {
+            a.zip4(b, c, d)
+        }
+
+        let _ = do_zip(
+            typene::<u16, _>(),
+            TypeCmp::Eq(TypeEq::NEW),
+            typene::<u16, _>(),
+            typene::<u16, _>(),
+        );
+
+        let _ = do_zip(
+            typene::<u16, _>(),
+            TypeCmp::Ne(typene::<u16, _>()),
+            typene::<u16, _>(),
+            typene::<u16, _>(),
+        );
+    }
+
+    {
+        const fn do_zip<A, B, C, D>(
+            a: TypeNe<A, u8>,
+            b: TypeNe<B, &'static str>,
+            c: TypeEq<C, Vec<u8>>,
+            d: TypeNe<D, [u8; 2]>,
+        ) -> TypeNe<(A, B, C, D), (u8, &'static str, Vec<u8>, [u8; 2])> {
+            a.zip4(b, c, d)
+        }
+
+        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), TypeEq::NEW, typene::<u16, _>());
+    }
+
+    {
+        const fn do_zip<A, B, C, D>(
+            a: TypeNe<A, u8>,
+            b: TypeNe<B, &'static str>,
+            c: TypeNe<C, Vec<u8>>,
+            d: TypeEq<D, [u8; 2]>,
+        ) -> TypeNe<(A, B, C, D), (u8, &'static str, Vec<u8>, [u8; 2])> {
+            a.zip4(b, c, d)
+        }
+
+        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), typene::<u16, _>(), TypeEq::NEW);
+    }
 }

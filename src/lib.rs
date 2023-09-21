@@ -466,9 +466,12 @@ mod all_init_bytes;
 mod utils;
 mod macros;
 
+mod prim_type_witness;
+
+pub use crate::prim_type_witness::PrimTypeWitness;
+
 #[cfg(feature = "cmp")]
 mod type_cmp;
-
 mod type_eq;
 mod type_eq_ne_guts;
 mod type_identity;

@@ -1,18 +1,18 @@
 // $type_cmp is either TypeEq or TypeNe
 macro_rules! declare_zip_helper {($_:tt $type_cmp_ty:ident) => {
     macro_rules! zip_impl {
-        // Using `:ident` to prevent usage of macros,
+        // Using more specific patterns for $L and $R to prevent usage of macros,
         // which can expand to different values on each use
-        ($_( $type_cmp:ident [$L:ident, $R:ident] ),* $_(,)*) => {
+        ($_( $type_cmp:ident [$_($L:ident)::*, $_($R:ident)::*] ),* $_(,)*) => {
             $_(
-                let _te: $type_cmp_ty<$L, $R> = $type_cmp;
+                let _te: $type_cmp_ty<$_($L)::*, $_($R)::*> = $type_cmp;
             )*
 
             // SAFETY: 
-            // `$type_cmp_ty<$L, $R>` for every passed `$type_cmp`
+            // `$type_cmp_ty<$_($L)::*, $_($R)::*>` for every passed `$type_cmp`
             // implies `$type_cmp_ty<(L0, L1, ...), (R0, R1, ...)>`
             unsafe {
-                $type_cmp_ty::<($_($L,)*), ($_($R,)*)>::new_unchecked()
+                $type_cmp_ty::<($_($_($L)::*,)*), ($_($_($R)::*,)*)>::new_unchecked()
             }
         }
     }

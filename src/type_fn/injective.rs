@@ -54,7 +54,7 @@ use core::marker::PhantomData;
 /// impl<T: ?Sized> TypeFn<T> for BoxFn {
 ///     type Output = Box<T>;
 /// 
-///     // Ensures that this impl of `TypeFn` for `BoxFn` is injective.
+///     // Asserts that this impl of `TypeFn` for `BoxFn` is injective.
 ///     const TYPE_FN_ASSERTS: () = { let _: CallInjFn<Self, T>; };
 /// }
 /// 

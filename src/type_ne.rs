@@ -5,7 +5,7 @@ use core::{
     fmt::{self, Debug},
 };
 
-use crate::TypeEq;
+use crate::{PrimTypeWitness, TypeEq};
 
 pub use self::type_ne_::TypeNe;
 
@@ -15,11 +15,6 @@ mod type_ne_ {
     /// Value-level proof that `L` is a different type to `R`
     /// 
     /// The opposite of [`TypeEq`](crate::TypeEq).
-    /// 
-    /// Because there is (as of 2023-05-14)
-    /// no way to generically check that types are unequal, 
-    /// this type is of limited usefulness.
-    /// 
     pub struct TypeNe<L: ?Sized, R: ?Sized>(PhantomData<TypeNeHelper<L, R>>);
 
     // Declared to work around this error in old Rust versions:
@@ -82,49 +77,69 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     }
 }
 
-
-crate::type_eq_ne_guts::declare_zip_helper!{
-    $ TypeNe
-}
-
-
-impl<L0, R0> TypeNe<L0, R0> {
-    /// Combines two `TypeNe<L*, R*>` to produce a
-    /// `TypeNe<(L0, L1), (R0, R1)>`.
-    pub const fn zip<L1, R1>(
-        self: TypeNe<L0, R0>,
-        other: TypeNe<L1, R1>,
-    ) -> TypeNe<(L0, L1), (R0, R1)> {
-        zip_impl!{self[L0, R0], other[L1, R1]}
-    }
-
-    /// Combines three `TypeNe<L*, R*>` to produce a
-    /// `TypeNe<(L0, L1, L2), (R0, R1, R2)>`.
-    pub const fn zip3<L1, R1, L2, R2>(
-        self: TypeNe<L0, R0>,
-        other1: TypeNe<L1, R1>,
-        other2: TypeNe<L2, R2>,
-    ) -> TypeNe<(L0, L1, L2), (R0, R1, R2)> {
-        zip_impl!{
-            self[L0, R0],
-            other1[L1, R1],
-            other2[L2, R2],
+#[cfg(feature = "rust_1_61")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_61")))]
+impl<L, R> TypeNe<L, R> {
+    /// Combines this `TypeNe<L, R>` with an 
+    /// [`A: PrimTypeWitness`](PrimTypeWitness) to produce a
+    /// `TypeNe<(L, A::L), (R, A::R)>`.
+    pub const fn zip<A>(
+        self: TypeNe<L, R>,
+        _other: A,
+    ) -> TypeNe<(L, A::L), (R, A::R)> 
+    where
+        A: PrimTypeWitness,
+    {
+        // SAFETY: `TypeNe<L, R>` implies `(L, ..) != (R, ..)` 
+        //          (`..` stands for any amount of type arguments)
+        unsafe {
+            TypeNe::new_unchecked()
         }
     }
 
-    /// Combines four `TypeNe<L*, R*>` to produce a
-    /// `TypeNe<(L0, L1, L2, L3), (R0, R1, R2, R3)>`.
-    pub const fn zip4<L1, R1, L2, R2, L3, R3>(
-        self: TypeNe<L0, R0>,
-        other1: TypeNe<L1, R1>,
-        other2: TypeNe<L2, R2>,
-        other3: TypeNe<L3, R3>,
-    ) -> TypeNe<(L0, L1, L2, L3), (R0, R1, R2, R3)> {
-        zip_impl!{
-            self[L0, R0],
-            other1[L1, R1],
-            other2[L2, R2],
-            other3[L3, R3],
+    /// Combines this `TypeNe<L, R>` with 
+    /// two [`PrimTypeWitness`](PrimTypeWitness)es to produce a
+    /// `TypeNe<(L, A::L, B::L), (R, A::R, B::R)>`.
+    pub const fn zip3<A, B>(
+        self: TypeNe<L, R>,
+        _other1: A,
+        _other2: B,
+    ) -> TypeNe<(L, A::L, B::L), (R, A::R, B::R)> 
+    where
+        A: PrimTypeWitness,
+        B: PrimTypeWitness,
+        A::L: Sized,
+        A::R: Sized,
+    {
+        // SAFETY: `TypeNe<L, R>` implies `(L, ..) != (R, ..)` 
+        //          (`..` stands for any amount of type arguments)
+        unsafe {
+            TypeNe::new_unchecked()
+        }
+    }
+
+    /// Combines this `TypeNe<L, R>` with 
+    /// three [`PrimTypeWitness`](PrimTypeWitness)es to produce a
+    /// `TypeNe<(L, A::L, B::L, C::L), (R, A::R, B::R, C::R)> `.
+    pub const fn zip4<A, B, C>(
+        self: TypeNe<L, R>,
+        _other1: A,
+        _other2: B,
+        _other3: C,
+    ) -> TypeNe<(L, A::L, B::L, C::L), (R, A::R, B::R, C::R)> 
+    where
+        A: PrimTypeWitness,
+        B: PrimTypeWitness,
+        C: PrimTypeWitness,
+        A::L: Sized,
+        A::R: Sized,
+        B::L: Sized,
+        B::R: Sized,
+    {
+        // SAFETY: `TypeNe<L, R>` implies `(L, ..) != (R, ..)` 
+        //          (`..` stands for any amount of type arguments)
+        unsafe {
+            TypeNe::new_unchecked()
         }
     }
 }

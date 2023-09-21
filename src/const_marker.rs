@@ -34,7 +34,6 @@
 //! 
 
 use crate::{
-    TypeCmp,
     TypeEq,
     TypeNe,
 };

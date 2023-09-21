@@ -1,5 +1,7 @@
-use typewit::TypeNe;
-use typewit::type_fn::{GRef, GRefMut, TypeFn};
+use typewit::{
+    type_fn::{GRef, GRefMut, TypeFn},
+    TypeNe,
+};
 
 use crate::misc_tests::test_utils::{assert_type, assert_type_eq};
 
@@ -84,7 +86,7 @@ fn in_mut_test() {
 
     #[cfg(feature = "mut_refs")]
     {
-        const fn in_mut<T>(te: TypeNe<T, u8>) {
+        const fn _in_mut<T>(te: TypeNe<T, u8>) {
             let _: TypeNe<&mut T, &mut u8> = te.in_mut();
         }
     }
@@ -97,11 +99,26 @@ fn in_box_test() {
 }
 
 
-#[cfg(feature = "const_marker")]
+#[cfg(all(feature = "rust_1_61", feature = "const_marker"))]
 #[test]
 fn test_in_array() {
     use typewit::const_marker::Usize;
 
-    let ne = typene::<u8, u16>().in_array(Usize::<1>.equals(Usize::<2>).unwrap_ne());
-    assert_type::<_, TypeNe<[u8; 1], [u16; 2]>>(ne);
+    {
+        let ne = typene::<u8, u16>().in_array(Usize::<1>.equals(Usize::<2>));
+        assert_type::<_, TypeNe<[u8; 1], [u16; 2]>>(ne);
+    }
+    {
+        let ne = typene::<u8, u16>().in_array(Usize::<1>.equals(Usize::<2>).unwrap_ne());
+        assert_type::<_, TypeNe<[u8; 1], [u16; 2]>>(ne);
+    }
+
+    {
+        let ne = typene::<u8, u16>().in_array(Usize::<1>.equals(Usize::<1>).unwrap_eq());
+        assert_type::<_, TypeNe<[u8; 1], [u16; 1]>>(ne);
+    }
+    {
+        let ne = typene::<u8, u16>().in_array(Usize::<1>.equals(Usize::<1>));
+        assert_type::<_, TypeNe<[u8; 1], [u16; 1]>>(ne);
+    }
 }

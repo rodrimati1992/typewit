@@ -8,10 +8,79 @@ use core::{
 };
 
 /// The result of comparing two types for equality.
+/// 
+/// # Example
+/// 
+/// ### Custom array initialization
+/// 
+/// (this example requires both the `"const_marker"` and `"inj_type_fn"`, 
+/// both enabled by default)
+/// 
+#[cfg_attr(not(all(feature = "inj_type_fn", feature = "const_marker")), doc = "```ignore")]
+#[cfg_attr(all(feature = "inj_type_fn", feature = "const_marker"), doc = "```rust")]
+/// use typewit::{const_marker::Usize, TypeCmp, TypeEq, TypeNe};
+/// 
+/// let empty: [String; 0] = [];
+/// assert_eq!(InitArray::<String, 0>::empty().init(), empty);
+/// 
+/// assert_eq!(InitArray::<u8, 2>::defaulted().init(), [0u8, 0u8]);
+/// 
+/// assert_eq!(InitArray::with(|i| i.pow(2)).init(), [0usize, 1, 4, 9]);
+/// 
+/// 
+/// enum InitArray<T, const LEN: usize> {
+///     NonEmpty(fn(usize) -> T, TypeNe<[T; LEN], [T; 0]>),
+///     Empty(TypeEq<[T; LEN], [T; 0]>),
+/// }
+/// 
+/// impl<T, const LEN: usize> InitArray<T, LEN> {
+///     pub fn init(self) -> [T; LEN] {
+///         match self {
+///             InitArray::NonEmpty(func, _) => std::array::from_fn(func),
+///             InitArray::Empty(te) => te.to_left([]),
+///         }
+///     }
+/// 
+///     pub fn defaulted() -> Self 
+///     where
+///         T: Default
+///     {
+///         Self::with(|_| Default::default())
+///     }
+/// 
+///     pub fn with(func: fn(usize) -> T) -> Self {
+///         match  Usize::<LEN>.equals(Usize::<0>) // : TypeCmp<Usize<LEN>, Usize<0>>
+///             .project::<ArrayFn<T>>() // : TypeCmp<[T; LEN], [T; 0]>
+///         {
+///             TypeCmp::Ne(ne) => InitArray::NonEmpty(func, ne),
+///             TypeCmp::Eq(eq) => InitArray::Empty(eq),
+///         }
+///     }
+/// }
+/// 
+/// impl<T> InitArray<T, 0> {
+///     pub const fn empty() -> Self {
+///         Self::Empty(TypeEq::NEW)
+///     }
+/// }
+/// 
+/// impl<T, const LEN: usize> Copy for InitArray<T, LEN> {}
+/// 
+/// impl<T, const LEN: usize> Clone for InitArray<T, LEN> {
+///     fn clone(&self) -> Self { *self }
+/// }
+/// 
+/// typewit::inj_type_fn! {
+///     // Declares `struct ArrayFn`, which implements `InjTypeFn<Usize<LEN>>`:
+///     // an injective type-level function from `Usize<LEN>` to `[T; LEN]`
+///     struct ArrayFn<T>;
+///     impl<const LEN: usize> Usize<LEN> => [T; LEN]
+/// }
+/// ```
 pub enum TypeCmp<L: ?Sized, R: ?Sized>{
-    ///
+    /// proof of `L == R`
     Eq(TypeEq<L, R>),
-    ///
+    /// proof of `L != R`
     Ne(TypeNe<L, R>),
 }
 

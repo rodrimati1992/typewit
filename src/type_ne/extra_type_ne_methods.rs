@@ -123,30 +123,28 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     }
 }
 
-#[cfg(feature = "const_marker")]
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "const_marker")))]
+#[cfg(all(feature = "rust_1_61", feature = "const_marker"))]
+#[cfg_attr(
+    feature = "docsrs",
+    doc(cfg(all(feature = "rust_1_61", feature = "const_marker")))
+)]
 impl<L: Sized, R: Sized> TypeNe<L, R> {
-    /// Combines `TypeNe<L, R>` and `TypeNe<Usize<UL>, Usize<UR>>`
+    /// Combines `TypeNe<L, R>` and a
+    /// `O: `[`PrimTypeWitness`]`<L = Usize<UL>, R = Usize<UR>>`
     /// into `TypeNe<[L; UL], [R; UR]>`
     /// 
-    /// # Note
-    /// 
-    /// This method is only necessary when both the element type and the length
-    /// must be different. 
-    /// 
-    /// When only one of the element type or the length needs to be different, 
-    /// you can [`.project`](Self::project) the `TypeNe` to have array arguments with a 
-    /// custom [`InjTypeFn`].
-    pub const fn in_array<const UL: usize, const UR: usize>(
+    /// [`PrimTypeWitness`]: crate::PrimTypeWitness
+    pub const fn in_array<O, const UL: usize, const UR: usize>(
         self,
-        other: TypeNe<Usize<UL>, Usize<UR>>,
-    ) -> TypeNe<[L; UL], [R; UR]> {
-        zip_project!{
-            self,
-            other,
-            crate::type_eq_ne_guts::PairToArray,
-            (L, R),
-            (Usize<UL>, Usize<UR>),
+        _other: O,
+    ) -> TypeNe<[L; UL], [R; UR]> 
+    where
+        O: PrimTypeWitness<L = Usize<UL>, R = Usize<UR>>
+    {
+        // SAFETY: `TypeNe<L, R>` implies `[L; UL] != [R; UR]`,
+        //         regardless of whether `UL` equals `UR`
+        unsafe {
+            TypeNe::new_unchecked()
         }
     }
 }
