@@ -376,43 +376,61 @@
 //! 
 //! # Cargo features
 //! 
-//! These are the features of this crates:
+//! These are the features of this crate.
 //! 
-//! - `"rust_1_61"`: allows the `typewit` crate to use Rust 1.61.0 features.
+//! ### Default-features
 //! 
-//! - `"rust_stable"`: enables all the `"rust_1_*"` features.
+//! These features are enabled by default:
 //! 
-//! - `"alloc"`: enable items that use anything from the standard `alloc` crate.
-//! 
-//! - `"const_marker"`(enabled by default): enables the [`const_marker`] module,
+//! - `"const_marker"`: enables the [`const_marker`] module,
 //! the `"cmp"` crate feature,
 //! and all items that depend on it.
 //! 
-//! - `"cmp"`(enabled by default): enables the [`TypeCmp`] type.
+//! - `"cmp"`: enables the [`TypeCmp`] type.
 //! 
-//! - `"inj_type_fn"`(enabled by default): 
+//! - `"inj_type_fn"`: 
 //! Enables `type_fn::{CallInjFn, FnRev, InjTypeFn, RevTypeFn, UncallFn}`,
 //! [`TypeEq`]`::{unmap, unproject}`, 
 //! and all [`TypeNe`] functions that project its type arguments.
 //! 
-//! - `"adt_const_marker"`(requires the nightly compiler):
+//! ### Rust-versions and standard crates
+//! 
+//! These features enable items that have a minimum Rust version:
+//! 
+//! - `"rust_1_61"`: enables the `TypeNe::{zip*, in_array}` methods.
+//! 
+//! - `"rust_stable"`: enables all the `"rust_1_*"` features.
+//! 
+//! 
+//! These features enable items that require a non-`core` standard crate:
+//! 
+//! - `"alloc"`: enable items that use anything from the standard `alloc` crate.
+//! 
+//! ### Nightly features
+//! 
+//! These features require the nightly Rust compiler:
+//! 
+//! - `"adt_const_marker"`:
 //! enables the `"rust_stable"` and `"const_marker"` crate features,
 //! and marker types in the [`const_marker`] module that have
 //! non-primitive `const` parameters.
 //! 
-//! - `"mut_refs"`: turns functions that take mutable references into const fns.
+//! - `"nightly_mut_refs"`:
+//! Enables the `"rust_stable"` and `"mut_refs"` crate features,
+//! and turns functions that use mutable references into `const fn`s.
+//! 
+//! ### Other features
+//! 
+//! Miscelaneous other features:
+//! 
+//! - `"mut_refs"`: turns functions that take mutable references into `const fn`s.
 //! note: as of September 2023, 
 //! this crate feature requires a stable compiler from the future.
-//! 
-//! - `"nightly_mut_refs"`(requires the nightly compiler):
-//! Enables the `"rust_stable"` and `"mut_refs"` crate features,
-//! and the `const_mut_refs` nightly feature.
-//! 
-//! None of the crate features are enabled by default.
 //! 
 //! # No-std support
 //! 
 //! `typewit` is `#![no_std]`, it can be used anywhere Rust can be used.
+//! 
 //! You need to enable the `"alloc"` feature to enable items that use anything 
 //! from the standard `alloc` crate.
 //! 
