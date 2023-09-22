@@ -16,6 +16,7 @@ mod zipping;
 pub use zipping::{
     Zip2, Zip2Out, zip2,
     Zip3, Zip3Out, zip3,
+    Zip4, Zip4Out, zip4,
 };
 
 mod sealed {

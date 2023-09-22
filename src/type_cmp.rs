@@ -231,6 +231,43 @@ impl<L, R> TypeCmp<L, R> {
             }
         }
     }
+
+    /// Combines this `TypeCmp<L, R>` with three [`BaseTypeWitness`] types to produce a
+    /// `TypeCmp<(L, A::L, B::L, C::L), (R, A::R, B::R, C::R)>`.
+    pub const fn zip4<A, B, C>(
+        self, 
+        arg0: A, 
+        arg1: B, 
+        arg2: C,
+    ) -> TypeCmp<(L, A::L, B::L, C::L), (R, A::R, B::R, C::R)> 
+    where
+        A: BaseTypeWitness,
+        A::L: Sized,
+        A::R: Sized,
+        B: BaseTypeWitness,
+        B::L: Sized,
+        B::R: Sized,
+        C: BaseTypeWitness,
+    {
+        let arg0 = MetaBaseTypeWit::to_cmp(A::WITNESS, arg0);
+        let arg1 = MetaBaseTypeWit::to_cmp(B::WITNESS, arg1);
+        let arg2 = MetaBaseTypeWit::to_cmp(C::WITNESS, arg2);
+
+        match (self, arg0, arg1, arg2) {
+              (TypeCmp::Ne(_), _, _, _) 
+            | (_, TypeCmp::Ne(_), _, _) 
+            | (_, _, TypeCmp::Ne(_), _) 
+            | (_, _, _, TypeCmp::Ne(_)) 
+            => {
+                // SAFETY: because at least one of the arguments is a TypeNe,
+                //         therefore: `(L, A::L, B::L) != (R, A::R, B::R)`
+                unsafe { TypeCmp::Ne(TypeNe::new_unchecked()) }
+            },
+            (TypeCmp::Eq(te0), TypeCmp::Eq(te1), TypeCmp::Eq(te2), TypeCmp::Eq(te3)) => {
+                TypeCmp::Eq(te0.zip4(te1, te2, te3))
+            }
+        }
+    }
 }
 
 

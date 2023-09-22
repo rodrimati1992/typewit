@@ -1,8 +1,9 @@
 use typewit::{
-    base_type_wit::{zip2, zip3},
+    base_type_wit::{zip2, zip3, zip4},
     TypeCmp,
     TypeEq,
     TypeNe,
+    type_eq,
 };
 
 use crate::misc_tests::test_utils::assertm;
@@ -107,3 +108,14 @@ fn zip3_test() {
 }
 
 
+#[test]
+fn test_zip4() {
+    const fn with<A, B, C, D, E>(eq: TypeEq<A, B>, ne: TypeNe<B, C>, cmp: TypeCmp<D, E>) {
+        let _: TypeEq<(A, u64, B, i64), (B, u64, A, i64)> = 
+            zip4(eq, type_eq(), eq.flip(), type_eq());
+        let _: TypeNe<(A, E, B, B), (B, D, A, C)> = zip4(eq, cmp.flip(), eq.flip(), ne);
+        let _: TypeCmp<(D, A, B, A), (E, B, A, B)> = zip4(cmp, eq, eq.flip(), eq);
+    }
+
+    with::<u8, u8, bool, u16, u32>(TypeEq::NEW, TypeNe::with_any().unwrap(), TypeCmp::with_any());
+}

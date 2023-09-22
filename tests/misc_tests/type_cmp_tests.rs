@@ -248,3 +248,41 @@ fn test_zip3_method() {
         TypeCmp::with_any(),
     );
 }
+
+#[test]
+fn test_zip4_method() {
+    const fn with<A, B, C, D, E, F, G>(
+        eq: TypeEq<A, B>, 
+        ne: TypeNe<B, C>, 
+        cmp_eq: TypeCmp<D, E>,
+        cmp_ne: TypeCmp<F, G>,
+    ) {
+        assertm!(
+            cmp_ne.zip4(eq, eq.flip(), ne),
+            TypeCmp::<(F, A, B, B), (G, B, A, C)>::Ne{..}
+        );
+        assertm!(
+            cmp_ne.zip4(eq, eq.flip(), cmp_ne.flip()),
+            TypeCmp::<(F, A, B, G), (G, B, A, F)>::Ne{..}
+        );
+        assertm!(
+            cmp_ne.zip4(cmp_eq, eq.flip(), eq),
+            TypeCmp::<(F, D, B, A), (G, E, A, B)>::Ne{..}
+        );
+        assertm!(
+            cmp_eq.zip4(eq, eq.flip(), cmp_eq),
+            TypeCmp::<(D, A, B, D), (E, B, A, E)>::Eq{..},
+        );
+        assertm!(
+            cmp_eq.zip4(cmp_eq.flip(), eq.flip(), eq),
+            TypeCmp::<(D, E, B, A), (E, D, A, B)>::Eq{..},
+        );
+    }
+
+    with::<u8, u8, bool, u16, u16, u32, u64>(
+        TypeEq::NEW, 
+        TypeNe::with_any().unwrap(), 
+        TypeCmp::with_any(),
+        TypeCmp::with_any(),
+    );
+}
