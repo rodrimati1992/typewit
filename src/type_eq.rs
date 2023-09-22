@@ -491,7 +491,7 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// ```
     /// 
     #[inline(always)]
-    pub const fn zip<L1, R1>(
+    pub const fn zip<L1: ?Sized, R1: ?Sized>(
         self: TypeEq<L0, R0>,
         other: TypeEq<L1, R1>,
     ) -> TypeEq<(L0, L1), (R0, R1)> {
@@ -520,7 +520,7 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// }
     /// 
     /// ```
-    pub const fn zip3<L1, R1, L2, R2>(
+    pub const fn zip3<L1, R1, L2: ?Sized, R2: ?Sized>(
         self: TypeEq<L0, R0>,
         other1: TypeEq<L1, R1>,
         other2: TypeEq<L2, R2>,
@@ -558,7 +558,7 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// }
     /// 
     /// ```
-    pub const fn zip4<L1, R1, L2, R2, L3, R3>(
+    pub const fn zip4<L1, R1, L2, R2, L3: ?Sized, R3: ?Sized>(
         self: TypeEq<L0, R0>,
         other1: TypeEq<L1, R1>,
         other2: TypeEq<L2, R2>,

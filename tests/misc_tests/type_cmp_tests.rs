@@ -164,3 +164,41 @@ fn test_unwrap_ne() {
 fn test_unwrap_ne_panicking() {
     TypeCmp::<u8, u8>::with_any().unwrap_ne();
 }
+
+#[cfg(feature = "rust_1_61")]
+#[test]
+fn test_zip_method() {
+    const fn constness<A, B, C, D, E, F>(
+        eq: TypeEq<A, B>,
+        ne: TypeNe<B, C>, 
+        cmp_eq: TypeCmp<D, E>,
+        cmp_ne: TypeCmp<E, F>,
+    ) {
+        {
+            let x: TypeCmp<(D, A), (E, B)> = cmp_eq.zip(eq);
+            assert!(matches!(x, TypeCmp::Eq{..}));
+        }
+        {
+            let x: TypeCmp<(D, B), (E, C)> = cmp_eq.zip(ne);
+            assert!(matches!(x, TypeCmp::Ne{..}));
+        }
+        {
+            let x: TypeCmp<(D, E), (E, D)> = cmp_eq.zip(cmp_eq.flip());
+            assert!(matches!(x, TypeCmp::Eq{..}));
+        }
+        {
+            let x: TypeCmp<(D, E), (E, F)> = cmp_eq.zip(cmp_ne);
+            assert!(matches!(x, TypeCmp::Ne{..}));
+        }
+    }
+
+    constness::<u8, u8, bool, u32, u32, u64>(
+        TypeEq::NEW,
+        TypeNe::with_any().unwrap(),
+        TypeCmp::with_any(),
+        TypeCmp::with_any(),
+    );
+
+}
+
+

@@ -7,6 +7,9 @@ mod misc_tests {
     #[cfg(feature = "const_marker")]
     mod const_marker_tests;
 
+    #[cfg(feature = "generic_fns")]
+    mod generic_fns_tests;
+
     mod ui_tests;
     mod type_cmp_tests;
     mod typeeq_tests;

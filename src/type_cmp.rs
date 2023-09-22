@@ -1,5 +1,9 @@
 use crate::{TypeEq, TypeNe};
 
+#[cfg(feature = "generic_fns")]
+use crate::prim_type_wit::{MetaPrimTypeWit, PrimTypeWitness};
+
+
 use core::{
     any::Any,
     cmp::{Ordering, Eq, Ord, PartialEq, PartialOrd},
@@ -77,6 +81,7 @@ use core::{
 ///     impl<const LEN: usize> Usize<LEN> => [T; LEN]
 /// }
 /// ```
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "cmp")))]
 pub enum TypeCmp<L: ?Sized, R: ?Sized>{
     /// proof of `L == R`
     Eq(TypeEq<L, R>),
@@ -176,6 +181,31 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
         }
     }
 }
+
+#[cfg(feature = "generic_fns")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
+impl<L, R> TypeCmp<L, R> {
+    /// Combines this `TypeCmp<L, R>` with a [`PrimTypeWitness`] type to produce a
+    /// `TypeCmp<(L, A::L), (R, A::R)>`.
+    pub const fn zip<A>(self, other: A) -> TypeCmp<(L, A::L), (R, A::R)> 
+    where
+        A: PrimTypeWitness,
+    {
+        let other = MetaPrimTypeWit::to_cmp(A::WITNESS, other);
+
+        match (self, other) {
+            (TypeCmp::Ne(_), _) | (_, TypeCmp::Ne(_)) => {
+                // SAFETY: because at least one of the arguments is a TypeNe,
+                //         therefore: `(L, A::L) != (R, A::R)`
+                unsafe { TypeCmp::Ne(TypeNe::new_unchecked()) }
+            },
+            (TypeCmp::Eq(tel), TypeCmp::Eq(ter)) => {
+                TypeCmp::Eq(tel.zip(ter))
+            }
+        }
+    }
+}
+
 
 // using this instead of `mod extra_type_cmp_methods;`
 // to document the impls in the submodule below the constructors.
