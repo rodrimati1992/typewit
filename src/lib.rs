@@ -486,10 +486,10 @@ mod macros;
 
 
 
-pub mod prim_type_wit;
+pub mod base_type_wit;
 
 #[doc(no_inline)]
-pub use crate::prim_type_wit::PrimTypeWitness;
+pub use crate::base_type_wit::BaseTypeWitness;
 
 #[cfg(feature = "cmp")]
 mod type_cmp;

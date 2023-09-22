@@ -1,5 +1,5 @@
 use typewit::{
-    prim_type_wit::{zip2, zip3},
+    base_type_wit::{zip2, zip3},
     TypeCmp,
     TypeEq,
     TypeNe,

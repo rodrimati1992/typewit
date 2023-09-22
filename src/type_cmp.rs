@@ -1,7 +1,7 @@
 use crate::{TypeEq, TypeNe};
 
 #[cfg(feature = "generic_fns")]
-use crate::prim_type_wit::{MetaPrimTypeWit, PrimTypeWitness};
+use crate::base_type_wit::{MetaBaseTypeWit, BaseTypeWitness};
 
 
 use core::{
@@ -185,13 +185,13 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
 #[cfg(feature = "generic_fns")]
 #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
 impl<L, R> TypeCmp<L, R> {
-    /// Combines this `TypeCmp<L, R>` with a [`PrimTypeWitness`] type to produce a
+    /// Combines this `TypeCmp<L, R>` with a [`BaseTypeWitness`] type to produce a
     /// `TypeCmp<(L, A::L), (R, A::R)>`.
     pub const fn zip<A>(self, other: A) -> TypeCmp<(L, A::L), (R, A::R)> 
     where
-        A: PrimTypeWitness,
+        A: BaseTypeWitness,
     {
-        let other = MetaPrimTypeWit::to_cmp(A::WITNESS, other);
+        let other = MetaBaseTypeWit::to_cmp(A::WITNESS, other);
 
         match (self, other) {
             (TypeCmp::Ne(_), _) | (_, TypeCmp::Ne(_)) => {
@@ -205,17 +205,17 @@ impl<L, R> TypeCmp<L, R> {
         }
     }
 
-    /// Combines this `TypeCmp<L, R>` with two [`PrimTypeWitness`] types to produce a
+    /// Combines this `TypeCmp<L, R>` with two [`BaseTypeWitness`] types to produce a
     /// `TypeCmp<(L, A::L, B::L), (R, A::R, B::R)>`.
     pub const fn zip3<A, B>(self, arg0: A, arg1: B) -> TypeCmp<(L, A::L, B::L), (R, A::R, B::R)> 
     where
-        A: PrimTypeWitness,
+        A: BaseTypeWitness,
         A::L: Sized,
         A::R: Sized,
-        B: PrimTypeWitness,
+        B: BaseTypeWitness,
     {
-        let arg0 = MetaPrimTypeWit::to_cmp(A::WITNESS, arg0);
-        let arg1 = MetaPrimTypeWit::to_cmp(B::WITNESS, arg1);
+        let arg0 = MetaBaseTypeWit::to_cmp(A::WITNESS, arg0);
+        let arg1 = MetaBaseTypeWit::to_cmp(B::WITNESS, arg1);
 
         match (self, arg0, arg1) {
               (TypeCmp::Ne(_), _, _) 

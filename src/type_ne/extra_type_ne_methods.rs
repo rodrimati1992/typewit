@@ -130,16 +130,16 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
 )]
 impl<L: Sized, R: Sized> TypeNe<L, R> {
     /// Combines `TypeNe<L, R>` and a
-    /// `O: `[`PrimTypeWitness`]`<L = Usize<UL>, R = Usize<UR>>`
+    /// `O: `[`BaseTypeWitness`]`<L = Usize<UL>, R = Usize<UR>>`
     /// into `TypeNe<[L; UL], [R; UR]>`
     /// 
-    /// [`PrimTypeWitness`]: crate::PrimTypeWitness
+    /// [`BaseTypeWitness`]: crate::BaseTypeWitness
     pub const fn in_array<O, const UL: usize, const UR: usize>(
         self,
         _other: O,
     ) -> TypeNe<[L; UL], [R; UR]> 
     where
-        O: PrimTypeWitness<L = Usize<UL>, R = Usize<UR>>
+        O: BaseTypeWitness<L = Usize<UL>, R = Usize<UR>>
     {
         // SAFETY: `TypeNe<L, R>` implies `[L; UL] != [R; UR]`,
         //         regardless of whether `UL` equals `UR`

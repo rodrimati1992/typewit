@@ -1,10 +1,10 @@
-use crate::{HasTypeWitness, PrimTypeWitness, TypeEq, TypeNe, TypeCmp};
+use crate::{HasTypeWitness, BaseTypeWitness, TypeEq, TypeNe, TypeCmp};
 
-use crate::prim_type_wit::{MetaPrimTypeWit as MPTW, PrimTypeWitness as PTW};
+use crate::base_type_wit::{MetaBaseTypeWit as MBTW, BaseTypeWitness as PTW};
 
 //////////////////////////////////////////////////////////////////////
 
-// The first TypeNe in the 4 `PrimTypeWitness` type parameters
+// The first TypeNe in the 4 `BaseTypeWitness` type parameters
 enum SomeTypeArgIsNe<A: PTW,  B: PTW, C: PTW = B, D: PTW = B> {
     A(TypeEq<A, TypeNe<A::L, A::R>>),
     B(TypeEq<B, TypeNe<B::L, B::R>>),
@@ -15,10 +15,10 @@ enum SomeTypeArgIsNe<A: PTW,  B: PTW, C: PTW = B, D: PTW = B> {
 impl<A: PTW, B: PTW, C: PTW, D: PTW> SomeTypeArgIsNe<A, B, C, D> {
     const TRY_NEW: Option<Self> = {
         match (A::WITNESS, B::WITNESS, C::WITNESS, D::WITNESS) {
-            (MPTW::Ne(ne), _, _, _) => Some(Self::A(ne)),
-            (_, MPTW::Ne(ne), _, _) => Some(Self::B(ne)),
-            (_, _, MPTW::Ne(ne), _) => Some(Self::C(ne)),
-            (_, _, _, MPTW::Ne(ne)) => Some(Self::D(ne)),
+            (MBTW::Ne(ne), _, _, _) => Some(Self::A(ne)),
+            (_, MBTW::Ne(ne), _, _) => Some(Self::B(ne)),
+            (_, _, MBTW::Ne(ne), _) => Some(Self::C(ne)),
+            (_, _, _, MBTW::Ne(ne)) => Some(Self::D(ne)),
             _ => None,
         }
     };
@@ -77,31 +77,31 @@ macro_rules! __declare_zip_items {
             <$first_typa as $trait<$($middle_typa,)* $end_typa>>::Output;
 
         $(#[$trait_attr])*
-        pub trait $trait<$($middle_typa,)* $end_typa>: PrimTypeWitness 
+        pub trait $trait<$($middle_typa,)* $end_typa>: BaseTypeWitness 
         where
             Self::L: Sized,
             Self::R: Sized,
             $(
-                $middle_typa: PrimTypeWitness,
+                $middle_typa: BaseTypeWitness,
                 $middle_typa::L: Sized,
                 $middle_typa::R: Sized,
             )*
-            $end_typa: PrimTypeWitness,
+            $end_typa: BaseTypeWitness,
         {
             #[doc = concat!(
                 "The type returned by zipping `Self` with `",
                 $( stringify!($middle_typa), "` and `", )*
                 stringify!($end_typa), "`"
             )]
-            type Output: PrimTypeWitness<
+            type Output: BaseTypeWitness<
                 L = (Self::L, $($middle_typa::L, )* $end_typa::L),
                 R = (Self::R, $($middle_typa::R, )* $end_typa::R)
             >;
         }
 
-        enum $ty_wit<$($ty_params,)* Ret: PrimTypeWitness> 
+        enum $ty_wit<$($ty_params,)* Ret: BaseTypeWitness> 
         where
-            $( $ty_params: PrimTypeWitness, )*
+            $( $ty_params: BaseTypeWitness, )*
             $first_typa::L: Sized,
             $first_typa::R: Sized,
             $(
@@ -132,22 +132,22 @@ macro_rules! __declare_zip_items {
             $first_typa::L: Sized,
             $first_typa::R: Sized,
             $(
-                $middle_typa: PrimTypeWitness,
+                $middle_typa: BaseTypeWitness,
                 $middle_typa::L: Sized,
                 $middle_typa::R: Sized,
             )*
-            $end_typa: PrimTypeWitness,
+            $end_typa: BaseTypeWitness,
         {
             const NEW: Self = 
                 match ($($ty_params::WITNESS,)* $type_alias::<$($ty_params,)*>::WITNESS) {
-                    ($(MPTW::Eq($arg_wit),)* MPTW::Eq(ret)) => {
+                    ($(MBTW::Eq($arg_wit),)* MBTW::Eq(ret)) => {
                         Self::Eq { $($arg_wit,)* ret }
                     }
-                    (.., MPTW::Ne(ret)) => {
+                    (.., MBTW::Ne(ret)) => {
                         let contains_ne = SomeTypeArgIsNe::<$($ty_params,)*>::new();
                         Self::Ne { contains_ne, ret }
                     }
-                    (.., MPTW::Cmp(ret)) => {
+                    (.., MBTW::Cmp(ret)) => {
                         Self::Cmp {ret}
                     }
                     _ => panic!("BUG: invalid permutation of $trait"),
@@ -159,15 +159,15 @@ macro_rules! __declare_zip_items {
             $($fn_param: $ty_params,)*
         ) -> $type_alias<$($ty_params,)*>
         where
-            $first_typa: PrimTypeWitness + $trait<$($middle_typa,)* $end_typa>,
+            $first_typa: BaseTypeWitness + $trait<$($middle_typa,)* $end_typa>,
             $first_typa::L: Sized,
             $first_typa::R: Sized,
             $(
-                $middle_typa: PrimTypeWitness,
+                $middle_typa: BaseTypeWitness,
                 $middle_typa::L: Sized,
                 $middle_typa::R: Sized,
             )*
-            $end_typa: PrimTypeWitness,
+            $end_typa: BaseTypeWitness,
         {
             match $ty_wit::<$($ty_params,)* $type_alias<$($ty_params,)*>>::NEW {
                 $ty_wit::Eq {$($arg_wit,)* ret} => 
@@ -183,7 +183,7 @@ macro_rules! __declare_zip_items {
                     unsafe { ret.to_left(TypeNe::new_unchecked()) },
                 $ty_wit::Cmp {ret} => {
                     ret.to_left(
-                        MPTW::to_cmp(A::WITNESS, $fn_param0)
+                        MBTW::to_cmp(A::WITNESS, $fn_param0)
                             .$zip_method($($fn_param_rem,)*)
                     )
                 }
@@ -201,7 +201,7 @@ macro_rules! __declare_zip_items {
 declare_zip_items!{
     [A () B] 
 
-    /// Zips toghether two [`PrimTypeWitness`] types.
+    /// Zips toghether two [`BaseTypeWitness`] types.
     ///
     /// This returns the most specific of the
     /// [`TypeEq`](crate::TypeEq)/[`TypeNe`](crate::TypeNe)/[`TypeCmp`](crate::TypeCmp)
@@ -215,7 +215,7 @@ declare_zip_items!{
     ///
     /// ```rust
     /// use typewit::{TypeCmp, TypeEq, TypeNe};
-    /// use typewit::prim_type_wit::zip2;
+    /// use typewit::base_type_wit::zip2;
     ///
     /// with::<u8, u8, bool, u16, u32>(TypeEq::NEW, TypeNe::with_any().unwrap(), TypeCmp::with_any());
     ///
@@ -237,7 +237,7 @@ declare_zip_items!{
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
     fn zip2(wit0, wit1);
 
-    /// The type returned by zipping `A:`[`PrimTypeWitness`] with `B:`[`PrimTypeWitness`]
+    /// The type returned by zipping `A:`[`BaseTypeWitness`] with `B:`[`BaseTypeWitness`]
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
     type Zip2Out;
 
@@ -269,7 +269,7 @@ impl_zip2!{
     TypeEq, TypeCmp => TypeCmp
 }
 
-impl<AL, AR, B: PrimTypeWitness> Zip2<B> for TypeNe<AL, AR> {
+impl<AL, AR, B: BaseTypeWitness> Zip2<B> for TypeNe<AL, AR> {
     type Output = TypeNe<(AL, B::L), (AR, B::R)>;
 }
 
@@ -290,7 +290,7 @@ impl_zip2!{
 declare_zip_items!{
     [A (B) C] 
 
-    /// Zips toghether three [`PrimTypeWitness`] types.
+    /// Zips toghether three [`BaseTypeWitness`] types.
     ///
     /// This returns the most specific of the
     /// [`TypeEq`](crate::TypeEq)/[`TypeNe`](crate::TypeNe)/[`TypeCmp`](crate::TypeCmp)
@@ -304,7 +304,7 @@ declare_zip_items!{
     /// 
     /// ```rust
     /// use typewit::{TypeCmp, TypeEq, TypeNe, type_eq};
-    /// use typewit::prim_type_wit::zip3;
+    /// use typewit::base_type_wit::zip3;
     ///
     /// with::<u8, u8, bool, u16, u32>(TypeEq::NEW, TypeNe::with_any().unwrap(), TypeCmp::with_any());
     ///
@@ -326,8 +326,8 @@ declare_zip_items!{
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
     fn zip3(wit0, wit1, wit2);
 
-    /// The type returned by zipping `A:`[`PrimTypeWitness`] with 
-    /// `B:`[`PrimTypeWitness`] and `C:`[`PrimTypeWitness`]
+    /// The type returned by zipping `A:`[`BaseTypeWitness`] with 
+    /// `B:`[`BaseTypeWitness`] and `C:`[`BaseTypeWitness`]
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
     type Zip3Out;
 
@@ -342,9 +342,9 @@ declare_zip_items!{
 
 impl<A, B, C> Zip3<B, C> for A
 where
-    A: PrimTypeWitness,
-    B: PrimTypeWitness,
-    C: PrimTypeWitness,
+    A: BaseTypeWitness,
+    B: BaseTypeWitness,
+    C: BaseTypeWitness,
     A::L: Sized,
     A::R: Sized,
     B::L: Sized,
@@ -352,7 +352,7 @@ where
     A: Zip2<B>,
     Zip2Out<A, B>: Zip2<C>,
     Zip2Out<Zip2Out<A, B>, C>: Zip3Flattener,
-    <Zip2Out<Zip2Out<A, B>, C> as Zip3Flattener>::Flattened: PrimTypeWitness<
+    <Zip2Out<Zip2Out<A, B>, C> as Zip3Flattener>::Flattened: BaseTypeWitness<
         L = (A::L, B::L, C::L),
         R = (A::R, B::R, C::R),
     >
@@ -361,8 +361,8 @@ where
 }
 
 /// Helper trait for Zip3
-pub trait Zip3Flattener: PrimTypeWitness {
-    type Flattened: PrimTypeWitness;
+pub trait Zip3Flattener: BaseTypeWitness {
+    type Flattened: BaseTypeWitness;
 }
 
 macro_rules! impl_zip3helper {

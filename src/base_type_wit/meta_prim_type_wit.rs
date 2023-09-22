@@ -5,7 +5,7 @@ use core::fmt::{self, Debug};
 /// Type witness for 
 /// [`TypeEq`](crate::TypeEq)/[`TypeNe`](crate::TypeNe)/[`TypeCmp`](crate::TypeCmp).
 #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
-pub enum MetaPrimTypeWit<L: ?Sized, R: ?Sized, W> {
+pub enum MetaBaseTypeWit<L: ?Sized, R: ?Sized, W> {
     /// `where W == TypeEq<L, R>`
     Eq(TypeEq<W, TypeEq<L, R>>),
     /// `where W == TypeNe<L, R>`
@@ -14,7 +14,7 @@ pub enum MetaPrimTypeWit<L: ?Sized, R: ?Sized, W> {
     Cmp(TypeEq<W, TypeCmp<L, R>>),
 }
 
-impl<L: ?Sized, R: ?Sized, W> MetaPrimTypeWit<L, R, W> {
+impl<L: ?Sized, R: ?Sized, W> MetaBaseTypeWit<L, R, W> {
     /// Converts `W` to `TypeCmp<L, R>`
     pub const fn to_cmp(self, witness: W) -> TypeCmp<L, R> {
         match self {
@@ -26,15 +26,15 @@ impl<L: ?Sized, R: ?Sized, W> MetaPrimTypeWit<L, R, W> {
 }
 
 
-impl<L: ?Sized, R: ?Sized, W> Copy for  MetaPrimTypeWit<L, R, W> {}
+impl<L: ?Sized, R: ?Sized, W> Copy for  MetaBaseTypeWit<L, R, W> {}
 
-impl<L: ?Sized, R: ?Sized, W> Clone for  MetaPrimTypeWit<L, R, W> {
+impl<L: ?Sized, R: ?Sized, W> Clone for  MetaBaseTypeWit<L, R, W> {
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl<L: ?Sized, R: ?Sized, W> Debug for MetaPrimTypeWit<L, R, W> {
+impl<L: ?Sized, R: ?Sized, W> Debug for MetaBaseTypeWit<L, R, W> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let isa = match self {
             Self::Eq{..} => "TypeEq",
@@ -47,18 +47,18 @@ impl<L: ?Sized, R: ?Sized, W> Debug for MetaPrimTypeWit<L, R, W> {
 }
 
 
-impl<L: ?Sized, R: ?Sized, W> TypeWitnessTypeArg for MetaPrimTypeWit<L, R, W> {
+impl<L: ?Sized, R: ?Sized, W> TypeWitnessTypeArg for MetaBaseTypeWit<L, R, W> {
     type Arg = W;
 }
 
-impl<L: ?Sized, R: ?Sized> MakeTypeWitness for MetaPrimTypeWit<L, R, TypeCmp<L, R>> {
+impl<L: ?Sized, R: ?Sized> MakeTypeWitness for MetaBaseTypeWit<L, R, TypeCmp<L, R>> {
     const MAKE: Self = Self::Cmp(TypeEq::NEW);
 }
 
-impl<L: ?Sized, R: ?Sized> MakeTypeWitness for MetaPrimTypeWit<L, R, TypeEq<L, R>> {
+impl<L: ?Sized, R: ?Sized> MakeTypeWitness for MetaBaseTypeWit<L, R, TypeEq<L, R>> {
     const MAKE: Self = Self::Eq(TypeEq::NEW);
 }
 
-impl<L: ?Sized, R: ?Sized> MakeTypeWitness for MetaPrimTypeWit<L, R, TypeNe<L, R>> {
+impl<L: ?Sized, R: ?Sized> MakeTypeWitness for MetaBaseTypeWit<L, R, TypeNe<L, R>> {
     const MAKE: Self = Self::Ne(TypeEq::NEW);
 }

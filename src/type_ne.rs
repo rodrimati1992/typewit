@@ -5,7 +5,7 @@ use core::{
     fmt::{self, Debug},
 };
 
-use crate::{PrimTypeWitness, TypeEq};
+use crate::{BaseTypeWitness, TypeEq};
 
 pub use self::type_ne_::TypeNe;
 
@@ -81,14 +81,14 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
 #[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_61")))]
 impl<L, R> TypeNe<L, R> {
     /// Combines this `TypeNe<L, R>` with an 
-    /// [`A: PrimTypeWitness`](PrimTypeWitness) to produce a
+    /// [`A: BaseTypeWitness`](BaseTypeWitness) to produce a
     /// `TypeNe<(L, A::L), (R, A::R)>`.
     pub const fn zip<A>(
         self: TypeNe<L, R>,
         _other: A,
     ) -> TypeNe<(L, A::L), (R, A::R)> 
     where
-        A: PrimTypeWitness,
+        A: BaseTypeWitness,
     {
         // SAFETY: `TypeNe<L, R>` implies `(L, ..) != (R, ..)` 
         //          (`..` stands for any amount of type arguments)
@@ -98,7 +98,7 @@ impl<L, R> TypeNe<L, R> {
     }
 
     /// Combines this `TypeNe<L, R>` with 
-    /// two [`PrimTypeWitness`](PrimTypeWitness)es to produce a
+    /// two [`BaseTypeWitness`](BaseTypeWitness)es to produce a
     /// `TypeNe<(L, A::L, B::L), (R, A::R, B::R)>`.
     pub const fn zip3<A, B>(
         self: TypeNe<L, R>,
@@ -106,8 +106,8 @@ impl<L, R> TypeNe<L, R> {
         _other2: B,
     ) -> TypeNe<(L, A::L, B::L), (R, A::R, B::R)> 
     where
-        A: PrimTypeWitness,
-        B: PrimTypeWitness,
+        A: BaseTypeWitness,
+        B: BaseTypeWitness,
         A::L: Sized,
         A::R: Sized,
     {
@@ -119,7 +119,7 @@ impl<L, R> TypeNe<L, R> {
     }
 
     /// Combines this `TypeNe<L, R>` with 
-    /// three [`PrimTypeWitness`](PrimTypeWitness)es to produce a
+    /// three [`BaseTypeWitness`](BaseTypeWitness)es to produce a
     /// `TypeNe<(L, A::L, B::L, C::L), (R, A::R, B::R, C::R)> `.
     pub const fn zip4<A, B, C>(
         self: TypeNe<L, R>,
@@ -128,9 +128,9 @@ impl<L, R> TypeNe<L, R> {
         _other3: C,
     ) -> TypeNe<(L, A::L, B::L, C::L), (R, A::R, B::R, C::R)> 
     where
-        A: PrimTypeWitness,
-        B: PrimTypeWitness,
-        C: PrimTypeWitness,
+        A: BaseTypeWitness,
+        B: BaseTypeWitness,
+        C: BaseTypeWitness,
         A::L: Sized,
         A::R: Sized,
         B::L: Sized,
