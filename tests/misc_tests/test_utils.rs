@@ -1,5 +1,11 @@
 use typewit::Identity;
 
+
+macro_rules! assertm {
+    ($($tt:tt)*) => {assert!(matches!($($tt)*))};
+} pub(crate) use assertm;
+
+
 #[track_caller]
 pub fn assert_type<T, Expected>(_: T) {
     assert_eq!(

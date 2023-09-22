@@ -15,6 +15,7 @@ mod zipping;
 #[cfg(feature = "generic_fns")]
 pub use zipping::{
     Zip2, Zip2Out, zip2,
+    Zip3, Zip3Out, zip3,
 };
 
 mod sealed {

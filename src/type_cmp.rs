@@ -204,6 +204,33 @@ impl<L, R> TypeCmp<L, R> {
             }
         }
     }
+
+    /// Combines this `TypeCmp<L, R>` with two [`PrimTypeWitness`] types to produce a
+    /// `TypeCmp<(L, A::L, B::L), (R, A::R, B::R)>`.
+    pub const fn zip3<A, B>(self, arg0: A, arg1: B) -> TypeCmp<(L, A::L, B::L), (R, A::R, B::R)> 
+    where
+        A: PrimTypeWitness,
+        A::L: Sized,
+        A::R: Sized,
+        B: PrimTypeWitness,
+    {
+        let arg0 = MetaPrimTypeWit::to_cmp(A::WITNESS, arg0);
+        let arg1 = MetaPrimTypeWit::to_cmp(B::WITNESS, arg1);
+
+        match (self, arg0, arg1) {
+              (TypeCmp::Ne(_), _, _) 
+            | (_, TypeCmp::Ne(_), _) 
+            | (_, _, TypeCmp::Ne(_)) 
+            => {
+                // SAFETY: because at least one of the arguments is a TypeNe,
+                //         therefore: `(L, A::L, B::L) != (R, A::R, B::R)`
+                unsafe { TypeCmp::Ne(TypeNe::new_unchecked()) }
+            },
+            (TypeCmp::Eq(te0), TypeCmp::Eq(te1), TypeCmp::Eq(te2)) => {
+                TypeCmp::Eq(te0.zip3(te1, te2))
+            }
+        }
+    }
 }
 
 

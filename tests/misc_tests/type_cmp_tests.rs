@@ -1,7 +1,7 @@
 
 use typewit::{TypeCmp, TypeEq, TypeNe};
 
-use crate::misc_tests::test_utils::assert_type;
+use crate::misc_tests::test_utils::{assertm, assert_type};
 
 
 #[cfg(feature = "inj_type_fn")]
@@ -202,3 +202,49 @@ fn test_zip_method() {
 }
 
 
+
+#[cfg(feature = "rust_1_61")]
+#[test]
+fn test_zip3_method() {
+    const fn constness<A, B, C, D, E, F, G>(
+        eq0: TypeEq<A, B>,
+        eq1: TypeEq<B, C>,
+        ne: TypeNe<C, D>, 
+        cmp_eq: TypeCmp<E, F>,
+        cmp_ne: TypeCmp<F, G>,
+    ) {
+        {
+            let x = cmp_eq.zip3(eq0, eq1);
+            assertm!(x, TypeCmp::<(E, A, B), (F, B, C)>::Eq(_));
+        }
+        {
+            let x = cmp_eq.zip3(eq0, ne);
+            assertm!(x, TypeCmp::<(E, A, C), (F, B, D)>::Ne(_));
+        }
+        {
+            let x = cmp_eq.zip3(eq0, cmp_ne);
+            assertm!(x, TypeCmp::<(E, A, F), (F, B, G)>::Ne(_));
+        }
+        {
+            let x = cmp_eq.zip3(ne, eq0);
+            assertm!(x, TypeCmp::<(E, C, A), (F, D, B)>::Ne(_));
+        }
+        {
+            let x = cmp_eq.zip3(cmp_ne, eq0);
+            assertm!(x, TypeCmp::<(E, F, A), (F, G, B)>::Ne(_));
+        }
+
+        {
+            let x = cmp_ne.zip3(eq0, eq1);
+            assertm!(x, TypeCmp::<(F, A, B), (G, B, C)>::Ne(_));
+        }
+    }
+
+    constness::<u8, u8, u8, bool, u32, u32, u64>(
+        TypeEq::NEW,
+        TypeEq::NEW,
+        TypeNe::with_any().unwrap(),
+        TypeCmp::with_any(),
+        TypeCmp::with_any(),
+    );
+}
