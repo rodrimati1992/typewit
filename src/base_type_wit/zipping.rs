@@ -1,18 +1,33 @@
-use crate::{HasTypeWitness, BaseTypeWitness, TypeEq, TypeNe, TypeCmp};
+//! Everything related to zipping [`BaseTypeWitness`]es
 
-use crate::base_type_wit::{MetaBaseTypeWit as MBTW, BaseTypeWitness as PTW};
+use crate::{HasTypeWitness, TypeCmp, TypeEq, TypeNe};
+
+use crate::base_type_wit::{
+    type_constructors::{
+        BaseTypeWitnessTc,
+        TcToBaseTypeWitness,
+        TcTypeCmp, TcTypeEq, TcTypeNe,
+    },
+    MetaBaseTypeWit,
+    MetaBaseTypeWit as MBTW,
+    BaseTypeWitness,
+    BaseTypeWitness as BTW,
+};
 
 //////////////////////////////////////////////////////////////////////
 
+// A TypeNe that's impossible to soundly make,
+type ImpTypeNe = TypeNe<(), ()>;
+
 // The first TypeNe in the 4 `BaseTypeWitness` type parameters
-enum SomeTypeArgIsNe<A: PTW,  B: PTW, C: PTW = B, D: PTW = B> {
+enum SomeTypeArgIsNe<A: BTW,  B: BTW, C: BTW = ImpTypeNe, D: BTW = ImpTypeNe> {
     A(TypeEq<A, TypeNe<A::L, A::R>>),
     B(TypeEq<B, TypeNe<B::L, B::R>>),
     C(TypeEq<C, TypeNe<C::L, C::R>>),
     D(TypeEq<D, TypeNe<D::L, D::R>>),
 }
 
-impl<A: PTW, B: PTW, C: PTW, D: PTW> SomeTypeArgIsNe<A, B, C, D> {
+impl<A: BTW, B: BTW, C: BTW, D: BTW> SomeTypeArgIsNe<A, B, C, D> {
     const TRY_NEW: Option<Self> = {
         match (A::WITNESS, B::WITNESS, C::WITNESS, D::WITNESS) {
             (MBTW::Ne(ne), _, _, _) => Some(Self::A(ne)),
@@ -30,6 +45,118 @@ impl<A: PTW, B: PTW, C: PTW, D: PTW> SomeTypeArgIsNe<A, B, C, D> {
         }
     }
 }
+
+impl<A: BTW, B: BTW> SomeTypeArgIsNe<A, B, ImpTypeNe, ImpTypeNe> 
+where
+    A::L: Sized,
+    A::R: Sized,
+{
+    #[inline(always)]
+    const fn zip2(self, _: A, _: B) -> TypeNe<(A::L, B::L), (A::R, B::R)> {
+        // SAFETY: either `A` or `B` is a TypeNe (ImpTypeNe can't be constructed),
+        //         therefore: `(A::L, B::L) != (A::R, B::R)`.
+        unsafe { TypeNe::new_unchecked() }
+    }
+}
+impl<A: BTW, B: BTW, C: BTW> SomeTypeArgIsNe<A, B, C, ImpTypeNe> 
+where
+    A::L: Sized,
+    A::R: Sized,
+    B::L: Sized,
+    B::R: Sized,
+{
+    #[inline(always)]
+    const fn zip3(self, _: A, _: B, _: C) -> TypeNe<(A::L, B::L, C::L), (A::R, B::R, C::R)> {
+        // SAFETY: either `A`, `B`, or `C is a TypeNe (ImpTypeNe can't be constructed),
+        //         therefore: `(A::L, B::L, C::L) != (A::R, B::R, C::R)`.
+        unsafe { TypeNe::new_unchecked() }
+    }
+}
+impl<A: BTW, B: BTW, C: BTW, D: BTW> SomeTypeArgIsNe<A, B, C, D> 
+where
+    A::L: Sized,
+    A::R: Sized,
+    B::L: Sized,
+    B::R: Sized,
+    C::L: Sized,
+    C::R: Sized,
+{
+    #[inline(always)]
+    const fn zip4(
+        self,
+        _: A,
+        _: B,
+        _: C,
+        _: D,
+    ) -> TypeNe<(A::L, B::L, C::L, D::L), (A::R, B::R, C::R, D::R)> {
+        // SAFETY: either `A`, `B`, `C`, or `D` is a TypeNe,
+        //         therefore: `(A::L, B::L, C::L, D::L) != (A::R, B::R, C::R, D::R)`.
+        unsafe { TypeNe::new_unchecked() }
+    }
+}
+
+//////////////////////////////////////////////////////////////////////
+
+
+#[doc(hidden)]
+pub trait ZipTc: 'static + Copy {
+    type Output: BaseTypeWitnessTc;
+}
+
+#[doc(hidden)]
+pub type ZipTcOut<TupleOfTc> = <TupleOfTc as ZipTc>::Output;
+
+
+impl ZipTc for (TcTypeEq, TcTypeEq) {
+    type Output = TcTypeEq;
+}
+impl ZipTc for (TcTypeEq, TcTypeNe) {
+    type Output = TcTypeNe;
+}
+impl ZipTc for (TcTypeEq, TcTypeCmp) {
+    type Output = TcTypeCmp;
+}
+
+impl<B: BaseTypeWitnessTc> ZipTc for (TcTypeNe, B) {
+    type Output = TcTypeNe;
+}
+
+impl ZipTc for (TcTypeCmp, TcTypeEq) {
+    type Output = TcTypeCmp;
+}
+
+impl ZipTc for (TcTypeCmp, TcTypeNe) {
+    type Output = TcTypeNe;
+}
+
+impl ZipTc for (TcTypeCmp, TcTypeCmp) {
+    type Output = TcTypeCmp;
+}
+
+impl<A, B, C> ZipTc for (A, B, C)
+where
+    A: BaseTypeWitnessTc,
+    B: BaseTypeWitnessTc,
+    C: BaseTypeWitnessTc,
+    (A, B): ZipTc,
+    (ZipTcOut<(A, B)>, C): ZipTc,
+{
+    type Output = ZipTcOut<(ZipTcOut<(A, B)>, C)>;
+}
+
+impl<A, B, C, D> ZipTc<> for (A, B, C, D)
+where
+    A: BaseTypeWitnessTc,
+    B: BaseTypeWitnessTc,
+    C: BaseTypeWitnessTc,
+    D: BaseTypeWitnessTc,
+    (A, B): ZipTc,
+    (C, D): ZipTc,
+    (ZipTcOut<(A, B)>, ZipTcOut<(C, D)>): ZipTc,
+{
+    type Output = ZipTcOut<(ZipTcOut<(A, B)>, ZipTcOut<(C, D)>)>;
+}
+
 
 //////////////////////////////////////////////////////////////////////
 
@@ -71,33 +198,68 @@ macro_rules! __declare_zip_items {
 
 
         zip_method = $zip_method:ident;
+        count = $count:tt
     ) => {
+        #[doc = concat!(
+            "The type returned by zipping ",
+            $count,
+            " [`BaseTypeWitness`]es.",
+        )]
         $(#[$type_alias_attr])*
-        pub type $type_alias<$($ty_params),*> =
+        #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
+        pub type $type_alias<$($ty_params),*> = 
             <$first_typa as $trait<$($middle_typa,)* $end_typa>>::Output;
 
+        #[doc = concat!(
+            "Computes the type that the [`",
+            stringify!($fn_name),
+            "`]  function returns, ",
+        )]
         $(#[$trait_attr])*
-        pub trait $trait<$($middle_typa,)* $end_typa>: BaseTypeWitness 
+        #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
+        pub trait $trait<
+            $($middle_typa: BaseTypeWitness,)*
+            $end_typa: BaseTypeWitness,
+        >: BaseTypeWitness 
         where
             Self::L: Sized,
             Self::R: Sized,
             $(
-                $middle_typa: BaseTypeWitness,
                 $middle_typa::L: Sized,
                 $middle_typa::R: Sized,
             )*
-            $end_typa: BaseTypeWitness,
         {
             #[doc = concat!(
-                "The type returned by zipping `Self` with `",
-                $( stringify!($middle_typa), "` and `", )*
-                stringify!($end_typa), "`"
+                "The the type returned by zipping ",
+                $count, " [`BaseTypeWitness`] types"
             )]
             type Output: BaseTypeWitness<
-                L = (Self::L, $($middle_typa::L, )* $end_typa::L),
-                R = (Self::R, $($middle_typa::R, )* $end_typa::R)
+                L = (Self::L, $($middle_typa::L,)* $end_typa::L),
+                R = (Self::R, $($middle_typa::R,)* $end_typa::R),
             >;
         }
+
+        impl<$($ty_params,)*> $trait<$($middle_typa,)* $end_typa> for $first_typa
+        where
+            $($ty_params: BaseTypeWitness,)*
+            ($($ty_params::TypeCtor,)*): ZipTc,
+
+            Self::L: Sized,
+            Self::R: Sized,
+            $(
+                $middle_typa::L: Sized,
+                $middle_typa::R: Sized,
+            )*
+            
+        {
+            type Output = 
+                TcToBaseTypeWitness<
+                    ZipTcOut<($($ty_params::TypeCtor,)*)>,
+                    ($($ty_params::L,)*),
+                    ($($ty_params::R,)*),
+                >;
+        }
+
 
         enum $ty_wit<$($ty_params,)* Ret: BaseTypeWitness> 
         where
@@ -154,12 +316,14 @@ macro_rules! __declare_zip_items {
                 };
         }
 
+
         $(#[$fn_attr])*
+        #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
         pub const fn $fn_name<$($ty_params,)*>(
             $($fn_param: $ty_params,)*
         ) -> $type_alias<$($ty_params,)*>
         where
-            $first_typa: BaseTypeWitness + $trait<$($middle_typa,)* $end_typa>,
+            $first_typa: BaseTypeWitness,
             $first_typa::L: Sized,
             $first_typa::R: Sized,
             $(
@@ -168,31 +332,21 @@ macro_rules! __declare_zip_items {
                 $middle_typa::R: Sized,
             )*
             $end_typa: BaseTypeWitness,
+            
+            $first_typa: $trait<$($middle_typa,)* $end_typa>
         {
             match $ty_wit::<$($ty_params,)* $type_alias<$($ty_params,)*>>::NEW {
                 $ty_wit::Eq {$($arg_wit,)* ret} => 
+                    ret.to_left(TypeEq::$zip_method($($arg_wit.to_right($fn_param),)*)),
+                $ty_wit::Ne {contains_ne, ret} => 
+                    ret.to_left(contains_ne.$fn_name($($fn_param,)*)),
+                $ty_wit::Cmp {ret} => 
                     ret.to_left(
-                        TypeEq::$zip_method(
-                            $($arg_wit.to_right($fn_param),)*
-                        )
-                    ),
-                $ty_wit::Ne {contains_ne: _, ret} => 
-                    // SAFETY: `contains_ne: SomeTypeArgIsNe<A, B, .., D>` proves that 
-                    //         one of `A`..=`D` is a TypeNe,
-                    //         therefore: `(A::L, B::L, .., D::L) != (A::R, B::R, .., D::R)`.
-                    unsafe { ret.to_left(TypeNe::new_unchecked()) },
-                $ty_wit::Cmp {ret} => {
-                    ret.to_left(
-                        MBTW::to_cmp(A::WITNESS, $fn_param0)
+                        MetaBaseTypeWit::to_cmp(A::WITNESS, $fn_param0)
                             .$zip_method($($fn_param_rem,)*)
-                    )
-                }
+                    ),
             }
         }
-
-
-
-
     };
 }
 
@@ -234,55 +388,17 @@ declare_zip_items!{
     /// 
     /// }
     /// ```
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
     fn zip2(wit0, wit1);
 
-    /// The type returned by zipping `A:`[`BaseTypeWitness`] with `B:`[`BaseTypeWitness`]
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
     type Zip2Out;
 
-    /// Queries the type returned by zipping `Self` with `B`
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
     trait Zip2;
 
     enum Zip2Wit (arg0, arg1);
 
     zip_method = zip;
-}
 
-macro_rules! impl_zip2 {
-    ($lhs:ident , $rhs:ident => $out:ident) => {
-        impl<AL, AR, BL: ?Sized, BR: ?Sized> Zip2<$rhs<BL, BR>> for $lhs<AL, AR> {
-            type Output = $out<(AL, BL), (AR, BR)>;
-        }
-    };
-}
-
-
-impl_zip2!{
-    TypeEq, TypeEq => TypeEq
-}
-impl_zip2!{
-    TypeEq, TypeNe => TypeNe
-}
-impl_zip2!{
-    TypeEq, TypeCmp => TypeCmp
-}
-
-impl<AL, AR, B: BaseTypeWitness> Zip2<B> for TypeNe<AL, AR> {
-    type Output = TypeNe<(AL, B::L), (AR, B::R)>;
-}
-
-impl_zip2!{
-    TypeCmp, TypeEq => TypeCmp
-}
-
-impl_zip2!{
-    TypeCmp, TypeNe => TypeNe
-}
-
-impl_zip2!{
-    TypeCmp, TypeCmp => TypeCmp
+    count = "two"
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -314,63 +430,18 @@ declare_zip_items!{
     ///     let _: TypeCmp<(A, D, B), (B, E, A)> = zip3(eq, cmp, eq.flip());
     /// }
     /// ```
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
     fn zip3(wit0, wit1, wit2);
 
-    /// The type returned by zipping `A:`[`BaseTypeWitness`] with 
-    /// `B:`[`BaseTypeWitness`] and `C:`[`BaseTypeWitness`]
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
     type Zip3Out;
 
-    /// Queries the type returned by zipping `Self` with `B` and `C`
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
     trait Zip3;
 
     enum Zip3Wit (arg0, arg1, arg2);
 
     zip_method = zip3;
+
+    count = "three"
 }
-
-impl<A, B, C> Zip3<B, C> for A
-where
-    A: BaseTypeWitness,
-    B: BaseTypeWitness,
-    C: BaseTypeWitness,
-    A::L: Sized,
-    A::R: Sized,
-    B::L: Sized,
-    B::R: Sized,
-    A: Zip2<B>,
-    Zip2Out<A, B>: Zip2<C>,
-    Zip2Out<Zip2Out<A, B>, C>: Zip3Flattener,
-    <Zip2Out<Zip2Out<A, B>, C> as Zip3Flattener>::Flattened: BaseTypeWitness<
-        L = (A::L, B::L, C::L),
-        R = (A::R, B::R, C::R),
-    >
-{
-    type Output = <Zip2Out<Zip2Out<A, B>, C> as Zip3Flattener>::Flattened;
-}
-
-/// Helper trait for Zip3
-pub trait Zip3Flattener: BaseTypeWitness {
-    type Flattened: BaseTypeWitness;
-}
-
-macro_rules! impl_zip3helper {
-    ($($witness:ident)*) => {
-        $(
-            impl<LA, LB, LC: ?Sized, RA, RB, RC: ?Sized>
-                Zip3Flattener 
-            for $witness<((LA, LB), LC), ((RA, RB), RC)> 
-            {
-                type Flattened = $witness<(LA, LB, LC), (RA, RB, RC)>;
-            }
-        )*
-    }
-}
-impl_zip3helper!{TypeCmp TypeEq TypeNe}
-
-
 
 
 //////////////////////////////////////////////////////////////////////
@@ -405,62 +476,15 @@ declare_zip_items!{
     ///     let _: TypeCmp<(D, A, B, A), (E, B, A, B)> = zip4(cmp, eq, eq.flip(), eq);
     /// }
     /// ```
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
     fn zip4(wit0, wit1, wit2, wit3);
 
-    /// The type returned by zipping `A:`[`BaseTypeWitness`] with 
-    /// `B:`[`BaseTypeWitness`] and `C:`[`BaseTypeWitness`]
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
     type Zip4Out;
 
-    /// Queries the type returned by zipping `Self` with `B` and `C`
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
     trait Zip4;
 
     enum Zip4Wit (arg0, arg1, arg2, arg3);
 
     zip_method = zip4;
-}
 
-impl<A, B, C, D> Zip4<B, C, D> for A
-where
-    A: BaseTypeWitness,
-    B: BaseTypeWitness,
-    C: BaseTypeWitness,
-    D: BaseTypeWitness,
-    A::L: Sized,
-    A::R: Sized,
-    B::L: Sized,
-    B::R: Sized,
-    C::L: Sized,
-    C::R: Sized,
-    A: Zip2<B>,
-    C: Zip2<D>,
-    Zip2Out<A, B>: Zip2<Zip2Out<C, D>>,
-    Zip2Out<Zip2Out<A, B>, Zip2Out<C, D>>: Zip4Flattener,
-    <Zip2Out<Zip2Out<A, B>, Zip2Out<C, D>> as Zip4Flattener>::Flattened: BaseTypeWitness<
-        L = (A::L, B::L, C::L, D::L),
-        R = (A::R, B::R, C::R, D::R),
-    >
-{
-    type Output = <Zip2Out<Zip2Out<A, B>, Zip2Out<C, D>> as Zip4Flattener>::Flattened;
+    count = "four"
 }
-
-/// Helper trait for Zip3
-pub trait Zip4Flattener: BaseTypeWitness {
-    type Flattened: BaseTypeWitness;
-}
-
-macro_rules! impl_zip4helper {
-    ($($witness:ident)*) => {
-        $(
-            impl<LA, LB, LC, LD: ?Sized, RA, RB, RC, RD: ?Sized>
-                Zip4Flattener 
-            for $witness<((LA, LB), (LC, LD)), ((RA, RB), (RC, RD))> 
-            {
-                type Flattened = $witness<(LA, LB, LC, LD), (RA, RB, RC, RD)>;
-            }
-        )*
-    }
-}
-impl_zip4helper!{TypeCmp TypeEq TypeNe}

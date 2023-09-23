@@ -6,18 +6,29 @@
 mod meta_prim_type_wit;
 
 #[cfg(feature = "generic_fns")]
+pub mod type_constructors;
+
+#[cfg(feature = "generic_fns")]
 pub use meta_prim_type_wit::MetaBaseTypeWit;
 
 
 #[cfg(feature = "generic_fns")]
-mod zipping;
+pub mod zipping;
 
 #[cfg(feature = "generic_fns")]
-pub use zipping::{
-    Zip2, Zip2Out, zip2,
-    Zip3, Zip3Out, zip3,
-    Zip4, Zip4Out, zip4,
+#[doc(no_inline)]
+pub use self::{
+    zipping::{
+        Zip2, Zip2Out,
+        Zip3, Zip3Out,
+        Zip4, Zip4Out,
+    },
 };
+
+#[doc(inline)]
+#[cfg(feature = "generic_fns")]
+pub use self::zipping::{zip2, zip3, zip4};
+
 
 mod sealed {
     #[cfg(not(feature = "generic_fns"))]
@@ -40,6 +51,13 @@ macro_rules! cond_supertrait {($($supertrait:tt)*) => {
         type L: ?Sized;
         /// The `R` type parameter of `TypeEq`/`TypeNe`/`TypeCmp` types.
         type R: ?Sized;
+        
+        /// The [type constructor] corresponding to this type.
+        ///
+        /// [type constructor]: self::type_constructors::BaseTypeWitnessTc
+        #[cfg(feature = "generic_fns")]
+        type TypeCtor: type_constructors::BaseTypeWitnessTc<Type<Self::L, Self::R> = Self>;
+
     }
 }}
 
@@ -56,12 +74,19 @@ impl<L: ?Sized, R: ?Sized> sealed::Sealed for crate::TypeEq<L, R> {}
 impl<L: ?Sized, R: ?Sized> BaseTypeWitness for crate::TypeEq<L, R> {
     type L = L;
     type R = R;
+
+    #[cfg(feature = "generic_fns")]
+    type TypeCtor = type_constructors::TcTypeEq;
+
 }
 
 impl<L: ?Sized, R: ?Sized> sealed::Sealed for crate::TypeNe<L, R> {}
 impl<L: ?Sized, R: ?Sized> BaseTypeWitness for crate::TypeNe<L, R> {
     type L = L;
     type R = R;
+
+    #[cfg(feature = "generic_fns")]
+    type TypeCtor = type_constructors::TcTypeNe;
 }
 
 #[cfg(feature = "cmp")]
@@ -70,6 +95,9 @@ impl<L: ?Sized, R: ?Sized> sealed::Sealed for crate::TypeCmp<L, R> {}
 impl<L: ?Sized, R: ?Sized> BaseTypeWitness for crate::TypeCmp<L, R> {
     type L = L;
     type R = R;
+
+    #[cfg(feature = "generic_fns")]
+    type TypeCtor = type_constructors::TcTypeCmp;
 }
 
 
