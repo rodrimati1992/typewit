@@ -7,6 +7,10 @@ use core::{
 
 use crate::{BaseTypeWitness, TypeEq};
 
+#[cfg(feature = "rust_1_61")]
+use crate::base_type_wit::SomeTypeArgIsNe;
+
+
 pub use self::type_ne_::TypeNe;
 
 mod type_ne_ {
@@ -85,16 +89,12 @@ impl<L, R> TypeNe<L, R> {
     /// `TypeNe<(L, A::L), (R, A::R)>`.
     pub const fn zip<A>(
         self: TypeNe<L, R>,
-        _other: A,
+        other: A,
     ) -> TypeNe<(L, A::L), (R, A::R)> 
     where
         A: BaseTypeWitness,
     {
-        // SAFETY: `TypeNe<L, R>` implies `(L, ..) != (R, ..)` 
-        //          (`..` stands for any amount of type arguments)
-        unsafe {
-            TypeNe::new_unchecked()
-        }
+        SomeTypeArgIsNe::A(TypeEq::NEW).zip2(self, other)
     }
 
     /// Combines this `TypeNe<L, R>` with 
@@ -102,8 +102,8 @@ impl<L, R> TypeNe<L, R> {
     /// `TypeNe<(L, A::L, B::L), (R, A::R, B::R)>`.
     pub const fn zip3<A, B>(
         self: TypeNe<L, R>,
-        _other1: A,
-        _other2: B,
+        other1: A,
+        other2: B,
     ) -> TypeNe<(L, A::L, B::L), (R, A::R, B::R)> 
     where
         A: BaseTypeWitness,
@@ -111,11 +111,7 @@ impl<L, R> TypeNe<L, R> {
         A::L: Sized,
         A::R: Sized,
     {
-        // SAFETY: `TypeNe<L, R>` implies `(L, ..) != (R, ..)` 
-        //          (`..` stands for any amount of type arguments)
-        unsafe {
-            TypeNe::new_unchecked()
-        }
+        SomeTypeArgIsNe::A(TypeEq::NEW).zip3(self, other1, other2)
     }
 
     /// Combines this `TypeNe<L, R>` with 
@@ -123,9 +119,9 @@ impl<L, R> TypeNe<L, R> {
     /// `TypeNe<(L, A::L, B::L, C::L), (R, A::R, B::R, C::R)> `.
     pub const fn zip4<A, B, C>(
         self: TypeNe<L, R>,
-        _other1: A,
-        _other2: B,
-        _other3: C,
+        other1: A,
+        other2: B,
+        other3: C,
     ) -> TypeNe<(L, A::L, B::L, C::L), (R, A::R, B::R, C::R)> 
     where
         A: BaseTypeWitness,
@@ -136,11 +132,7 @@ impl<L, R> TypeNe<L, R> {
         B::L: Sized,
         B::R: Sized,
     {
-        // SAFETY: `TypeNe<L, R>` implies `(L, ..) != (R, ..)` 
-        //          (`..` stands for any amount of type arguments)
-        unsafe {
-            TypeNe::new_unchecked()
-        }
+        SomeTypeArgIsNe::A(TypeEq::NEW).zip4(self, other1, other2, other3)
     }
 }
 

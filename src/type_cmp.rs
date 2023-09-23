@@ -1,7 +1,7 @@
 use crate::{TypeEq, TypeNe};
 
 #[cfg(feature = "generic_fns")]
-use crate::base_type_wit::{MetaBaseTypeWit, BaseTypeWitness};
+use crate::base_type_wit::{BaseTypeWitness, MetaBaseTypeWit, SomeTypeArgIsNe};
 
 
 use core::{
@@ -194,13 +194,14 @@ impl<L, R> TypeCmp<L, R> {
         let other = MetaBaseTypeWit::to_cmp(A::WITNESS, other);
 
         match (self, other) {
-            (TypeCmp::Ne(_), _) | (_, TypeCmp::Ne(_)) => {
-                // SAFETY: because at least one of the arguments is a TypeNe,
-                //         therefore: `(L, A::L) != (R, A::R)`
-                unsafe { TypeCmp::Ne(TypeNe::new_unchecked()) }
-            },
             (TypeCmp::Eq(tel), TypeCmp::Eq(ter)) => {
                 TypeCmp::Eq(tel.zip(ter))
+            }
+            (TypeCmp::Ne(ne), _) => {
+                TypeCmp::Ne(SomeTypeArgIsNe::A(TypeEq::NEW).zip2(ne, other))
+            }
+            (_, TypeCmp::Ne(ne)) => {
+                TypeCmp::Ne(SomeTypeArgIsNe::B(TypeEq::NEW).zip2(self, ne))
             }
         }
     }
@@ -218,16 +219,17 @@ impl<L, R> TypeCmp<L, R> {
         let arg1 = MetaBaseTypeWit::to_cmp(B::WITNESS, arg1);
 
         match (self, arg0, arg1) {
-              (TypeCmp::Ne(_), _, _) 
-            | (_, TypeCmp::Ne(_), _) 
-            | (_, _, TypeCmp::Ne(_)) 
-            => {
-                // SAFETY: because at least one of the arguments is a TypeNe,
-                //         therefore: `(L, A::L, B::L) != (R, A::R, B::R)`
-                unsafe { TypeCmp::Ne(TypeNe::new_unchecked()) }
-            },
             (TypeCmp::Eq(te0), TypeCmp::Eq(te1), TypeCmp::Eq(te2)) => {
                 TypeCmp::Eq(te0.zip3(te1, te2))
+            }
+            (TypeCmp::Ne(ne), _, _) => {
+                TypeCmp::Ne(SomeTypeArgIsNe::A(TypeEq::NEW).zip3(ne, arg0, arg1))
+            }
+            (_, TypeCmp::Ne(ne), _) => {
+                TypeCmp::Ne(SomeTypeArgIsNe::B(TypeEq::NEW).zip3(self, ne, arg1))
+            }
+            (_, _, TypeCmp::Ne(ne)) => {
+                TypeCmp::Ne(SomeTypeArgIsNe::C(TypeEq::NEW).zip3(self, arg0, ne))
             }
         }
     }
@@ -254,17 +256,20 @@ impl<L, R> TypeCmp<L, R> {
         let arg2 = MetaBaseTypeWit::to_cmp(C::WITNESS, arg2);
 
         match (self, arg0, arg1, arg2) {
-              (TypeCmp::Ne(_), _, _, _) 
-            | (_, TypeCmp::Ne(_), _, _) 
-            | (_, _, TypeCmp::Ne(_), _) 
-            | (_, _, _, TypeCmp::Ne(_)) 
-            => {
-                // SAFETY: because at least one of the arguments is a TypeNe,
-                //         therefore: `(L, A::L, B::L) != (R, A::R, B::R)`
-                unsafe { TypeCmp::Ne(TypeNe::new_unchecked()) }
-            },
             (TypeCmp::Eq(te0), TypeCmp::Eq(te1), TypeCmp::Eq(te2), TypeCmp::Eq(te3)) => {
                 TypeCmp::Eq(te0.zip4(te1, te2, te3))
+            }
+            (TypeCmp::Ne(ne), _, _, _) => {
+                TypeCmp::Ne(SomeTypeArgIsNe::A(TypeEq::NEW).zip4(ne, arg0, arg1, arg2))
+            }
+            (_, TypeCmp::Ne(ne), _, _) => {
+                TypeCmp::Ne(SomeTypeArgIsNe::B(TypeEq::NEW).zip4(self, ne, arg1, arg2))
+            }
+            (_, _, TypeCmp::Ne(ne), _) => {
+                TypeCmp::Ne(SomeTypeArgIsNe::C(TypeEq::NEW).zip4(self, arg0, ne, arg2))
+            }
+            (_, _, _, TypeCmp::Ne(ne)) => {
+                TypeCmp::Ne(SomeTypeArgIsNe::D(TypeEq::NEW).zip4(self, arg0, arg1, ne))
             }
         }
     }

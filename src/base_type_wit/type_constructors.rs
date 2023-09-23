@@ -8,7 +8,7 @@ use core::fmt::Debug;
 
 
 /// The type constructor for a [`BaseTypeWitness`],
-/// only implemented for [`TcTypeEq`]/[`TcTypeNe`]/[`TcTypeCmp`].
+/// only implemented for [`TcTypeCmp`]/[`TcTypeEq`]/[`TcTypeNe`].
 pub trait BaseTypeWitnessTc: 'static + Copy + Debug {
     /// The [`BaseTypeWitness`] type that corresponds to this type constructor.
     /// 
@@ -24,6 +24,25 @@ pub trait BaseTypeWitnessTc: 'static + Copy + Debug {
 
 /// Queries the [`BaseTypeWitness`] of a [`BaseTypeWitnessTc`]
 pub type TcToBaseTypeWitness<TC, L, R> = <TC as BaseTypeWitnessTc>::Type::<L, R>;
+
+/// Queries the [`BaseTypeWitnessTc`] of a [`BaseTypeWitness`]
+pub type BaseTypeWitnessToTc<W> = <W as BaseTypeWitness>::TypeCtor;
+
+/// Computes `W:`[`BaseTypeWitness`] with its type arguments replaced with `L` and `R`
+pub type BaseTypeWitnessReparam<W, L, R> = 
+    <BaseTypeWitnessToTc<W> as BaseTypeWitnessTc>::Type::<
+        L, 
+        R,
+    >;
+
+/// The type returned by `W::project::<F>()`,
+/// where `W` is a [`BaseTypeWitness`]
+pub type MapBaseTypeWitness<W, F> = 
+    <BaseTypeWitnessToTc<W> as BaseTypeWitnessTc>::Type::<
+        crate::CallFn<F, <W as BaseTypeWitness>::L>,
+        crate::CallFn<F, <W as BaseTypeWitness>::R>,
+    >;
+
 
 
 /////////////////////////////////////////////////////////////////////////////

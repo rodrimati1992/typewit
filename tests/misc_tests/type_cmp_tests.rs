@@ -249,6 +249,7 @@ fn test_zip3_method() {
     );
 }
 
+#[cfg(feature = "rust_1_61")]
 #[test]
 fn test_zip4_method() {
     const fn with<A, B, C, D, E, F, G>(
@@ -285,4 +286,57 @@ fn test_zip4_method() {
         TypeCmp::with_any(),
         TypeCmp::with_any(),
     );
+}
+
+#[cfg(feature = "rust_1_61")]
+#[test]
+fn test_in_array_method() {
+    use typewit::{
+        const_marker::Usize,
+        TypeCmp, TypeEq, TypeNe,
+    };
+    
+    let cmp_eq_ty: TypeCmp<i32, i32> = TypeCmp::with_any();
+    let cmp_ne_ty: TypeCmp<i64, u64> = TypeCmp::with_any();
+    
+    let eq_len: TypeEq<Usize<0>, Usize<0>> = TypeEq::NEW;
+    let ne_len: TypeNe<Usize<1>, Usize<2>> = Usize.equals(Usize).unwrap_ne();
+    let cmp_eq_len: TypeCmp<Usize<3>, Usize<3>> = Usize.equals(Usize);
+    let cmp_ne_len: TypeCmp<Usize<5>, Usize<8>> = Usize.equals(Usize);
+
+    with(
+        cmp_eq_ty,
+        cmp_ne_ty,
+        eq_len,
+        ne_len,
+        cmp_eq_len,
+        cmp_ne_len,
+    );
+
+    const fn with<
+        C, D, E,
+        const J: usize,
+        const K: usize,
+        const L: usize,
+        const M: usize,
+        const N: usize,
+        const O: usize,
+    >(
+        cmp_eq_ty: TypeCmp<C, C>,
+        cmp_ne_ty: TypeCmp<D, E>,
+        eq_len: TypeEq<Usize<J>, Usize<J>>,
+        ne_len: TypeNe<Usize<K>, Usize<L>>,
+        cmp_eq_len: TypeCmp<Usize<M>, Usize<M>>,
+        cmp_ne_len: TypeCmp<Usize<N>, Usize<O>>,
+    ) {
+        assertm!(cmp_eq_ty.in_array(eq_len), TypeCmp::<[C; J], [C; J]>::Eq(_));
+        assertm!(cmp_eq_ty.in_array(ne_len), TypeCmp::<[C; K], [C; L]>::Ne(_));
+        assertm!(cmp_eq_ty.in_array(cmp_eq_len), TypeCmp::<[C; M], [C; M]>::Eq(_));
+        assertm!(cmp_eq_ty.in_array(cmp_ne_len), TypeCmp::<[C; N], [C; O]>::Ne(_));
+        
+        assertm!(cmp_ne_ty.in_array(eq_len), TypeCmp::<[D; J], [E; J]>::Ne(_));
+        assertm!(cmp_ne_ty.in_array(ne_len), TypeCmp::<[D; K], [E; L]>::Ne(_));
+        assertm!(cmp_ne_ty.in_array(cmp_eq_len), TypeCmp::<[D; M], [E; M]>::Ne(_));
+        assertm!(cmp_ne_ty.in_array(cmp_ne_len), TypeCmp::<[D; N], [E; O]>::Ne(_));
+    }
 }

@@ -6,28 +6,25 @@
 mod meta_prim_type_wit;
 
 #[cfg(feature = "generic_fns")]
-pub mod type_constructors;
-
-#[cfg(feature = "generic_fns")]
 pub use meta_prim_type_wit::MetaBaseTypeWit;
 
+
+#[cfg(feature = "rust_1_61")]
+pub(crate) mod some_type_arg_is_ne;
+
+pub(crate) use self::some_type_arg_is_ne::SomeTypeArgIsNe;
+
+
+#[cfg(feature = "generic_fns")]
+pub mod type_constructors;
 
 #[cfg(feature = "generic_fns")]
 pub mod zipping;
 
-#[cfg(feature = "generic_fns")]
-#[doc(no_inline)]
-pub use self::{
-    zipping::{
-        Zip2, Zip2Out,
-        Zip3, Zip3Out,
-        Zip4, Zip4Out,
-    },
-};
-
 #[doc(inline)]
 #[cfg(feature = "generic_fns")]
-pub use self::zipping::{zip2, zip3, zip4};
+pub use self::zipping::{in_array, zip2, zip3, zip4};
+        
 
 
 mod sealed {
@@ -41,7 +38,7 @@ mod sealed {
 
 macro_rules! cond_supertrait {($($supertrait:tt)*) => {
     /// Marker trait for 
-    /// [`TypeEq`](crate::TypeEq)/[`TypeNe`](crate::TypeNe)/[`TypeCmp`](crate::TypeCmp).
+    /// [`TypeCmp`](crate::TypeCmp)/[`TypeEq`](crate::TypeEq)/[`TypeNe`](crate::TypeNe).
     /// 
     /// [`TypeEq`]: crate::TypeEq
     /// [`TypeNe`]: crate::TypeNe

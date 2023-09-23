@@ -1,102 +1,28 @@
 //! Everything related to zipping [`BaseTypeWitness`]es
 
-use crate::{HasTypeWitness, TypeCmp, TypeEq, TypeNe};
+#[cfg(feature = "const_marker")]
+use crate::const_marker::Usize;
 
-use crate::base_type_wit::{
-    type_constructors::{
-        BaseTypeWitnessTc,
-        TcToBaseTypeWitness,
-        TcTypeCmp, TcTypeEq, TcTypeNe,
+use crate::{
+    base_type_wit::{
+        type_constructors::{
+            BaseTypeWitnessTc,
+            BaseTypeWitnessReparam,
+            MapBaseTypeWitness,
+            TcToBaseTypeWitness,
+            TcTypeCmp, TcTypeEq, TcTypeNe,
+        },
+        MetaBaseTypeWit,
+        MetaBaseTypeWit as MBTW,
+        BaseTypeWitness,
+        SomeTypeArgIsNe,
     },
-    MetaBaseTypeWit,
-    MetaBaseTypeWit as MBTW,
-    BaseTypeWitness,
-    BaseTypeWitness as BTW,
+    HasTypeWitness, 
+    TypeCmp, TypeEq, TypeNe
 };
 
-//////////////////////////////////////////////////////////////////////
-
-// A TypeNe that's impossible to soundly make,
-type ImpTypeNe = TypeNe<(), ()>;
-
-// The first TypeNe in the 4 `BaseTypeWitness` type parameters
-enum SomeTypeArgIsNe<A: BTW,  B: BTW, C: BTW = ImpTypeNe, D: BTW = ImpTypeNe> {
-    A(TypeEq<A, TypeNe<A::L, A::R>>),
-    B(TypeEq<B, TypeNe<B::L, B::R>>),
-    C(TypeEq<C, TypeNe<C::L, C::R>>),
-    D(TypeEq<D, TypeNe<D::L, D::R>>),
-}
-
-impl<A: BTW, B: BTW, C: BTW, D: BTW> SomeTypeArgIsNe<A, B, C, D> {
-    const TRY_NEW: Option<Self> = {
-        match (A::WITNESS, B::WITNESS, C::WITNESS, D::WITNESS) {
-            (MBTW::Ne(ne), _, _, _) => Some(Self::A(ne)),
-            (_, MBTW::Ne(ne), _, _) => Some(Self::B(ne)),
-            (_, _, MBTW::Ne(ne), _) => Some(Self::C(ne)),
-            (_, _, _, MBTW::Ne(ne)) => Some(Self::D(ne)),
-            _ => None,
-        }
-    };
-
-    const fn new() -> Self {
-        match Self::TRY_NEW {
-            Some(x) => x,
-            None => panic!("expected at least one type argument to be TypeNe"),
-        }
-    }
-}
-
-impl<A: BTW, B: BTW> SomeTypeArgIsNe<A, B, ImpTypeNe, ImpTypeNe> 
-where
-    A::L: Sized,
-    A::R: Sized,
-{
-    #[inline(always)]
-    const fn zip2(self, _: A, _: B) -> TypeNe<(A::L, B::L), (A::R, B::R)> {
-        // SAFETY: either `A` or `B` is a TypeNe (ImpTypeNe can't be constructed),
-        //         therefore: `(A::L, B::L) != (A::R, B::R)`.
-        unsafe { TypeNe::new_unchecked() }
-    }
-}
-impl<A: BTW, B: BTW, C: BTW> SomeTypeArgIsNe<A, B, C, ImpTypeNe> 
-where
-    A::L: Sized,
-    A::R: Sized,
-    B::L: Sized,
-    B::R: Sized,
-{
-    #[inline(always)]
-    const fn zip3(self, _: A, _: B, _: C) -> TypeNe<(A::L, B::L, C::L), (A::R, B::R, C::R)> {
-        // SAFETY: either `A`, `B`, or `C is a TypeNe (ImpTypeNe can't be constructed),
-        //         therefore: `(A::L, B::L, C::L) != (A::R, B::R, C::R)`.
-        unsafe { TypeNe::new_unchecked() }
-    }
-}
-impl<A: BTW, B: BTW, C: BTW, D: BTW> SomeTypeArgIsNe<A, B, C, D> 
-where
-    A::L: Sized,
-    A::R: Sized,
-    B::L: Sized,
-    B::R: Sized,
-    C::L: Sized,
-    C::R: Sized,
-{
-    #[inline(always)]
-    const fn zip4(
-        self,
-        _: A,
-        _: B,
-        _: C,
-        _: D,
-    ) -> TypeNe<(A::L, B::L, C::L, D::L), (A::R, B::R, C::R, D::R)> {
-        // SAFETY: either `A`, `B`, `C`, or `D` is a TypeNe,
-        //         therefore: `(A::L, B::L, C::L, D::L) != (A::R, B::R, C::R, D::R)`.
-        unsafe { TypeNe::new_unchecked() }
-    }
-}
 
 //////////////////////////////////////////////////////////////////////
-
 
 #[doc(hidden)]
 pub trait ZipTc: 'static + Copy {
@@ -426,7 +352,9 @@ declare_zip_items!{
     ///
     /// const fn with<A, B, C, D, E>(eq: TypeEq<A, B>, ne: TypeNe<B, C>, cmp: TypeCmp<D, E>) {
     ///     let _: TypeEq<(A, B, i64), (B, A, i64)> = zip3(eq, eq.flip(), type_eq::<i64>());
+    ///
     ///     let _: TypeNe<(A, B, B), (B, A, C)> = zip3(eq, eq.flip(), ne);
+    ///
     ///     let _: TypeCmp<(A, D, B), (B, E, A)> = zip3(eq, cmp, eq.flip());
     /// }
     /// ```
@@ -472,7 +400,9 @@ declare_zip_items!{
     /// const fn with<A, B, C, D, E>(eq: TypeEq<A, B>, ne: TypeNe<B, C>, cmp: TypeCmp<D, E>) {
     ///     let _: TypeEq<(A, u64, B, i64), (B, u64, A, i64)> = 
     ///         zip4(eq, type_eq(), eq.flip(), type_eq());
+    ///
     ///     let _: TypeNe<(A, E, B, B), (B, D, A, C)> = zip4(eq, cmp.flip(), eq.flip(), ne);
+    ///
     ///     let _: TypeCmp<(D, A, B, A), (E, B, A, B)> = zip4(cmp, eq, eq.flip(), eq);
     /// }
     /// ```
@@ -488,3 +418,96 @@ declare_zip_items!{
 
     count = "four"
 }
+
+
+//////////////////////////////////////////////////////////////////////
+
+#[cfg(feature = "const_marker")]
+pub use with_const_marker::*;
+
+#[cfg(feature = "const_marker")]
+mod with_const_marker {
+    use super::*;
+
+    use crate::type_fn::PairToArrayFn;
+    
+    use core::marker::PhantomData;
+
+
+    // maps the type arguments of a BaseTypeWitness with `F`
+    struct MapWithFn<F>(PhantomData<F>);
+
+    impl<F, W> crate::TypeFn<W> for MapWithFn<F>
+    where
+        W: BaseTypeWitness,
+        F: crate::TypeFn<W::L> + crate::TypeFn<W::R>,
+    {
+        type Output = MapBaseTypeWitness<W, F>;
+    }
+
+    /// Combines a 
+    /// `impl BaseTypeWitness<L = LT, R = RT>`
+    /// <br>with an `impl BaseTypeWitness<L = Usize<LN>, R = Usize<RN>>`
+    /// <br>returning an `impl BaseTypeWitness<L = [LT; LN], R = [RT; RN]>`.
+    /// 
+    /// # Example
+    /// 
+    /// ### Return types
+    /// 
+    /// ```rust
+    /// use typewit::{
+    ///     base_type_wit::in_array,
+    ///     const_marker::Usize,
+    ///     TypeCmp, TypeEq, TypeNe,
+    /// };
+    ///
+    /// let eq_ty: TypeEq<i16, i16> = TypeEq::NEW;
+    /// let ne_ty: TypeNe<i16, u16> = TypeNe::with_any().unwrap();
+    /// let cmp_ty: TypeCmp<i16, u16> = TypeCmp::with_any();
+    /// 
+    /// let eq_len: TypeEq<Usize<0>, Usize<0>> = TypeEq::NEW;
+    /// let ne_len: TypeNe<Usize<1>, Usize<2>> = Usize.equals(Usize).unwrap_ne();
+    /// let cmp_len: TypeCmp<Usize<3>, Usize<3>> = Usize.equals(Usize);
+    /// 
+    /// 
+    /// // if both arguments are TypeEq, this returns a TypeEq
+    /// let _: TypeEq<[i16; 0], [i16; 0]> = in_array(eq_ty, eq_len);
+    /// 
+    /// // if either of the arguments is a TypeNe, this returns a TypeNe
+    /// let _: TypeNe<[i16; 0], [u16; 0]> = in_array(ne_ty, eq_len);
+    /// let _: TypeNe<[i16; 1], [i16; 2]> = in_array(eq_ty, ne_len);
+    /// let _: TypeNe<[i16; 1], [u16; 2]> = in_array(ne_ty, ne_len);
+    /// let _: TypeNe<[i16; 1], [u16; 2]> = in_array(cmp_ty, ne_len);
+    /// 
+    /// // If there are TypeCmp args, and no TypeNe args, this returns a TypeCmp
+    /// let _: TypeCmp<[i16; 3], [i16; 3]> = in_array(eq_ty, cmp_len);
+    /// let _: TypeCmp<[i16; 0], [u16; 0]> = in_array(cmp_ty, eq_len);
+    /// let _: TypeCmp<[i16; 3], [u16; 3]> = in_array(cmp_ty, cmp_len);
+    /// ```
+    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "const_marker")))]
+    pub const fn in_array<A, B, LT, RT, const LN: usize, const RN: usize>(
+        wit0: A,
+        wit1: B,
+    ) -> BaseTypeWitnessReparam<Zip2Out<A, B>, [LT; LN], [RT; RN]>
+    where
+        A: BaseTypeWitness<L = LT, R = RT>,
+        B: BaseTypeWitness<L = Usize<LN>, R = Usize<RN>>,
+        A: Zip2<B>
+    {
+        match Zip2Wit::<A, B, Zip2Out<A, B>>::NEW {
+            Zip2Wit::Eq {arg0, arg1, ret} => 
+                ret.project::<MapWithFn<PairToArrayFn>>()
+                    .to_left(TypeEq::in_array(arg0.to_right(wit0), arg1.to_right(wit1))),
+            Zip2Wit::Ne {contains_ne, ret} => 
+                ret.project::<MapWithFn<PairToArrayFn>>()
+                    .to_left(contains_ne.zip2(wit0, wit1).project::<PairToArrayFn>()),
+            Zip2Wit::Cmp {ret} => 
+                ret.project::<MapWithFn<PairToArrayFn>>().to_left(
+                    MetaBaseTypeWit::to_cmp(A::WITNESS, wit0)
+                        .in_array(wit1)
+                ),
+        }
+    }
+}
+
+

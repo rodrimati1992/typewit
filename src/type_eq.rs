@@ -1094,7 +1094,7 @@ impl<L: Sized, R: Sized> TypeEq<L, R> {
         zip_project!{
             self,
             other,
-            crate::type_eq_ne_guts::PairToArray,
+            crate::type_fn::PairToArrayFn,
             (L, R),
             (Usize<UL>, Usize<UR>),
         }

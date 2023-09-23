@@ -119,3 +119,51 @@ fn test_zip4() {
 
     with::<u8, u8, bool, u16, u32>(TypeEq::NEW, TypeNe::with_any().unwrap(), TypeCmp::with_any());
 }
+
+#[cfg(feature = "const_marker")]
+#[test]
+fn test_in_array() {
+    use typewit::{
+        base_type_wit::in_array,
+        const_marker::Usize,
+    };
+
+    let eq_ty: TypeEq<i16, i16> = TypeEq::NEW;
+    let ne_ty: TypeNe<i16, u16> = TypeNe::with_any().unwrap();
+    let cmp_ty: TypeCmp<i16, u16> = TypeCmp::with_any();
+    
+    let eq_len: TypeEq<Usize<0>, Usize<0>> = TypeEq::NEW;
+    let ne_len: TypeNe<Usize<1>, Usize<2>> = Usize.equals(Usize).unwrap_ne();
+    let cmp_len: TypeCmp<Usize<3>, Usize<3>> = Usize.equals(Usize);
+    
+    with(eq_ty, ne_ty, cmp_ty, eq_len, ne_len, cmp_len);
+
+    const fn with<A, B, const J: usize, const K: usize, const L: usize, const M: usize>(
+        eq_ty: TypeEq<A, A>,
+        ne_ty: TypeNe<A, B>,
+        cmp_ty: TypeCmp<A, B>,
+        eq_len: TypeEq<Usize<J>, Usize<J>>,
+        ne_len: TypeNe<Usize<K>, Usize<L>>,
+        cmp_len: TypeCmp<Usize<M>, Usize<M>>,
+    ) {
+        // if both arguments are TypeEq, this returns a TypeEq
+        let _: TypeEq<[A; J], [A; J]> = in_array(eq_ty, eq_len);
+        
+        // if either of the arguments is a TypeNe, this returns a TypeNe
+        let _: TypeNe<[A; J], [B; J]> = in_array(ne_ty, eq_len);
+        let _: TypeNe<[A; K], [A; L]> = in_array(eq_ty, ne_len);
+        let _: TypeNe<[A; K], [B; L]> = in_array(ne_ty, ne_len);
+        let _: TypeNe<[A; K], [B; L]> = in_array(cmp_ty, ne_len);
+        let _: TypeNe<[A; M], [B; M]> = in_array(ne_ty, cmp_len);
+        
+        // If there are TypeCmp args, and no TypeNe args, this returns a TypeCmp
+        let _: TypeCmp<[A; M], [A; M]> = in_array(eq_ty, cmp_len);
+        let _: TypeCmp<[A; J], [B; J]> = in_array(cmp_ty, eq_len);
+        let _: TypeCmp<[A; M], [B; M]> = in_array(cmp_ty, cmp_len);        
+    }
+    
+
+}
+
+
+

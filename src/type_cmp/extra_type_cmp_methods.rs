@@ -127,3 +127,74 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
         }
     }
 }
+
+
+
+#[cfg(all(feature = "generic_fns", feature = "const_marker"))]
+use crate::const_marker::Usize;
+
+#[cfg(all(feature = "generic_fns", feature = "const_marker"))]
+#[cfg_attr(
+    feature = "docsrs",
+    doc(cfg(all(feature = "generic_fns", feature = "const_marker")))
+)]
+impl<L, R> TypeCmp<L, R> {
+    /// Combines `TypeCmp<L, R>` and a
+    /// `O:`[`BaseTypeWitness`]`<L = Usize<UL>, R = Usize<UR>>`
+    /// into `TypeCmp<[L; UL], [R; UR]>`
+    /// 
+    /// [`BaseTypeWitness`]: crate::BaseTypeWitness
+    /// 
+    /// # Example
+    /// 
+    /// ### Basic
+    /// 
+    /// ```rust
+    /// use typewit::{
+    ///     base_type_wit::in_array,
+    ///     const_marker::Usize,
+    ///     TypeCmp, TypeEq, TypeNe,
+    /// };
+    /// 
+    /// let cmp_eq_ty: TypeCmp<i32, i32> = TypeCmp::with_any();
+    /// let cmp_ne_ty: TypeCmp<i64, u64> = TypeCmp::with_any();
+    /// 
+    /// let eq_len: TypeEq<Usize<0>, Usize<0>> = TypeEq::NEW;
+    /// let ne_len: TypeNe<Usize<1>, Usize<2>> = Usize.equals(Usize).unwrap_ne();
+    /// let cmp_eq_len: TypeCmp<Usize<3>, Usize<3>> = Usize.equals(Usize);
+    /// let cmp_ne_len: TypeCmp<Usize<5>, Usize<8>> = Usize.equals(Usize);
+    /// 
+    /// assert!(matches!(cmp_eq_ty.in_array(eq_len), TypeCmp::<[i32; 0], [i32; 0]>::Eq(_)));
+    /// assert!(matches!(cmp_eq_ty.in_array(ne_len), TypeCmp::<[i32; 1], [i32; 2]>::Ne(_)));
+    /// assert!(matches!(cmp_eq_ty.in_array(cmp_eq_len), TypeCmp::<[i32; 3], [i32; 3]>::Eq(_)));
+    /// assert!(matches!(cmp_eq_ty.in_array(cmp_ne_len), TypeCmp::<[i32; 5], [i32; 8]>::Ne(_)));
+    /// 
+    /// assert!(matches!(cmp_ne_ty.in_array(eq_len), TypeCmp::<[i64; 0], [u64; 0]>::Ne(_)));
+    /// assert!(matches!(cmp_ne_ty.in_array(ne_len), TypeCmp::<[i64; 1], [u64; 2]>::Ne(_)));
+    /// assert!(matches!(cmp_ne_ty.in_array(cmp_eq_len), TypeCmp::<[i64; 3], [u64; 3]>::Ne(_)));
+    /// assert!(matches!(cmp_ne_ty.in_array(cmp_ne_len), TypeCmp::<[i64; 5], [u64; 8]>::Ne(_)));
+    /// ```
+    pub const fn in_array<O, const UL: usize, const UR: usize>(
+        self,
+        other: O,
+    ) -> TypeCmp<[L; UL], [R; UR]> 
+    where
+        O: BaseTypeWitness<L = Usize<UL>, R = Usize<UR>>
+    {
+        use crate::type_fn::PairToArrayFn as PTAF;
+
+        let other = MetaBaseTypeWit::to_cmp(O::WITNESS, other);
+
+        match (self, other) {
+            (TypeCmp::Eq(tel), TypeCmp::Eq(ter)) => {
+                TypeCmp::Eq(tel.in_array(ter))
+            }
+            (TypeCmp::Ne(ne), _) => {
+                TypeCmp::Ne(SomeTypeArgIsNe::A(TypeEq::NEW).zip2(ne, other).project::<PTAF>())
+            }
+            (_, TypeCmp::Ne(ne)) => {
+                TypeCmp::Ne(SomeTypeArgIsNe::B(TypeEq::NEW).zip2(self, ne).project::<PTAF>())
+            }
+        }
+    }
+}

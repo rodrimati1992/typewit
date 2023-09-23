@@ -296,6 +296,25 @@ where
 
 
 
+
+#[cfg(feature = "const_marker")]
+mod uses_const_marker {
+    use crate::const_marker::Usize;
+
+    /// TypeFn from `(T, Usize<N>)` to `[T; N]`
+    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "const_marker")))]
+    pub struct PairToArrayFn;
+
+    super::simple_inj_type_fn!{
+        impl[T, const N: usize] ((T, Usize<N>) => [T; N]) for PairToArrayFn
+    }
+} 
+
+#[cfg(feature = "const_marker")]
+pub(crate) use uses_const_marker::*;
+
+
+
 // This type alias makes it so that docs for newer Rust versions don't
 // show `Invoke<F>`, keeping the method bounds the same as in 1.0.0.
 #[cfg(not(feature = "rust_1_61"))]
