@@ -24,6 +24,18 @@ use crate::{
 
 //////////////////////////////////////////////////////////////////////
 
+macro_rules! return_type_docs {() => {concat!(
+    "# Return type\n",
+    "\n",
+    "The return type depends on the types of the arguments:\n",
+    "- if all arguments are [`TypeEq`], this returns a `TypeEq` \n",
+    "- if any argument is a [`TypeNe`], this returns a `TypeNe` \n",
+    "- if any argument is a [`TypeCmp`] and no argument is a `TypeNe`,",
+    " this returns a `TypeCmp` \n",
+)}}
+
+//////////////////////////////////////////////////////////////////////
+
 #[doc(hidden)]
 pub trait ZipTc: 'static + Copy {
     type Output: BaseTypeWitnessTc;
@@ -283,9 +295,7 @@ declare_zip_items!{
 
     /// Zips together two [`BaseTypeWitness`] types.
     ///
-    /// This returns the most specific of the
-    /// [`TypeEq`](crate::TypeEq)/[`TypeNe`](crate::TypeNe)/[`TypeCmp`](crate::TypeCmp)
-    /// types, depending on the argument types.
+    #[doc = return_type_docs!()]
     ///
     /// # Example
     ///
@@ -334,9 +344,7 @@ declare_zip_items!{
 
     /// Zips together three [`BaseTypeWitness`] types.
     ///
-    /// This returns the most specific of the
-    /// [`TypeEq`](crate::TypeEq)/[`TypeNe`](crate::TypeNe)/[`TypeCmp`](crate::TypeCmp)
-    /// types, depending on the argument types.
+    #[doc = return_type_docs!()]
     ///
     /// # Example
     ///
@@ -381,9 +389,7 @@ declare_zip_items!{
 
     /// Zips together four [`BaseTypeWitness`] types.
     ///
-    /// This returns the most specific of the
-    /// [`TypeEq`](crate::TypeEq)/[`TypeNe`](crate::TypeNe)/[`TypeCmp`](crate::TypeCmp)
-    /// types, depending on the argument types.
+    #[doc = return_type_docs!()]
     ///
     /// # Example
     ///
@@ -449,6 +455,8 @@ mod with_const_marker {
     /// `impl BaseTypeWitness<L = LT, R = RT>`
     /// <br>with an `impl BaseTypeWitness<L = Usize<LN>, R = Usize<RN>>`
     /// <br>returning an `impl BaseTypeWitness<L = [LT; LN], R = [RT; RN]>`.
+    /// 
+    #[doc = return_type_docs!()]
     /// 
     /// # Example
     /// 

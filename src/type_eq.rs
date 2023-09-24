@@ -31,6 +31,53 @@ crate::type_eq_ne_guts::declare_zip_helper!{
     $ TypeEq
 }
 
+// Equivalent to `type_eq.zip(other_type_eq).project::<Func>()`,
+// defined to ensure that methods which do zip+project have 0 overhead in debug builds.
+macro_rules! zip_project {
+    // Since `$L0`, `$L1`,`$R0`, and `$R1` are all used only once,
+    // it's safe to declare them as `:ty` (safe against malicious type macros).
+    (
+        $left_type_eq:expr,
+        $right_type_eq:expr,
+        $F: ty,
+        ($L0:ty, $R0:ty),
+        ($L1:ty, $R1:ty),
+    ) => ({
+        __ZipProjectVars::<$F, $L0, $R0, $L1, $R1> {
+            left_te: $left_type_eq,
+            right_te: $right_type_eq,
+            projected_te: {
+                // SAFETY: 
+                // `TypeEq<$L0, $R0>` and `TypeEq<$L1, $R1>` 
+                // implies `TypeEq<($L0, $L1), ($R0, $R1)>`,
+                // 
+                // Using `$F` only once, as a type argument,
+                // to protect against type-position macros that expand to 
+                // different types on each use.
+                unsafe {
+                    TypeEq::new_unchecked()
+                }
+            }
+        }.projected_te
+    });
+}
+
+struct __ZipProjectVars<F, L0, R0, L1, R1> 
+where
+    F: TypeFn<(L0, L1)> + TypeFn<(R0, R1)>
+{
+    #[allow(dead_code)]
+    left_te: TypeEq<L0, R0>,
+
+    #[allow(dead_code)]
+    right_te: TypeEq<L1, R1>,
+
+    //         (TypeEq<L0, R0>, TypeEq<L1, R1>) 
+    // implies TypeEq<(L0, L1), (R0, R1)> 
+    // implies TypeEq<CallFn<F, (L0, L1)>, CallFn<F, (R0, R1)>>
+    projected_te: TypeEq<CallFn<F, (L0, L1)>, CallFn<F, (R0, R1)>>,
+}
+
 
 /// Constructs a [`TypeEq<T, T>`](TypeEq)
 /// 
@@ -452,6 +499,13 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// Combines this `TypeEq<L0, R0>` with a `TypeEq<L1, R1>`, 
     /// producing a `TypeEq<(L0, L1), (R0, R1)>`.
     /// 
+    /// # Alternative
+    /// 
+    /// For an alternative which allows zipping `TypeEq` with any
+    ///  [`BaseTypeWitness`](crate::BaseTypeWitness),
+    /// you can use [`base_type_wit::zip2`](crate::base_type_wit::zip2)
+    /// (requires Rust 1.65.0 and the `"generic_fns"` feature)
+    /// 
     /// # Example
     /// 
     /// This example demonstrates how one can combine two `TypeEq`s to use
@@ -501,6 +555,13 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// Combines three `TypeEq<L*, R*>` to produce a
     /// `TypeEq<(L0, L1, L2), (R0, R1, R2)>`.
     /// 
+    /// # Alternative
+    /// 
+    /// For an alternative which allows zipping `TypeEq` with two of any
+    ///  [`BaseTypeWitness`](crate::BaseTypeWitness),
+    /// you can use [`base_type_wit::zip3`](crate::base_type_wit::zip3)
+    /// (requires Rust 1.65.0 and the `"generic_fns"` feature)
+    /// 
     /// # Example
     /// 
     /// ```rust
@@ -534,6 +595,13 @@ impl<L0, R0> TypeEq<L0, R0> {
 
     /// Combines four `TypeEq<L*, R*>` to produce a
     /// `TypeEq<(L0, L1, L2, L3), (R0, R1, R2, L3)>`.
+    /// 
+    /// # Alternative
+    /// 
+    /// For an alternative which allows zipping `TypeEq` with three of any
+    ///  [`BaseTypeWitness`](crate::BaseTypeWitness),
+    /// you can use [`base_type_wit::zip4`](crate::base_type_wit::zip4)
+    /// (requires Rust 1.65.0 and the `"generic_fns"` feature)
     /// 
     /// # Example
     /// 
@@ -1015,6 +1083,14 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
 impl<L: Sized, R: Sized> TypeEq<L, R> {
     /// Combines `TypeEq<L, R>` and `TypeEq<Usize<UL>, Usize<UR>>`
     /// into `TypeEq<[L; UL], [R; UR]>`
+    /// 
+    /// # Alternative
+    /// 
+    /// For an alternative which allows passing any
+    ///  [`BaseTypeWitness`](crate::BaseTypeWitness) for the length,
+    /// you can use [`base_type_wit::in_array`](crate::base_type_wit::in_array)
+    /// (requires Rust 1.65.0 and the `"generic_fns"` feature)
+    /// 
     /// 
     /// # Example
     /// 

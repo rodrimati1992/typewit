@@ -183,10 +183,34 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
 }
 
 #[cfg(feature = "generic_fns")]
+macro_rules! alternative_docs {
+    ($func:expr) => {concat!(
+        "# Alternative\n",
+        "\n",
+        "[`base_type_wit::", $func,"`](crate::base_type_wit::", $func, ") \n",
+        "is an alternative to this function. \n",
+        "\n",
+        "This method always returns `TypeCmp`, \n",
+        "while [that function](crate::base_type_wit::", $func, ")\n",
+        "returns [`TypeNe`] when any argument is a `TypeNe`.\n",
+    )};
+}
+
+#[cfg(feature = "generic_fns")]
 #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
 impl<L, R> TypeCmp<L, R> {
     /// Combines this `TypeCmp<L, R>` with a [`BaseTypeWitness`] type to produce a
     /// `TypeCmp<(L, A::L), (R, A::R)>`.
+    /// 
+    #[doc = alternative_docs!("zip2")]
+    /// 
+    /// 
+    /// 
+    /// 
+    /// 
+    /// 
+    /// 
+    /// 
     pub const fn zip<A>(self, other: A) -> TypeCmp<(L, A::L), (R, A::R)> 
     where
         A: BaseTypeWitness,
@@ -208,6 +232,9 @@ impl<L, R> TypeCmp<L, R> {
 
     /// Combines this `TypeCmp<L, R>` with two [`BaseTypeWitness`] types to produce a
     /// `TypeCmp<(L, A::L, B::L), (R, A::R, B::R)>`.
+    /// 
+    #[doc = alternative_docs!("zip3")]
+    /// 
     pub const fn zip3<A, B>(self, arg0: A, arg1: B) -> TypeCmp<(L, A::L, B::L), (R, A::R, B::R)> 
     where
         A: BaseTypeWitness,
@@ -236,6 +263,9 @@ impl<L, R> TypeCmp<L, R> {
 
     /// Combines this `TypeCmp<L, R>` with three [`BaseTypeWitness`] types to produce a
     /// `TypeCmp<(L, A::L, B::L, C::L), (R, A::R, B::R, C::R)>`.
+    ///
+    #[doc = alternative_docs!("zip4")]
+    ///
     pub const fn zip4<A, B, C>(
         self, 
         arg0: A, 

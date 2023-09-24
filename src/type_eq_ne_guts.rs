@@ -87,51 +87,5 @@ macro_rules! declare_helpers {($_:tt $type_cmp_ty:ident $tyfn:ident $callfn:iden
         unprojected_te: $type_cmp_ty<UncallFn<InvokeAlias<F>, L>, UncallFn<InvokeAlias<F>, R>>,
     }
 
-    // Equivalent to `type_cmp.zip(other_type_eq).project::<Func>()`,
-    // defined to ensure that methods which do zip+project have 0 overhead in debug builds.
-    macro_rules! zip_project {
-        // Since `$L0`, `$L1`,`$R0`, and `$R1` are all used only once,
-        // it's safe to declare them as `:ty` (safe against malicious type macros).
-        (
-            $left_type_eq:expr,
-            $right_type_eq:expr,
-            $F: ty,
-            ($L0:ty, $R0:ty),
-            ($L1:ty, $R1:ty),
-        ) => ({
-            __ZipProjectVars::<$F, $L0, $R0, $L1, $R1> {
-                left_te: $left_type_eq,
-                right_te: $right_type_eq,
-                projected_te: {
-                    // SAFETY: 
-                    // `$type_cmp_ty<$L0, $R0>` and `$type_cmp_ty<$L1, $R1>` 
-                    // implies `$type_cmp_ty<($L0, $L1), ($R0, $R1)>`,
-                    // 
-                    // Using `$F` only once, as a type argument,
-                    // to protect against type-position macros that expand to 
-                    // different types on each use.
-                    unsafe {
-                        $type_cmp_ty::new_unchecked()
-                    }
-                }
-            }.projected_te
-        });
-    }
-
-    struct __ZipProjectVars<F, L0, R0, L1, R1> 
-    where
-        F: $tyfn<(L0, L1)> + $tyfn<(R0, R1)>
-    {
-        #[allow(dead_code)]
-        left_te: $type_cmp_ty<L0, R0>,
-
-        #[allow(dead_code)]
-        right_te: $type_cmp_ty<L1, R1>,
-
-        //         ($type_cmp_ty<L0, R0>, $type_cmp_ty<L1, R1>) 
-        // implies $type_cmp_ty<(L0, L1), (R0, R1)> 
-        // implies $type_cmp_ty<$callfn<F, (L0, L1)>, $callfn<F, (R0, R1)>>
-        projected_te: $type_cmp_ty<$callfn<F, (L0, L1)>, $callfn<F, (R0, R1)>>,
-    }
 }} pub(crate) use declare_helpers;
 

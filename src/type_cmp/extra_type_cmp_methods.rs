@@ -145,6 +145,8 @@ impl<L, R> TypeCmp<L, R> {
     /// 
     /// [`BaseTypeWitness`]: crate::BaseTypeWitness
     /// 
+    #[doc = alternative_docs!("in_array")]
+    /// 
     /// # Example
     /// 
     /// ### Basic
