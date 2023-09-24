@@ -41,8 +41,41 @@ mod type_ne_ {
         }
     }
 
+
 }
 
+impl TypeNe<u8, i8> {
+    /// Constructs a `TypeNe` by mapping from a 
+    /// `TypeNe<u8, i8>` with an [injective type-level function](crate::InjTypeFn).
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::TypeNe;
+    /// 
+    /// const NE: TypeNe<Option<String>, Vec<u16>> = TypeNe::with_fn(MakeNe::NEW);
+    /// 
+    /// typewit::inj_type_fn! {
+    ///     struct MakeNe<T, U>;
+    /// 
+    ///     impl u8 => Option<T>;
+    ///     impl i8 => Vec<U>;
+    /// }
+    /// ```
+    #[cfg(feature = "inj_type_fn")]
+    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
+    pub const fn with_fn<F>(_func: F) -> TypeNe<crate::CallInjFn<F, u8>, crate::CallInjFn<F, i8>>
+    where
+        F: crate::InjTypeFn<u8> + crate::InjTypeFn<i8>
+    {
+        core::mem::forget(_func);
+
+        // SAFETY: u8 isn't i8, dummy.
+        let this: TypeNe<u8, i8> = unsafe { Self::new_unchecked() };
+
+        projected_type_cmp!{this, u8, i8, F}
+    }
+}
 
 
 impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {

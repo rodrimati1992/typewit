@@ -39,7 +39,7 @@ macro_rules! declare_helpers {($_:tt $type_cmp_ty:ident $tyfn:ident $callfn:iden
                 }.projected_te
             }
         })
-    }
+    } use projected_type_cmp;
 
     struct __ProjectVars<F, L: ?Sized, R: ?Sized> 
     where
