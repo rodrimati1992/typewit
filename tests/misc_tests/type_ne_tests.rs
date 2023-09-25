@@ -226,3 +226,31 @@ fn zip4_test() {
         let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), typene::<u16, _>(), TypeEq::NEW);
     }
 }
+
+
+#[test]
+fn type_ne_macro_test() {
+    const fn constness<T, U: ?Sized, const N: usize>() {
+        let _: TypeNe<u8, u16> = typewit::type_ne!{u8, u16};
+
+        let _: TypeNe<u8, u16> = typewit::type_ne!{<> u8, u16};
+        
+        let _: TypeNe<str, (str,)> = typewit::type_ne!{<X: ?Sized> X, (X,)};
+
+        let _: TypeNe<T, [T; N]> = typewit::type_ne!{<X, const N: usize> X, [X; N]};
+
+        let _: TypeNe<u32, [u32]> = typewit::type_ne!{<X: Copy> X, [X] };
+
+        let _: TypeNe<u32, [u32]> = typewit::type_ne!{<X> X, [X] where X: Copy};
+
+    }
+    constness::<u64, str, 10>();
+}
+
+
+
+
+
+
+
+

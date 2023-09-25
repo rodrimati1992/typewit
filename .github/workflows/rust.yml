@@ -33,6 +33,18 @@ jobs:
       if: matrix.rust == 'stable' || matrix.rust == 'beta' || matrix.rust == 'nightly'
       run: echo "rustv=rust_stable" >> $GITHUB_ENV
 
+    - name: enable-rust-stable
+      if: matrix.rust != '1.61.0' && matrix.rust != '1.57.0'
+      run: |
+        echo "rustv = ${{env.rustv}}"
+        set -ex
+        rustup override set ${{ matrix.rust }}
+        cargo update
+        cd "${{github.workspace}}/"
+
+        cargo test --no-default-features --features "${{env.rustv}} generic_fns"
+        cargo test --no-default-features --features "${{env.rustv}} alloc const_marker inj_type_fn generic_fns"
+
     - uses: actions/checkout@v2
     - name: ci-all-versions
       run: |
@@ -40,8 +52,8 @@ jobs:
         set -ex
         rustup override set ${{ matrix.rust }}
         cargo update
-
         cd "${{github.workspace}}/"
+
         cargo test --no-default-features 
         cargo test --no-default-features --features "${{env.rustv}}"
         cargo test --no-default-features --features "alloc"
@@ -63,7 +75,7 @@ jobs:
         cargo test --no-default-features --features "rust_stable nightly_mut_refs"
         cargo test --no-default-features --features "rust_stable alloc nightly_mut_refs"
         cargo test --no-default-features --features \
-          "rust_stable adt_const_marker inj_type_fn __ui_tests alloc nightly_mut_refs"
+          "rust_stable adt_const_marker inj_type_fn generic_fns __ui_tests alloc nightly_mut_refs"
 
         MIRI_NIGHTLY=nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)
         echo "Installing latest nightly with Miri"
@@ -77,4 +89,4 @@ jobs:
         cargo clean 
 
         env RUST_BACKTRACE=0 cargo miri test --no-default-features \
-            --features "${{env.rustv}} adt_const_marker inj_type_fn alloc nightly_mut_refs"
+            --features "${{env.rustv}} adt_const_marker inj_type_fn generic_fns alloc nightly_mut_refs"

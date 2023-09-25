@@ -6,3 +6,5 @@ mod type_fn_macro;
 mod inj_type_fn_macro;
 
 mod polymatch;
+
+mod type_ne_macro;
