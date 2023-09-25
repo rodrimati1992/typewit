@@ -278,6 +278,20 @@ simple_inj_type_fn!{
 /// 
 pub struct Invoke<F>(PhantomData<fn() -> F>);
 
+impl<F> Copy for Invoke<F> {}
+
+impl<F> Clone for Invoke<F> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<F> Invoke<F> {
+    /// Constructs an `Invoke`
+    pub const NEW: Self = Self(PhantomData);
+}
+
+
 impl<F, T: ?Sized> TypeFn<T> for Invoke<F> 
 where
     F: TypeFn<T>
@@ -294,7 +308,26 @@ where
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
 
+impl<F, T: ?Sized> TypeFn<T> for PhantomData<F> 
+where
+    F: TypeFn<T>
+{
+    type Output = CallFn<F, T>;
+}
+
+#[cfg(feature = "inj_type_fn")]
+impl<F, R: ?Sized> RevTypeFn<R> for PhantomData<F> 
+where
+    F: RevTypeFn<R>,
+{
+    type Arg = UncallFn<F, R>;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 
 #[cfg(feature = "const_marker")]
@@ -303,7 +336,7 @@ mod uses_const_marker {
 
     /// TypeFn from `(T, Usize<N>)` to `[T; N]`
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "const_marker")))]
-    pub struct PairToArrayFn;
+    pub(crate) struct PairToArrayFn;
 
     super::simple_inj_type_fn!{
         impl[T, const N: usize] ((T, Usize<N>) => [T; N]) for PairToArrayFn

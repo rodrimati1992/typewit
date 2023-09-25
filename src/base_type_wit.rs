@@ -12,6 +12,7 @@ pub use meta_prim_type_wit::MetaBaseTypeWit;
 #[cfg(feature = "rust_1_61")]
 pub(crate) mod some_type_arg_is_ne;
 
+#[cfg(feature = "rust_1_61")]
 pub(crate) use self::some_type_arg_is_ne::SomeTypeArgIsNe;
 
 

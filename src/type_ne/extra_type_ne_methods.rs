@@ -43,7 +43,7 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
         InvokeAlias<F>: InjTypeFn<L> + InjTypeFn<R>
     {
         core::mem::forget(_func);
-        projected_type_cmp!{self, L, R, F}
+        projected_type_cmp!{self, L, R, InvokeAlias<F>}
     }
 
     /// Maps the type arguments of this `TypeNe`
@@ -58,7 +58,7 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     where
         InvokeAlias<F>: InjTypeFn<L> + InjTypeFn<R>
     {
-        projected_type_cmp!{self, L, R, F}
+        projected_type_cmp!{self, L, R, InvokeAlias<F>}
     }
 
     /// Maps the type arguments of this `TypeNe`
@@ -77,7 +77,7 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     {
         core::mem::forget(func);
         
-        unprojected_type_cmp!{self, L, R, F}
+        unprojected_type_cmp!{self, L, R, InvokeAlias<F>}
     }
     /// Maps the type arguments of this `TypeNe`
     /// by using the [reversed](crate::RevTypeFn) 
@@ -92,7 +92,7 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     where
         InvokeAlias<F>: crate::RevTypeFn<L> + crate::RevTypeFn<R>
     {
-        unprojected_type_cmp!{self, L, R, F}
+        unprojected_type_cmp!{self, L, R, InvokeAlias<F>}
     }
 
     /// Converts a `TypeNe<L, R>` to `TypeNe<&L, &R>`

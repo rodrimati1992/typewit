@@ -5,7 +5,8 @@
 /// This macro takes in the exact same syntax as the [`type_fn`] macro.
 /// 
 /// This macro generates the same items as the `type_fn` macro,
-/// in addition to [`RevTypeFn`], so that the function implements [`InjTypeFn`].
+/// in addition to implementing [`RevTypeFn`], 
+/// so that the function implements [`InjTypeFn`].
 /// 
 /// 
 /// # Example

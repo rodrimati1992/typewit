@@ -496,12 +496,13 @@ mod type_cmp;
 mod type_eq;
 mod type_eq_ne_guts;
 mod type_identity;
-mod type_ne;
+pub mod type_ne;
 mod type_witness_traits;
 
+#[doc(inline)]
 pub use crate::{
     type_eq::*,
-    type_ne::*,
+    type_ne::TypeNe,
     type_witness_traits::*,
     type_identity::Identity,
 };

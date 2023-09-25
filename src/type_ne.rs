@@ -1,3 +1,5 @@
+//! [`TypeNe`] and related items
+
 use core::{
     any::{Any, TypeId},
     cmp::{Ordering, Eq, Ord, PartialEq, PartialOrd},
@@ -9,6 +11,18 @@ use crate::{BaseTypeWitness, TypeEq};
 
 #[cfg(feature = "rust_1_61")]
 use crate::base_type_wit::SomeTypeArgIsNe;
+
+
+/// Marker type, for constructing `TypeNe` in [`TypeNe::with_fn`] constructor.
+#[cfg(feature = "inj_type_fn")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
+pub enum LeftArg {}
+
+/// Marker type, for constructing `TypeNe` in [`TypeNe::with_fn`] constructor.
+#[cfg(feature = "inj_type_fn")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
+pub enum RightArg {}
+
 
 
 pub use self::type_ne_::TypeNe;
@@ -44,36 +58,39 @@ mod type_ne_ {
 
 }
 
-impl TypeNe<u8, i8> {
+impl TypeNe<(), ()> {
     /// Constructs a `TypeNe` by mapping from a 
-    /// `TypeNe<u8, i8>` with an [injective type-level function](crate::InjTypeFn).
+    /// `TypeNe<`[`LeftArg`]`, `[`RightArg`]`>` 
+    /// with an [injective type-level function](crate::InjTypeFn).
     /// 
     /// # Example
     /// 
     /// ```rust
-    /// use typewit::TypeNe;
+    /// use typewit::type_ne::{TypeNe, LeftArg, RightArg};
     /// 
     /// const NE: TypeNe<Option<String>, Vec<u16>> = TypeNe::with_fn(MakeNe::NEW);
     /// 
     /// typewit::inj_type_fn! {
     ///     struct MakeNe<T, U>;
     /// 
-    ///     impl u8 => Option<T>;
-    ///     impl i8 => Vec<U>;
+    ///     impl LeftArg => Option<T>;
+    ///     impl RightArg => Vec<U>;
     /// }
     /// ```
     #[cfg(feature = "inj_type_fn")]
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
-    pub const fn with_fn<F>(_func: F) -> TypeNe<crate::CallInjFn<F, u8>, crate::CallInjFn<F, i8>>
+    pub const fn with_fn<F>(
+        _func: F,
+    ) -> TypeNe<CallInjFn<InvokeAlias<F>, LeftArg>, CallInjFn<InvokeAlias<F>, RightArg>>
     where
-        F: crate::InjTypeFn<u8> + crate::InjTypeFn<i8>
+        InvokeAlias<F>: InjTypeFn<LeftArg> + InjTypeFn<RightArg>
     {
         core::mem::forget(_func);
 
-        // SAFETY: u8 isn't i8, dummy.
-        let this: TypeNe<u8, i8> = unsafe { Self::new_unchecked() };
+        // SAFETY: LeftArg isn't RightArg, dummy.
+        let this: TypeNe<LeftArg, RightArg> = unsafe { TypeNe::new_unchecked() };
 
-        projected_type_cmp!{this, u8, i8, F}
+        projected_type_cmp!{this, LeftArg, RightArg, InvokeAlias<F>}
     }
 }
 

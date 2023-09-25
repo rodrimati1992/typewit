@@ -60,6 +60,7 @@ fn join_right_method() {
 
 
 #[test]
+#[cfg(feature = "generic_fns")]
 fn zip_test() {
     {
         const fn do_zip<A, B>(
@@ -98,6 +99,7 @@ fn zip_test() {
 }
 
 #[test]
+#[cfg(feature = "generic_fns")]
 fn zip3_test() {
     {
         const fn do_zip<A, B, C>(
@@ -151,6 +153,7 @@ fn zip3_test() {
 }
 
 #[test]
+#[cfg(feature = "generic_fns")]
 fn zip4_test() {
     {
         const fn do_zip<A, B, C, D>(
