@@ -33,6 +33,63 @@ mod type_ne_ {
     /// Value-level proof that `L` is a different type to `R`
     /// 
     /// The opposite of [`TypeEq`](crate::TypeEq).
+    /// 
+    /// # Example
+    /// 
+    /// (this example requires the `"const_marker"` feature)
+    /// 
+    #[cfg_attr(not(feature = "const_marker"), doc = "```ignore")]
+    #[cfg_attr(feature = "const_marker", doc = "```rust")]
+    /// use typewit::{const_marker::Usize, TypeNe};
+    /// 
+    /// assert_eq!(
+    ///     array_ref_chunks(&[3, 5, 8, 13, 21, 34, 55], AssertNotZero::V), 
+    ///     Chunks {chunks: vec![&[3, 5, 8], &[13, 21, 34]], tail: &[55]}
+    /// );
+    /// 
+    /// 
+    /// fn array_ref_chunks<T, const LEN: usize>(
+    ///     slice: &[T], 
+    ///     _not_zero: TypeNe<Usize<LEN>, Usize<0>>,
+    /// ) -> Chunks<'_, T, LEN> {
+    ///     let mut chunks = slice.chunks_exact(LEN);
+    /// 
+    ///     Chunks {
+    ///         chunks: chunks.by_ref().map(|c| <&[T; LEN]>::try_from(c).unwrap()).collect(),
+    ///         tail: chunks.remainder(),
+    ///     }
+    /// }
+    /// 
+    /// #[derive(Debug, PartialEq, Eq)]
+    /// struct Chunks<'a, T, const LEN: usize> {
+    ///     chunks: Vec<&'a [T; LEN]>,
+    ///     tail: &'a [T],
+    /// }
+    /// 
+    /// struct AssertNotZero<const N: usize>;
+    /// 
+    /// impl<const N: usize> AssertNotZero<N> {
+    ///     const V: TypeNe<Usize<N>, Usize<0>> = Usize::<N>.equals(Usize::<0>).unwrap_ne();
+    /// }
+    /// 
+    /// ```
+    /// 
+    /// If you attempt to pass `0` as the length of the array chunks,
+    /// you'll get this compile-time error:
+    /// ```text
+    /// error[E0080]: evaluation of `main::_doctest_main_src_type_ne_rs_41_0::AssertNotZero::<0>::V` failed
+    ///   --> src/type_ne.rs:71:43
+    ///    |
+    /// 33 |     const V: TypeNe<Usize<N>, Usize<0>> = Usize::<N>.equals(Usize::<0>).unwrap_ne();
+    ///    |                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at 'called `TypeCmp::unwrap_ne` on a `TypeEq` value', src/type_ne.rs:33:73
+    /// 
+    /// error[E0080]: erroneous constant used
+    ///  --> src/type_ne.rs:45:50
+    ///   |
+    /// 7 |     array_ref_chunks(&[3, 5, 8, 13, 21, 34, 55], AssertNotZero::<0>::V), 
+    ///   |                                                  ^^^^^^^^^^^^^^^^^^^^^ referenced constant has errors
+    /// 
+    /// ```
     pub struct TypeNe<L: ?Sized, R: ?Sized>(PhantomData<TypeNeHelper<L, R>>);
 
     // Declared to work around this error in old Rust versions:
@@ -108,6 +165,14 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
         } else {
             None
         }
+    }
+
+    /// Converts this `TypeNe` into a [`TypeCmp`](crate::TypeCmp)
+    #[cfg(feature = "cmp")]
+    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "cmp")))]
+    #[inline(always)]
+    pub const fn to_cmp(self) -> crate::TypeCmp<L, R> {
+        crate::TypeCmp::Ne(self)
     }
 
     /// Swaps the type arguments of this `TypeNe`

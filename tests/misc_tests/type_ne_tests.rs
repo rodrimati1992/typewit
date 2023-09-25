@@ -12,14 +12,8 @@ mod typene_extra_method_tests;
 
 
 #[track_caller]
-const fn typene<L, R>() -> TypeNe<L, R> {
-    assert!(size_of::<L>() != size_of::<R>() || align_of::<L>() != align_of::<R>());
-
-    // SAFETY: if either the size or alignment doesn't match,
-    //         then L and R are different types.
-    unsafe {
-        TypeNe::new_unchecked()
-    }
+fn typene<L: 'static, R: 'static>() -> TypeNe<L, R> {
+    TypeNe::with_any().unwrap()
 }
 
 
