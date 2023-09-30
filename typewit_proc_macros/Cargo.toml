@@ -1,0 +1,21 @@
+[package]
+name = "typewit_proc_macros"
+version = "1.8.0"
+edition = "2021"
+authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
+rust-version = "1.57.0"
+license = "Zlib"
+description = "implementation detail of typewit"
+repository = "https://github.com/rodrimati1992/typewit/"
+include = [
+    "Cargo.toml", 
+    "src/**/*.rs", 
+    "LICENSE-ZLIB.md", 
+]
+
+
+[lib]
+proc-macro = true
+
+
+[dependencies]
