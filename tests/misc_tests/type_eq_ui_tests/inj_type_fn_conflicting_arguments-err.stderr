@@ -1,0 +1,15 @@
+error[E0119]: conflicting implementations of trait `TypeFn<u8>` for type `Foo`
+ --> tests/misc_tests/type_eq_ui_tests/inj_type_fn_conflicting_arguments-err.rs:1:1
+  |
+1 | / typewit::inj_type_fn!{
+2 | |     struct Foo;
+3 | |
+4 | |     impl u8  => u16;
+5 | |     impl<T> T => Vec<T>;
+6 | | }
+  | | ^
+  | | |
+  | |_first implementation here
+  |   conflicting implementation for `Foo`
+  |
+  = note: this error originates in the macro `$crate::__impl_with_span` which comes from the expansion of the macro `typewit::inj_type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)

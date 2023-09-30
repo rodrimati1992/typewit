@@ -1,0 +1,1 @@
+include!{"./inj_type_fn_conflicting_arguments-err.rs"}
