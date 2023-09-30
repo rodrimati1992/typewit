@@ -7,7 +7,7 @@ This crate provides abstractions for creating
 [type witnesses](#what-are-type-witnesses).
 
 The inciting motivation for this crate is emulating trait polymorphism in `const fn`
-(as of 2023-09-10, it's not possible to call trait methods in const contexts on stable).
+(as of 2023-10-01, it's not possible to call trait methods in const contexts on stable).
 
 # What are type witnesses
 
@@ -27,7 +27,7 @@ which can coerce between a type parameter and as many types as there are variant
 ### Polymorphic function
 
 This demonstrates how one can write a return-type-polymorphic `const fn`
-(as of 2023-09-10, trait methods can't be called in const fns on stable)
+(as of 2023-10-01, trait methods can't be called in const fns on stable)
 
 ```rust
 use typewit::{MakeTypeWitness, TypeEq};
@@ -394,6 +394,16 @@ Enables `type_fn::{CallInjFn, FnRev, InjTypeFn, RevTypeFn, UncallFn}`,
 [`TypeEq`]`::{unmap, unproject}`, 
 and all [`TypeNe`] functions that project its type arguments.
 
+- `"proc_macros"`: uses proc macros to improve compile-errors involving 
+macro-generated impls.
+
+### Non-defaulted features
+
+- `"generic_fns"`(requires Rust 1.65.0):
+enables most items from the `base_type_wit` module,
+the `TypeCmp::zip*` methods,
+and the `"cmp"`, `"inj_type_fn"`, `"rust_1_65"` crate features.
+
 ### Rust-versions and standard crates
 
 These features enable items that have a minimum Rust version:
@@ -420,12 +430,12 @@ non-primitive `const` parameters.
 Enables the `"rust_stable"` and `"mut_refs"` crate features,
 and turns functions that use mutable references into `const fn`s.
 
-### Other features
+### Future-Rust features
 
-Miscelaneous other features:
+These features currently require future compiler versions:
 
 - `"mut_refs"`: turns functions that take mutable references into `const fn`s.
-note: as of September 2023, 
+note: as of October 2023, 
 this crate feature requires a stable compiler from the future.
 
 # No-std support

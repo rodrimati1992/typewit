@@ -238,7 +238,7 @@ pub type UncallFn<F, Ret> = <F as RevTypeFn<Ret>>::Arg;
 /// }
 /// ```
 /// 
-/// As of September 2023, replacing `CallInjFn` with `CallFn` can cause type inference errors:
+/// As of October 2023, replacing `CallInjFn` with `CallFn` can cause type inference errors:
 /// 
 /// ```text
 /// error[E0277]: the trait bound `Upcast: TypeFn<{integer}>` is not satisfied
