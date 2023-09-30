@@ -120,6 +120,11 @@ impl TypeNe<(), ()> {
     /// `TypeNe<`[`LeftArg`]`, `[`RightArg`]`>` 
     /// with an [injective type-level function](crate::InjTypeFn).
     /// 
+    /// # Alternative
+    /// 
+    /// The [`type_ne`](macro@crate::type_ne) macro can be used as syntactic sugar 
+    /// for calling this constructor with a one-off type-level function.
+    /// 
     /// # Example
     /// 
     /// ```rust

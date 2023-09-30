@@ -79,44 +79,60 @@ macro_rules! __tyne_parsed_capture_generics {
             )>
         )$( where $($where)* )?;
 
-        impl<$($($gen_params)*,)*>
-            $crate::TypeFn<$crate::type_ne::LeftArg> 
-        for __TypeNeParameterizer<$($gen_arg,)*>
-        $( where $($where)* )?
-        {
-            type Output = $left_ty;
+        $crate::__impl_with_span! {
+            $left_ty // span
+            () // impl attrs
+            ( <$($($gen_params)*,)*> $crate::TypeFn<$crate::type_ne::LeftArg> )
+            // for
+            (__TypeNeParameterizer<$($gen_arg,)*>)
+            ( $( where $($where)* )? )
+            (
+                type Output = $left_ty;
 
-            const TYPE_FN_ASSERTS: () = { 
-                let _: $crate::CallInjFn<Self, $crate::type_ne::LeftArg>; 
-            };
+                const TYPE_FN_ASSERTS: () = { 
+                    let _: $crate::CallInjFn<Self, $crate::type_ne::LeftArg>; 
+                };
+            )
+        }
+        
+        $crate::__impl_with_span! {
+            $left_ty // span
+            () // impl attrs
+            ( <$($($gen_params)*,)*> $crate::RevTypeFn<$left_ty> )
+            // for
+            (__TypeNeParameterizer<$($gen_arg,)*>)
+            ( $( where $($where)* )? )
+            (
+                type Arg = $crate::type_ne::LeftArg;
+            )
         }
 
-        impl<$($($gen_params)*,)*>
-            $crate::RevTypeFn<$left_ty> 
-        for __TypeNeParameterizer<$($gen_arg,)*>
-        $( where $($where)* )?
-        {
-            type Arg = $crate::type_ne::LeftArg;
+        $crate::__impl_with_span! {
+            $right_ty // span
+            () // impl attrs
+            ( <$($($gen_params)*,)*> $crate::TypeFn<$crate::type_ne::RightArg> )
+            // for
+            (__TypeNeParameterizer<$($gen_arg,)*>)
+            ( $( where $($where)* )? )
+            (
+                type Output = $right_ty;
+
+                const TYPE_FN_ASSERTS: () = { 
+                    let _: $crate::CallInjFn<Self, $crate::type_ne::RightArg>; 
+                };
+            )
         }
 
-        impl<$($($gen_params)*,)*>
-            $crate::TypeFn<$crate::type_ne::RightArg> 
-        for __TypeNeParameterizer<$($gen_arg,)*>
-        $( where $($where)* )?
-        {
-            type Output = $right_ty;
-
-            const TYPE_FN_ASSERTS: () = { 
-                let _: $crate::CallInjFn<Self, $crate::type_ne::RightArg>; 
-            };
-        }
-
-        impl<$($($gen_params)*,)*>
-            $crate::RevTypeFn<$right_ty> 
-        for __TypeNeParameterizer<$($gen_arg,)*>
-        $( where $($where)* )?
-        {
-            type Arg = $crate::type_ne::RightArg;
+        $crate::__impl_with_span! {
+            $right_ty // span
+            () // impl attrs
+            ( <$($($gen_params)*,)*> $crate::RevTypeFn<$right_ty> )
+            // for
+            (__TypeNeParameterizer<$($gen_arg,)*>)
+            ( $( where $($where)* )? )
+            (
+                type Arg = $crate::type_ne::RightArg;
+            )
         }
 
         $crate::TypeNe::with_fn(

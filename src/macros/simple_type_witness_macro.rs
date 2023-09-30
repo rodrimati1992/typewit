@@ -921,17 +921,26 @@ macro_rules! __stw_make_type_witness_impl {
             $witnessed_ty:ty
         )
     ) => {
-        impl<$($generics)* __Wit: ?Sized> 
-            $crate::MakeTypeWitness 
-        for $crate::__first_ty!(
-            $($($SelfTy)+ $witnessed_ty>,)? 
-            $enum<$($gen_args)* $witnessed_ty>,
-        ) where
-            Self: $crate::__::Identity<Type = $enum<$($gen_args)* __Wit>>,
-            $($where)*
-            $($vari_where)*
-        {
-            const MAKE: Self = Self::$variant($crate::TypeEq::NEW);
+        $crate::__impl_with_span! {
+            $variant // span
+            () // attributes on impl block
+            ( <$($generics)* __Wit: ?Sized> $crate::MakeTypeWitness )
+            // for
+            (
+                $crate::__first_ty!(
+                    $($($SelfTy)+ $witnessed_ty>,)? 
+                    $enum<$($gen_args)* $witnessed_ty>,
+                ) 
+            )
+            (
+                where
+                    Self: $crate::__::Identity<Type = $enum<$($gen_args)* __Wit>>,
+                    $($where)*
+                    $($vari_where)*
+            )
+            (
+                const MAKE: Self = Self::$variant($crate::TypeEq::NEW);
+            )
         }
     }
 }

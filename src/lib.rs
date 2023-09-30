@@ -518,6 +518,12 @@ pub use crate::type_fn::{CallFn, TypeFn};
 #[doc(no_inline)]
 pub use crate::type_fn::{CallInjFn, UncallFn, RevTypeFn, InjTypeFn};
 
+
+#[cfg(feature = "proc_macros")]
+#[doc(hidden)]
+pub use typewit_proc_macros::__impl_with_span;
+
+
 #[doc(hidden)]
 pub mod __ {
     pub use core::{

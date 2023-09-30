@@ -629,19 +629,26 @@ macro_rules! __tyfn_typefn_impl {
         where [$($capt_where:tt)*]
         
     ) => {
-        $(#[$attrs])*
-        #[allow(unused_parens)]
-        $impl<
-            $($capt_lt $($capt_lt_rem)*,)*
-            $($($fn_gen_param)*,)*
-            $($capt_tcp $($capt_tcp_rem)*,)*
-        > $crate::TypeFn<$ty_arg>
-        for $function_name<$($capt_gen_args),*>
-        where
-            $($capt_where)*
-            $($where_preds)*
-        {
-            type Output = $ret_ty;
+        $crate::__impl_with_span! {
+            $ty_arg // span
+            ( $(#[$attrs])* #[allow(unused_parens)] )
+            (
+                <
+                    $($capt_lt $($capt_lt_rem)*,)*
+                    $($($fn_gen_param)*,)*
+                    $($capt_tcp $($capt_tcp_rem)*,)*
+                > $crate::TypeFn<$ty_arg>
+            )
+            // for
+            ( $function_name<$($capt_gen_args),*> )
+            (
+                where
+                    $($capt_where)*
+                    $($where_preds)*
+            )
+            (
+                type Output = $ret_ty;
+            )
         }
     };
 }

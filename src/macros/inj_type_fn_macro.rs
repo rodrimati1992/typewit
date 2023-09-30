@@ -125,36 +125,50 @@ macro_rules! __tyfn_injtypefn_impl {
         where [$($capt_where:tt)*]
         
     ) => {
-        $(#[$attrs])*
-        #[allow(unused_parens)]
-        $impl<
-            $($capt_lt $($capt_lt_rem)*,)*
-            $($($fn_gen_param)*,)*
-            $($capt_tcp $($capt_tcp_rem)*,)*
-        > $crate::TypeFn<$ty_arg> 
-        for $function_name<$($capt_gen_args),*>
-        where
-            $($capt_where)*
-            $($where_preds)*
-        {
-            type Output = $ret_ty;
+        $crate::__impl_with_span! {
+            $ty_arg // span
+            ( $(#[$attrs])* #[allow(unused_parens)] )
+            (
+                <
+                    $($capt_lt $($capt_lt_rem)*,)*
+                    $($($fn_gen_param)*,)*
+                    $($capt_tcp $($capt_tcp_rem)*,)*
+                > $crate::TypeFn<$ty_arg> 
+            )
+            // for
+            ( $function_name<$($capt_gen_args),*> )
+            (
+                where
+                    $($capt_where)*
+                    $($where_preds)*
+            )
+            (
+                type Output = $ret_ty;
 
-            const TYPE_FN_ASSERTS: () = { let _: $crate::CallInjFn<Self, $ty_arg>; };
+                const TYPE_FN_ASSERTS: () = { let _: $crate::CallInjFn<Self, $ty_arg>; };
+            )
         }
 
-        $(#[$attrs])*
-        #[allow(unused_parens)]
-        $impl<
-            $($capt_lt $($capt_lt_rem)*,)*
-            $($($fn_gen_param)*,)*
-            $($capt_tcp $($capt_tcp_rem)*,)*
-        > $crate::type_fn::RevTypeFn<$ret_ty> 
-        for $function_name<$($capt_gen_args),*>
-        where
-            $($capt_where)*
-            $($where_preds)*
-        {
-            type Arg = $ty_arg;
+        $crate::__impl_with_span! {
+            $ret_ty // span
+            ( $(#[$attrs])* #[allow(unused_parens)] )
+            (
+                <
+                    $($capt_lt $($capt_lt_rem)*,)*
+                    $($($fn_gen_param)*,)*
+                    $($capt_tcp $($capt_tcp_rem)*,)*
+                > $crate::type_fn::RevTypeFn<$ret_ty> 
+            )
+            // for
+            ( $function_name<$($capt_gen_args),*> )
+            (
+                where
+                    $($capt_where)*
+                    $($where_preds)*
+            )
+            (
+                type Arg = $ty_arg;
+            )
         }
     };
 }

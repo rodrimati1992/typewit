@@ -74,8 +74,12 @@ jobs:
         
         cargo test --no-default-features --features "rust_stable nightly_mut_refs"
         cargo test --no-default-features --features "rust_stable alloc nightly_mut_refs"
+
         cargo test --no-default-features --features \
-          "rust_stable adt_const_marker inj_type_fn generic_fns __ui_tests alloc nightly_mut_refs"
+          "rust_stable adt_const_marker inj_type_fn generic_fns proc_macros __ui_tests alloc nightly_mut_refs"
+
+        cargo test --no-default-features --features \
+          "rust_stable adt_const_marker inj_type_fn generic_fns             __ui_tests alloc nightly_mut_refs"
 
         MIRI_NIGHTLY=nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)
         echo "Installing latest nightly with Miri"
@@ -89,4 +93,4 @@ jobs:
         cargo clean 
 
         env RUST_BACKTRACE=0 cargo miri test --no-default-features \
-            --features "${{env.rustv}} adt_const_marker inj_type_fn generic_fns alloc nightly_mut_refs"
+            --features "${{env.rustv}} adt_const_marker inj_type_fn generic_fns proc_macros alloc nightly_mut_refs"
