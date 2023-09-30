@@ -1,5 +1,5 @@
 error: missing documentation for an enum
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:7:5
+  --> tests/misc_tests/stw_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:7:5
    |
 7  | /     typewit::simple_type_witness! {
 8  | |         pub enum EnumWithOnlyDocAttrs {
@@ -11,14 +11,14 @@ error: missing documentation for an enum
    | |_____^
    |
 note: the lint level is defined here
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:2:9
+  --> tests/misc_tests/stw_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:2:9
    |
 2  | #![deny(missing_docs)]
    |         ^^^^^^^^^^^^
    = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: missing documentation for a variant
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:7:5
+  --> tests/misc_tests/stw_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:7:5
    |
 7  | /     typewit::simple_type_witness! {
 8  | |         pub enum EnumWithOnlyDocAttrs {
@@ -32,7 +32,7 @@ error: missing documentation for a variant
    = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: missing documentation for an enum
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:20:5
+  --> tests/misc_tests/stw_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:20:5
    |
 20 | /     typewit::simple_type_witness! {
 21 | |         pub enum EnumWithOnlyDocAttrs {
@@ -46,7 +46,7 @@ error: missing documentation for an enum
    = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: missing documentation for a variant
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:20:5
+  --> tests/misc_tests/stw_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:20:5
    |
 20 | /     typewit::simple_type_witness! {
 21 | |         pub enum EnumWithOnlyDocAttrs {
@@ -60,7 +60,7 @@ error: missing documentation for a variant
    = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: missing documentation for an enum
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:33:5
+  --> tests/misc_tests/stw_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:33:5
    |
 33 | /     typewit::simple_type_witness! {
 34 | |         pub enum EnumWithOnlyDocAttrs {
@@ -74,7 +74,7 @@ error: missing documentation for an enum
    = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: missing documentation for a variant
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:33:5
+  --> tests/misc_tests/stw_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:33:5
    |
 33 | /     typewit::simple_type_witness! {
 34 | |         pub enum EnumWithOnlyDocAttrs {
@@ -88,7 +88,7 @@ error: missing documentation for a variant
    = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: missing documentation for an enum
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:47:5
+  --> tests/misc_tests/stw_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:47:5
    |
 47 | /     typewit::simple_type_witness! {
 48 | |         pub enum EnumWithCfgAndOtherAttrs {
@@ -102,7 +102,7 @@ error: missing documentation for an enum
    = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: missing documentation for a variant
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:47:5
+  --> tests/misc_tests/stw_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:47:5
    |
 47 | /     typewit::simple_type_witness! {
 48 | |         pub enum EnumWithCfgAndOtherAttrs {
@@ -116,7 +116,7 @@ error: missing documentation for a variant
    = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: missing documentation for an enum
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:60:5
+  --> tests/misc_tests/stw_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:60:5
    |
 60 | /     typewit::simple_type_witness! {
 61 | |         pub enum EnumWithCfgAndOtherAttrs {
@@ -130,7 +130,7 @@ error: missing documentation for an enum
    = note: this error originates in the macro `$crate::__stw_top_items` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: missing documentation for a variant
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:60:5
+  --> tests/misc_tests/stw_ui_tests/stw_macro_cfg_and_docs_on_variants-err.rs:60:5
    |
 60 | /     typewit::simple_type_witness! {
 61 | |         pub enum EnumWithCfgAndOtherAttrs {

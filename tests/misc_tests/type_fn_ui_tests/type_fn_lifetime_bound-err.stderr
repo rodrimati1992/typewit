@@ -1,5 +1,5 @@
 error: lifetime may not live long enough
- --> tests/misc_tests/type_eq_ui_tests/type_fn_lifetime_bound-err.rs:8:12
+ --> tests/misc_tests/type_fn_ui_tests/type_fn_lifetime_bound-err.rs:8:12
   |
 7 | fn _with_lifetime<'a, 'b, 'c, 'd>() {
   |                   --  -- lifetime `'b` defined here
@@ -11,7 +11,7 @@ error: lifetime may not live long enough
   = help: consider adding the following bound: `'b: 'a`
 
 error: lifetime may not live long enough
- --> tests/misc_tests/type_eq_ui_tests/type_fn_lifetime_bound-err.rs:8:12
+ --> tests/misc_tests/type_fn_ui_tests/type_fn_lifetime_bound-err.rs:8:12
   |
 7 | fn _with_lifetime<'a, 'b, 'c, 'd>() {
   |                           -- lifetime `'c` defined here
@@ -19,7 +19,7 @@ error: lifetime may not live long enough
   |            ^^^^^^^^^^^^^^^^^^^^^^^ requires that `'c` must outlive `'static`
 
 error: lifetime may not live long enough
- --> tests/misc_tests/type_eq_ui_tests/type_fn_lifetime_bound-err.rs:8:12
+ --> tests/misc_tests/type_fn_ui_tests/type_fn_lifetime_bound-err.rs:8:12
   |
 7 | fn _with_lifetime<'a, 'b, 'c, 'd>() {
   |                               -- lifetime `'d` defined here

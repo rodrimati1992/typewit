@@ -1,8 +1,8 @@
+#[cfg(feature = "generic_fns")]
+use crate::base_type_wit::MetaBaseTypeWit as MBTW;
+
 use crate::{
-    base_type_wit::{
-        MetaBaseTypeWit as MBTW,
-        BaseTypeWitness as BTW,
-    },
+    base_type_wit::BaseTypeWitness as BTW,
     TypeEq, TypeNe
 };
 

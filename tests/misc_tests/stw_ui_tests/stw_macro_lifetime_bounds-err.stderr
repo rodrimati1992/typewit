@@ -1,5 +1,5 @@
 error: lifetime may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_lifetime_bounds-err.rs:16:12
+  --> tests/misc_tests/stw_ui_tests/stw_macro_lifetime_bounds-err.rs:16:12
    |
 15 | fn _foo<'a, 'b, 'c, 'd>() {
    |         --  -- lifetime `'b` defined here
@@ -11,7 +11,7 @@ error: lifetime may not live long enough
    = help: consider adding the following bound: `'b: 'a`
 
 error: lifetime may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_lifetime_bounds-err.rs:16:12
+  --> tests/misc_tests/stw_ui_tests/stw_macro_lifetime_bounds-err.rs:16:12
    |
 15 | fn _foo<'a, 'b, 'c, 'd>() {
    |         --      -- lifetime `'c` defined here
@@ -23,7 +23,7 @@ error: lifetime may not live long enough
    = help: consider adding the following bound: `'c: 'a`
 
 error: lifetime may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_lifetime_bounds-err.rs:16:12
+  --> tests/misc_tests/stw_ui_tests/stw_macro_lifetime_bounds-err.rs:16:12
    |
 15 | fn _foo<'a, 'b, 'c, 'd>() {
    |                     -- lifetime `'d` defined here
@@ -37,7 +37,7 @@ help: the following changes may resolve your lifetime errors
   = help: replace `'d` with `'static`
 
 error: lifetime may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_lifetime_bounds-err.rs:20:12
+  --> tests/misc_tests/stw_ui_tests/stw_macro_lifetime_bounds-err.rs:20:12
    |
 19 | fn _bar<'a, 'b, 'c, 'd>() {
    |         --  -- lifetime `'b` defined here
@@ -49,7 +49,7 @@ error: lifetime may not live long enough
    = help: consider adding the following bound: `'b: 'a`
 
 error: lifetime may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_lifetime_bounds-err.rs:20:12
+  --> tests/misc_tests/stw_ui_tests/stw_macro_lifetime_bounds-err.rs:20:12
    |
 19 | fn _bar<'a, 'b, 'c, 'd>() {
    |         --      -- lifetime `'c` defined here
@@ -61,7 +61,7 @@ error: lifetime may not live long enough
    = help: consider adding the following bound: `'c: 'a`
 
 error: lifetime may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_lifetime_bounds-err.rs:20:12
+  --> tests/misc_tests/stw_ui_tests/stw_macro_lifetime_bounds-err.rs:20:12
    |
 19 | fn _bar<'a, 'b, 'c, 'd>() {
    |                     -- lifetime `'d` defined here

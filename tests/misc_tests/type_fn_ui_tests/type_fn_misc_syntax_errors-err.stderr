@@ -1,5 +1,5 @@
 error: expected at least one type-level function definition
- --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:1:1
+ --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:1:1
   |
 1 | / typewit::type_fn!{
 2 | |     struct Unit;
@@ -10,7 +10,7 @@ error: expected at least one type-level function definition
 
 error: invalid argument for `type_fn` macro
        expected struct declaration followed by type-level function definitions
- --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:5:1
+ --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:5:1
   |
 5 | / typewit::type_fn!{
 6 | |     impl u8 => u16;
@@ -21,7 +21,7 @@ error: invalid argument for `type_fn` macro
 
 error: expected `impl`, found `() =>`
        helo: `impl () =>` is likely to work.
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:9:1
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:9:1
    |
 9  | / typewit::type_fn!{
 10 | |     struct NoImplToken;
@@ -33,7 +33,7 @@ error: expected `impl`, found `() =>`
    = note: this error originates in the macro `$crate::__tyfn_parse_fns` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: expected at least one type-level function definition
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:16:1
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:16:1
    |
 16 | / typewit::type_fn!{
 17 | |     struct NoSemicolon
@@ -43,7 +43,7 @@ error: expected at least one type-level function definition
    = note: this error originates in the macro `$crate::__tyfn_parsed_capture_where` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: expected `;` after struct declaration, found `impl`
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:20:1
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:20:1
    |
 20 | / typewit::type_fn!{
 21 | |     struct ImplAfterNoSemicolon
@@ -55,7 +55,7 @@ error: expected `;` after struct declaration, found `impl`
    = note: this error originates in the macro `$crate::__tyfn_parsed_capture_where` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unexpected `;` in generic parameter list
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:27:1
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:27:1
    |
 27 | / typewit::type_fn!{
 28 | |     struct UnfinishedGenericParams0<;
@@ -65,7 +65,7 @@ error: unexpected `;` in generic parameter list
    = note: this error originates in the macro `$crate::__::__parse_in_generics` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unexpected `;` in generic parameter list
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:31:1
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:31:1
    |
 31 | / typewit::type_fn!{
 32 | |     struct UnfinishedGenericParams1<T,;
@@ -75,7 +75,7 @@ error: unexpected `;` in generic parameter list
    = note: this error originates in the macro `$crate::__::__parse_in_generics` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unexpected end of bound: `Add < Type < u16 > > ;`
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:35:1
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:35:1
    |
 35 | / typewit::type_fn!{
 36 | |     struct UnfinishedGenericParams2Impl<T: Add<Type<u16>>;
@@ -87,7 +87,7 @@ error: unexpected end of bound: `Add < Type < u16 > > ;`
    = note: this error originates in the macro `$crate::__::__parse_ty_bounds` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unexpected `impl` in generic parameter list
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:42:1
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:42:1
    |
 42 | / typewit::type_fn!{
 43 | |     struct UnfinishedGenericParams0Impl<impl
@@ -97,7 +97,7 @@ error: unexpected `impl` in generic parameter list
    = note: this error originates in the macro `$crate::__::__parse_in_generics` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unexpected `impl` in generic parameter list
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:46:1
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:46:1
    |
 46 | / typewit::type_fn!{
 47 | |     struct UnfinishedGenericParams1Impl<T,impl
@@ -107,7 +107,7 @@ error: unexpected `impl` in generic parameter list
    = note: this error originates in the macro `$crate::__::__parse_in_generics` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unexpected end of bound: `Add < Type < u16 > > impl`
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:50:1
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:50:1
    |
 50 | / typewit::type_fn!{
 51 | |     struct UnfinishedGenericParams2Impl<T: Add<Type<u16>> impl
@@ -120,7 +120,7 @@ error: unexpected end of bound: `Add < Type < u16 > > impl`
 
 error: unsupported attribute(s) on generic parameter(s): `#[foo]`, `#[bar]`
        only the `#[cfg(...)]` attribute is supported
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:56:1
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:56:1
    |
 56 | / typewit::type_fn!{
 57 | |     struct GenParamAttributes<#[foo] #[bar] T>;
@@ -132,7 +132,7 @@ error: unsupported attribute(s) on generic parameter(s): `#[foo]`, `#[bar]`
    = note: this error originates in the macro `$crate::__assert_valid_gen_attr` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: expected these generic argument(s) for `One` variant to be passed: B
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:69:1
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:69:1
    |
 69 | / typewit::simple_type_witness!{
 70 | |     enum UnprovidedGenericArgsInVariant[A, B, C = u8, D = u64] {
@@ -145,7 +145,7 @@ error: expected these generic argument(s) for `One` variant to be passed: B
    = note: this error originates in the macro `$crate::__parse_generic_args_with_defaults__assert_only_defaults` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: expected these generic argument(s) for `Three` variant to be passed: A, B
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:69:1
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:69:1
    |
 69 | / typewit::simple_type_witness!{
 70 | |     enum UnprovidedGenericArgsInVariant[A, B, C = u8, D = u64] {
@@ -158,7 +158,7 @@ error: expected these generic argument(s) for `Three` variant to be passed: A, B
    = note: this error originates in the macro `$crate::__parse_generic_args_with_defaults__assert_only_defaults` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0207]: the type parameter `T` is not constrained by the impl trait, self type, or predicates
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_misc_syntax_errors-err.rs:65:24
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:65:24
    |
 65 |     impl<#[cfg(all())] T> () => u8
    |                        ^ unconstrained type parameter

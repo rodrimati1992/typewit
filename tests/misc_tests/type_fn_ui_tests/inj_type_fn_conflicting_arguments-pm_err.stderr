@@ -1,5 +1,5 @@
 error[E0119]: conflicting implementations of trait `TypeFn<u8>` for type `Foo`
- --> tests/misc_tests/type_eq_ui_tests/./inj_type_fn_conflicting_arguments-err.rs
+ --> tests/misc_tests/type_fn_ui_tests/./inj_type_fn_conflicting_arguments-err.rs
   |
   |     impl u8  => u16;
   |          -- first implementation here

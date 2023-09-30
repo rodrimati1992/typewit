@@ -1,5 +1,5 @@
 error[E0119]: conflicting implementations of trait `RevTypeFn<u16>` for type `ToU16`
- --> tests/misc_tests/type_eq_ui_tests/inj_type_fn_conflicting_return_values-err.rs:1:1
+ --> tests/misc_tests/type_fn_ui_tests/inj_type_fn_conflicting_return_values-err.rs:1:1
   |
 1 | / typewit::inj_type_fn!{
 2 | |     struct ToU16;
@@ -15,7 +15,7 @@ error[E0119]: conflicting implementations of trait `RevTypeFn<u16>` for type `To
   = note: this error originates in the macro `$crate::__impl_with_span` which comes from the expansion of the macro `typewit::inj_type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0119]: conflicting implementations of trait `RevTypeFn<_>` for type `IntoGeneric`
-  --> tests/misc_tests/type_eq_ui_tests/inj_type_fn_conflicting_return_values-err.rs:8:1
+  --> tests/misc_tests/type_fn_ui_tests/inj_type_fn_conflicting_return_values-err.rs:8:1
    |
 8  | / typewit::inj_type_fn!{
 9  | |     struct IntoGeneric;
@@ -31,7 +31,7 @@ error[E0119]: conflicting implementations of trait `RevTypeFn<_>` for type `Into
    = note: this error originates in the macro `$crate::__impl_with_span` which comes from the expansion of the macro `typewit::inj_type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0119]: conflicting implementations of trait `RevTypeFn<u8>` for type `IntoGenericAndConcrete`
-  --> tests/misc_tests/type_eq_ui_tests/inj_type_fn_conflicting_return_values-err.rs:15:1
+  --> tests/misc_tests/type_fn_ui_tests/inj_type_fn_conflicting_return_values-err.rs:15:1
    |
 15 | / typewit::inj_type_fn!{
 16 | |     struct IntoGenericAndConcrete;

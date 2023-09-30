@@ -1,11 +1,11 @@
 error[E0603]: struct `Unit` is private
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_privacy-err.rs:16:21
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_privacy-err.rs:16:21
    |
 16 |     let _: private::Unit;
    |                     ^^^^ private struct
    |
 note: the struct `Unit` is defined here
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_privacy-err.rs:2:5
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_privacy-err.rs:2:5
    |
 2  | /     typewit::type_fn!{
 3  | |         struct Unit;
@@ -16,13 +16,13 @@ note: the struct `Unit` is defined here
    = note: this error originates in the macro `$crate::__tyfn_declare_struct` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0603]: struct `WithParams` is private
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_privacy-err.rs:17:21
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_privacy-err.rs:17:21
    |
 17 |     let _: private::WithParams::<'static, u8, 0>;
    |                     ^^^^^^^^^^ private struct
    |
 note: the struct `WithParams` is defined here
-  --> tests/misc_tests/type_eq_ui_tests/type_fn_privacy-err.rs:8:5
+  --> tests/misc_tests/type_fn_ui_tests/type_fn_privacy-err.rs:8:5
    |
 8  | /     typewit::type_fn!{
 9  | |         struct WithParams<'a, T, const N: usize>;

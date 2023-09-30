@@ -1,5 +1,5 @@
 error[E0119]: conflicting implementations of trait `MakeTypeWitness` for type `TwoU8s<u8>`
- --> tests/misc_tests/type_eq_ui_tests/./stw_overlapping_witnessed_type-err.rs
+ --> tests/misc_tests/stw_ui_tests/./stw_overlapping_witnessed_type-err.rs
   |
   |     enum TwoU8s {First = u8, Second = u8 }
   |                  -----       ^^^^^^ conflicting implementation for `TwoU8s<u8>`
@@ -9,7 +9,7 @@ error[E0119]: conflicting implementations of trait `MakeTypeWitness` for type `T
   = note: this error originates in the macro `$crate::__impl_with_span` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0119]: conflicting implementations of trait `MakeTypeWitness` for type `OrConcrete<Vec<u8>, Vec<u8>>`
- --> tests/misc_tests/type_eq_ui_tests/./stw_overlapping_witnessed_type-err.rs
+ --> tests/misc_tests/stw_ui_tests/./stw_overlapping_witnessed_type-err.rs
   |
   |     enum OrConcrete<T> {Vectu8 = Vec<u8>, Generic = T }
   |                         ------            ^^^^^^^ conflicting implementation for `OrConcrete<Vec<u8>, Vec<u8>>`

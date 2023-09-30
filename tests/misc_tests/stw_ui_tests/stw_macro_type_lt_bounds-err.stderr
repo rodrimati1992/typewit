@@ -1,5 +1,5 @@
 warning: unused import: `core::fmt::Debug`
- --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:3:5
+ --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:3:5
   |
 3 | use core::fmt::Debug;
   |     ^^^^^^^^^^^^^^^^
@@ -7,7 +7,7 @@ warning: unused import: `core::fmt::Debug`
   = note: `#[warn(unused_imports)]` on by default
 
 error[E0309]: the parameter type `V` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:19:12
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:19:12
    |
 19 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ...so that the type `V` will meet its required lifetime bounds
@@ -18,7 +18,7 @@ help: consider adding an explicit lifetime bound...
    |                    ++++
 
 error[E0309]: the parameter type `W` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:19:12
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:19:12
    |
 19 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ...so that the type `W` will meet its required lifetime bounds
@@ -29,7 +29,7 @@ help: consider adding an explicit lifetime bound...
    |                       ++++
 
 error[E0310]: the parameter type `W` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:19:12
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:19:12
    |
 19 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ...so that the type `W` will meet its required lifetime bounds
@@ -40,7 +40,7 @@ help: consider adding an explicit lifetime bound...
    |                       +++++++++
 
 error[E0309]: the parameter type `Y` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:19:12
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:19:12
    |
 19 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ...so that the type `Y` will meet its required lifetime bounds
@@ -51,7 +51,7 @@ help: consider adding an explicit lifetime bound...
    |                             ++++
 
 error[E0309]: the parameter type `V` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:19:50
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:19:50
    |
 19 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |                                                  ^^^^^^^^^^^^^^^^^^^^^ ...so that the type `V` will meet its required lifetime bounds
@@ -62,7 +62,7 @@ help: consider adding an explicit lifetime bound...
    |                    ++++
 
 error[E0309]: the parameter type `W` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:19:50
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:19:50
    |
 19 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |                                                  ^^^^^^^^^^^^^^^^^^^^^ ...so that the type `W` will meet its required lifetime bounds
@@ -73,7 +73,7 @@ help: consider adding an explicit lifetime bound...
    |                       ++++
 
 error[E0310]: the parameter type `W` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:19:50
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:19:50
    |
 19 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |                                                  ^^^^^^^^^^^^^^^^^^^^^ ...so that the type `W` will meet its required lifetime bounds
@@ -84,7 +84,7 @@ help: consider adding an explicit lifetime bound...
    |                       +++++++++
 
 error[E0309]: the parameter type `Y` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:19:50
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:19:50
    |
 19 |     let _: TypeParams<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |                                                  ^^^^^^^^^^^^^^^^^^^^^ ...so that the type `Y` will meet its required lifetime bounds
@@ -95,7 +95,7 @@ help: consider adding an explicit lifetime bound...
    |                             ++++
 
 error[E0309]: the parameter type `V` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:23:12
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:23:12
    |
 23 |     let _: TypeParamsAngBrack<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ...so that the type `V` will meet its required lifetime bounds
@@ -106,7 +106,7 @@ help: consider adding an explicit lifetime bound...
    |                    ++++
 
 error[E0309]: the parameter type `W` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:23:12
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:23:12
    |
 23 |     let _: TypeParamsAngBrack<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ...so that the type `W` will meet its required lifetime bounds
@@ -117,7 +117,7 @@ help: consider adding an explicit lifetime bound...
    |                       ++++
 
 error[E0310]: the parameter type `W` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:23:12
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:23:12
    |
 23 |     let _: TypeParamsAngBrack<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ...so that the type `W` will meet its required lifetime bounds
@@ -128,7 +128,7 @@ help: consider adding an explicit lifetime bound...
    |                       +++++++++
 
 error[E0309]: the parameter type `Y` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:23:12
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:23:12
    |
 23 |     let _: TypeParamsAngBrack<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ...so that the type `Y` will meet its required lifetime bounds
@@ -139,7 +139,7 @@ help: consider adding an explicit lifetime bound...
    |                             ++++
 
 error[E0309]: the parameter type `V` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:23:58
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:23:58
    |
 23 |     let _: TypeParamsAngBrack<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |                                                          ^^^^^^^^^^^^^^^^^^^^^ ...so that the type `V` will meet its required lifetime bounds
@@ -150,7 +150,7 @@ help: consider adding an explicit lifetime bound...
    |                    ++++
 
 error[E0309]: the parameter type `W` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:23:58
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:23:58
    |
 23 |     let _: TypeParamsAngBrack<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |                                                          ^^^^^^^^^^^^^^^^^^^^^ ...so that the type `W` will meet its required lifetime bounds
@@ -161,7 +161,7 @@ help: consider adding an explicit lifetime bound...
    |                       ++++
 
 error[E0310]: the parameter type `W` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:23:58
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:23:58
    |
 23 |     let _: TypeParamsAngBrack<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |                                                          ^^^^^^^^^^^^^^^^^^^^^ ...so that the type `W` will meet its required lifetime bounds
@@ -172,7 +172,7 @@ help: consider adding an explicit lifetime bound...
    |                       +++++++++
 
 error[E0309]: the parameter type `Y` may not live long enough
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_type_lt_bounds-err.rs:23:58
+  --> tests/misc_tests/stw_ui_tests/stw_macro_type_lt_bounds-err.rs:23:58
    |
 23 |     let _: TypeParamsAngBrack<'a, T, U, V, W, X, Y, _> = MakeTypeWitness::MAKE;
    |                                                          ^^^^^^^^^^^^^^^^^^^^^ ...so that the type `Y` will meet its required lifetime bounds

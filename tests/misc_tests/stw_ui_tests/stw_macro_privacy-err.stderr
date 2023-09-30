@@ -1,11 +1,11 @@
 error[E0603]: enum `Private` is private
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_privacy-err.rs:13:21
+  --> tests/misc_tests/stw_ui_tests/stw_macro_privacy-err.rs:13:21
    |
 13 |     let _: private::Private<u8> = MakeTypeWitness::MAKE;
    |                     ^^^^^^^ private enum
    |
 note: the enum `Private` is defined here
-  --> tests/misc_tests/type_eq_ui_tests/stw_macro_privacy-err.rs:4:5
+  --> tests/misc_tests/stw_ui_tests/stw_macro_privacy-err.rs:4:5
    |
 4  | /     typewit::simple_type_witness!{
 5  | |         enum Private {

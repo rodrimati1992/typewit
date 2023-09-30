@@ -1,5 +1,5 @@
 error[E0271]: type mismatch resolving `<NonInjective as RevTypeFn<u8>>::Arg == T`
-  --> tests/misc_tests/type_eq_ui_tests/rev_typefn_impl_noninjective-err.rs:8:67
+  --> tests/misc_tests/type_fn_ui_tests/rev_typefn_impl_noninjective-err.rs:8:67
    |
 5  | impl<T> TypeFn<T> for NonInjective {
    |      - this type parameter
@@ -8,7 +8,7 @@ error[E0271]: type mismatch resolving `<NonInjective as RevTypeFn<u8>>::Arg == T
    |                                                                   ^ type mismatch resolving `<NonInjective as RevTypeFn<u8>>::Arg == T`
    |
 note: expected this to be `T`
-  --> tests/misc_tests/type_eq_ui_tests/rev_typefn_impl_noninjective-err.rs:12:16
+  --> tests/misc_tests/type_fn_ui_tests/rev_typefn_impl_noninjective-err.rs:12:16
    |
 12 |     type Arg = ();
    |                ^^
