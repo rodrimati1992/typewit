@@ -361,13 +361,13 @@ mod type_eq_ {
         /// }
         /// 
         /// fn downcast_slice<T: Any, U: Any>(foo: &[T]) -> Option<&[U]> {
-        ///     struct Slice;
-        ///     impl<T> typewit::TypeFn<T> for Slice {
+        ///     struct SliceFn;
+        ///     impl<T> typewit::TypeFn<T> for SliceFn {
         ///         type Output = [T];
         ///     }
         /// 
         ///     TypeEq::<T, U>::with_any().map(|te: TypeEq<T, U>|{
-        ///         te.map(Slice) // TypeEq<[T], [U]>
+        ///         te.map(SliceFn) // TypeEq<[T], [U]>
         ///           .in_ref()   // TypeEq<&[T]>, &[U]>
         ///           .to_right(foo) // identity cast from `&[T]` to `&[U]`
         ///     })
@@ -865,7 +865,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     ///     array: &[T; N],
     ///     te_slice: TypeEq<[T], [u8]>,
     /// ) -> u8 {
-    ///     let te: TypeEq<T, u8> = te_slice.unmap(Slice);
+    ///     let te: TypeEq<T, u8> = te_slice.unmap(SliceFn);
     ///
     ///     let te_ref: TypeEq<&T, &u8> = te.in_ref();
     ///
@@ -873,7 +873,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// }
     ///
     /// typewit::inj_type_fn! {
-    ///     struct Slice;
+    ///     struct SliceFn;
     /// 
     ///     impl<T> T => [T]
     /// }

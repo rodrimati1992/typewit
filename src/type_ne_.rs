@@ -1,5 +1,3 @@
-//! [`TypeNe`] and related items
-
 use core::{
     any::{Any, TypeId},
     cmp::{Ordering, Eq, Ord, PartialEq, PartialOrd},

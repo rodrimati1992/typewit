@@ -503,7 +503,18 @@ mod type_cmp;
 mod type_eq;
 mod type_eq_ne_guts;
 mod type_identity;
-pub mod type_ne;
+
+mod type_ne_;
+
+/// [`TypeNe`]-related items
+pub mod type_ne {
+    pub use crate::type_ne_::{LeftArg, RightArg};
+    
+    #[doc(no_inline)]
+    pub use crate::TypeNe;
+}
+
+
 mod type_witness_traits;
 
 #[cfg(feature = "rust_1_65")]
@@ -513,7 +524,7 @@ pub mod type_constructors;
 #[doc(inline)]
 pub use crate::{
     type_eq::*,
-    type_ne::TypeNe,
+    type_ne_::TypeNe,
     type_witness_traits::*,
     type_identity::Identity,
 };

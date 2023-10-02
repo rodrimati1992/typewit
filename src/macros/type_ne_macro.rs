@@ -1,6 +1,6 @@
 
 /// Constructs a [`TypeNe`](crate::TypeNe)
-/// with type arguments that are statically known to be different types.
+/// of types that are statically known to be different.
 /// 
 /// This macro is syntactic sugar for calling 
 /// [`TypeNe::with_fn`](crate::TypeNe::with_fn) with a private 
