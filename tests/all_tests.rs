@@ -6,10 +6,9 @@
 mod misc_tests {
     mod test_utils;
 
-    #[cfg(feature = "const_marker")]
     mod const_marker_tests;
 
-    #[cfg(feature = "generic_fns")]
+    #[cfg(feature = "rust_1_65")]
     mod generic_fns_tests;
 
     mod ui_tests;

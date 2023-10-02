@@ -3,7 +3,6 @@ use crate::{
     MakeTypeWitness, TypeWitnessTypeArg,
 };
 
-#[cfg(feature = "const_marker")]
 use crate::const_marker::Usize;
 
 
@@ -508,18 +507,14 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// For an alternative which allows zipping `TypeEq` with any
     ///  [`BaseTypeWitness`](crate::BaseTypeWitness),
     /// you can use [`base_type_wit::zip2`](crate::base_type_wit::zip2)
-    /// (requires Rust 1.65.0 and the `"generic_fns"` feature)
+    /// (requires the `"rust_1_65"` feature)
     /// 
     /// # Example
     /// 
     /// This example demonstrates how one can combine two `TypeEq`s to use
     /// with a multi-parameter type.
     /// 
-    /// This example requires the `"const_marker"` feature (enabled by default)
-    /// because it uses [`Usize`](crate::const_marker::Usize)
-    /// 
-    #[cfg_attr(not(feature = "const_marker"), doc = "```ignore")]
-    #[cfg_attr(feature = "const_marker", doc = "```rust")]
+    /// ```rust
     /// use typewit::{const_marker::Usize, TypeEq, TypeFn};
     /// 
     /// assert_eq!(make_foo(TypeEq::NEW, TypeEq::NEW), Foo("hello", [3, 5, 8]));
@@ -564,7 +559,7 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// For an alternative which allows zipping `TypeEq` with two of any
     ///  [`BaseTypeWitness`](crate::BaseTypeWitness),
     /// you can use [`base_type_wit::zip3`](crate::base_type_wit::zip3)
-    /// (requires Rust 1.65.0 and the `"generic_fns"` feature)
+    /// (requires the `"rust_1_65"` feature)
     /// 
     /// # Example
     /// 
@@ -605,7 +600,7 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// For an alternative which allows zipping `TypeEq` with three of any
     ///  [`BaseTypeWitness`](crate::BaseTypeWitness),
     /// you can use [`base_type_wit::zip4`](crate::base_type_wit::zip4)
-    /// (requires Rust 1.65.0 and the `"generic_fns"` feature)
+    /// (requires the `"rust_1_65"` feature)
     /// 
     /// # Example
     /// 
@@ -1080,8 +1075,6 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     }
 }
 
-#[cfg(feature = "const_marker")]
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "const_marker")))]
 impl<L: Sized, R: Sized> TypeEq<L, R> {
     /// Combines `TypeEq<L, R>` and `TypeEq<Usize<UL>, Usize<UR>>`
     /// into `TypeEq<[L; UL], [R; UR]>`
@@ -1091,7 +1084,7 @@ impl<L: Sized, R: Sized> TypeEq<L, R> {
     /// For an alternative which allows passing any
     ///  [`BaseTypeWitness`](crate::BaseTypeWitness) for the length,
     /// you can use [`base_type_wit::in_array`](crate::base_type_wit::in_array)
-    /// (requires Rust 1.65.0 and the `"generic_fns"` feature)
+    /// (requires the `"rust_1_65"` feature)
     /// 
     /// 
     /// # Example

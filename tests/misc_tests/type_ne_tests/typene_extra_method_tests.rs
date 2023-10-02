@@ -99,7 +99,7 @@ fn in_box_test() {
 }
 
 
-#[cfg(all(feature = "rust_1_61", feature = "const_marker"))]
+#[cfg(feature = "rust_1_61")]
 #[test]
 fn test_in_array() {
     use typewit::const_marker::Usize;

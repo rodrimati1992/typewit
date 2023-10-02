@@ -129,14 +129,11 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
 
 
 
-#[cfg(all(feature = "generic_fns", feature = "const_marker"))]
+#[cfg(feature = "rust_1_61")]
 use crate::const_marker::Usize;
 
-#[cfg(all(feature = "generic_fns", feature = "const_marker"))]
-#[cfg_attr(
-    feature = "docsrs",
-    doc(cfg(all(feature = "generic_fns", feature = "const_marker")))
-)]
+#[cfg(feature = "rust_1_61")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_61")))]
 impl<L, R> TypeCmp<L, R> {
     /// Combines `TypeCmp<L, R>` and a
     /// `O:`[`BaseTypeWitness`]`<L = Usize<UL>, R = Usize<UR>>`

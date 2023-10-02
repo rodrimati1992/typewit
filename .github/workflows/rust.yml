@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      max-parallel: 2
+      max-parallel: 3
       matrix:
         rust: [stable, beta, nightly, 1.65.0, 1.61.0, 1.57.0]
 
@@ -33,18 +33,6 @@ jobs:
       if: matrix.rust == 'stable' || matrix.rust == 'beta' || matrix.rust == 'nightly'
       run: echo "rustv=rust_stable" >> $GITHUB_ENV
 
-    - name: enable-rust-stable
-      if: matrix.rust != '1.61.0' && matrix.rust != '1.57.0'
-      run: |
-        echo "rustv = ${{env.rustv}}"
-        set -ex
-        rustup override set ${{ matrix.rust }}
-        cargo update
-        cd "${{github.workspace}}/"
-
-        cargo test --no-default-features --features "${{env.rustv}} generic_fns"
-        cargo test --no-default-features --features "${{env.rustv}} alloc const_marker generic_fns"
-
     - uses: actions/checkout@v2
     - name: ci-all-versions
       run: |
@@ -57,9 +45,8 @@ jobs:
         cargo test --no-default-features 
         cargo test --no-default-features --features "${{env.rustv}}"
         cargo test --no-default-features --features "alloc"
-        cargo test --no-default-features --features "const_marker"
-        cargo test --no-default-features --features "${{env.rustv}} alloc"
-        cargo test --no-default-features --features "${{env.rustv}} alloc const_marker"
+        cargo test --no-default-features --features "proc_macros"
+        cargo test --no-default-features --features "${{env.rustv}} proc_macros alloc"
 
     - uses: actions/checkout@v2
     - name: ci-nighly
@@ -71,14 +58,16 @@ jobs:
         cd "${{github.workspace}}/"
         cargo build
         
-        cargo test --no-default-features --features "rust_stable nightly_mut_refs"
-        cargo test --no-default-features --features "rust_stable alloc nightly_mut_refs"
+        cargo test --no-default-features --features \
+          "rust_stable adt_const_marker nightly_mut_refs"
+        cargo test --no-default-features --features \
+          "rust_stable adt_const_marker alloc nightly_mut_refs"
 
         cargo test --no-default-features --features \
-          "rust_stable adt_const_marker generic_fns proc_macros __ui_tests alloc nightly_mut_refs"
+          "rust_stable adt_const_marker proc_macros __ui_tests alloc nightly_mut_refs"
 
         cargo test --no-default-features --features \
-          "rust_stable adt_const_marker generic_fns             __ui_tests alloc nightly_mut_refs"
+          "rust_stable adt_const_marker             __ui_tests alloc nightly_mut_refs"
 
         MIRI_NIGHTLY=nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)
         echo "Installing latest nightly with Miri"
@@ -92,4 +81,4 @@ jobs:
         cargo clean 
 
         env RUST_BACKTRACE=0 cargo miri test --no-default-features \
-            --features "${{env.rustv}} adt_const_marker generic_fns proc_macros alloc nightly_mut_refs"
+            --features "${{env.rustv}} adt_const_marker proc_macros alloc nightly_mut_refs"

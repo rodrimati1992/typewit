@@ -100,7 +100,7 @@ pub trait HasTypeWitness<W: TypeWitnessTypeArg<Arg = Self>> {
 
     // prevents dependencies from implementing this trait 
     #[doc(hidden)]
-    const __PRIV_KO9Y329U2U: __Priv<Self, W>;
+    const __PRIV_KO9Y329U2U: priv_::__Priv<Self, W>;
 }
 
 impl<T, W> HasTypeWitness<W> for T
@@ -111,14 +111,20 @@ where
     const WITNESS: W = W::MAKE;
 
     #[doc(hidden)]
-    const __PRIV_KO9Y329U2U: __Priv<Self, W> = __Priv(PhantomData, PhantomData);
+    const __PRIV_KO9Y329U2U: priv_::__Priv<Self, W> = priv_::__Priv(PhantomData, PhantomData);
 }
 
-#[doc(hidden)]
-pub struct __Priv<T: ?Sized, W>(
-    PhantomData<fn() -> PhantomData<W>>,
-    PhantomData<fn() -> PhantomData<T>>,
-);
+mod priv_ {
+    use core::marker::PhantomData;
+
+    #[doc(hidden)]
+    pub struct __Priv<T: ?Sized, W>(
+        pub(super) PhantomData<fn() -> PhantomData<W>>,
+        pub(super) PhantomData<fn() -> PhantomData<T>>,
+    );
+}
+
+
 
 ////////////////////////////////////////////////
 

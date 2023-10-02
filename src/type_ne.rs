@@ -32,10 +32,7 @@ mod type_ne_ {
     /// 
     /// # Example
     /// 
-    /// (this example requires the `"const_marker"` feature)
-    /// 
-    #[cfg_attr(not(feature = "const_marker"), doc = "```ignore")]
-    #[cfg_attr(feature = "const_marker", doc = "```rust")]
+    /// ```rust
     /// use typewit::{const_marker::Usize, TypeNe};
     /// 
     /// assert_eq!(

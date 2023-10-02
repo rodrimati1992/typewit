@@ -1,4 +1,4 @@
-#[cfg(feature = "generic_fns")]
+#[cfg(feature = "rust_1_65")]
 use crate::base_type_wit::MetaBaseTypeWit as MBTW;
 
 use crate::{
@@ -21,7 +21,7 @@ pub(crate) enum SomeTypeArgIsNe<A: BTW,  B: BTW, C: BTW = ImpTypeNe, D: BTW = Im
     D(TypeEq<D, TypeNe<D::L, D::R>>),
 }
 
-#[cfg(feature = "generic_fns")]
+#[cfg(feature = "rust_1_65")]
 impl<A: BTW, B: BTW, C: BTW, D: BTW> SomeTypeArgIsNe<A, B, C, D> {
     pub(crate) const TRY_NEW: Option<Self> = {
         match (A::WITNESS, B::WITNESS, C::WITNESS, D::WITNESS) {

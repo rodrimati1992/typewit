@@ -2,8 +2,6 @@ use typewit::{TypeCmp, TypeEq, TypeNe};
 
 use crate::misc_tests::test_utils::{assert_type, assert_type_ne};
 
-use std::mem::{align_of, size_of};
-
 mod typene_extra_method_tests;
 
 
@@ -50,7 +48,7 @@ fn join_right_method() {
 
 
 #[test]
-#[cfg(feature = "generic_fns")]
+#[cfg(feature = "rust_1_61")]
 fn zip_test() {
     {
         const fn do_zip<A, B>(
@@ -88,7 +86,7 @@ fn zip_test() {
 }
 
 #[test]
-#[cfg(feature = "generic_fns")]
+#[cfg(feature = "rust_1_61")]
 fn zip3_test() {
     {
         const fn do_zip<A, B, C>(
@@ -141,7 +139,7 @@ fn zip3_test() {
 }
 
 #[test]
-#[cfg(feature = "generic_fns")]
+#[cfg(feature = "rust_1_61")]
 fn zip4_test() {
     {
         const fn do_zip<A, B, C, D>(

@@ -120,7 +120,6 @@ fn test_zip4() {
     with::<u8, u8, bool, u16, u32>(TypeEq::NEW, TypeNe::with_any().unwrap(), TypeCmp::with_any());
 }
 
-#[cfg(feature = "const_marker")]
 #[test]
 fn test_in_array() {
     use typewit::{

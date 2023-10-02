@@ -4,7 +4,6 @@ use alloc::boxed::Box;
 
 use crate::type_fn::{InjTypeFn, InvokeAlias, CallInjFn, UncallFn};
 
-#[cfg(feature = "const_marker")]
 use crate::const_marker::Usize;
 
 
@@ -122,11 +121,8 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     }
 }
 
-#[cfg(all(feature = "rust_1_61", feature = "const_marker"))]
-#[cfg_attr(
-    feature = "docsrs",
-    doc(cfg(all(feature = "rust_1_61", feature = "const_marker")))
-)]
+#[cfg(feature = "rust_1_61")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_61")))]
 impl<L: Sized, R: Sized> TypeNe<L, R> {
     /// Combines `TypeNe<L, R>` and a
     /// `O: `[`BaseTypeWitness`]`<L = Usize<UL>, R = Usize<UR>>`

@@ -1,4 +1,4 @@
-use proc_macro::{Delimiter, Group, Ident, TokenStream, TokenTree, Span};
+use proc_macro::{Delimiter, Group, Ident, TokenStream, TokenTree};
 
 use core::iter::once;
 
@@ -10,19 +10,6 @@ fn unwrap_paren(tt: Option<TokenTree>, where_: &str) -> proc_macro::Group {
         _ => panic!("expected {where_} to be `()`-delimited ")
     }
 }
-
-fn relocated(
-    ts: impl IntoIterator<Item = TokenTree>, 
-    span: Span,
-) -> impl Iterator<Item = TokenTree> {
-    ts.into_iter()
-        .map(move|mut tt| {
-            let s = tt.span();
-            tt.set_span(s.located_at(span));
-            tt
-        })
-}
-
 
 // Generates an impl block where the span of `impl` and `for` is copied from another token.
 //

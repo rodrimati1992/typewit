@@ -230,7 +230,6 @@ fn zip4_test() {
 
 
 
-#[cfg(feature = "const_marker")]
 #[test]
 fn test_in_array() {
     use typewit::const_marker::Usize;

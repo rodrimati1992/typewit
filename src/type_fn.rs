@@ -162,7 +162,7 @@ pub trait TypeFn<T: ?Sized> {
 /// Calls the `F` [type-level function](TypeFn) with `T` as its argument.
 /// 
 /// For `F:`[`InjTypeFn<T>`](crate::InjTypeFn), it's better to 
-/// use [`CallInjFn`](crate::CallInjFn) instead of this type alias.
+/// use [`CallInjFn`] instead of this type alias.
 /// 
 /// 
 /// # Example
@@ -305,12 +305,10 @@ where
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#[cfg(feature = "const_marker")]
 mod uses_const_marker {
     use crate::const_marker::Usize;
 
     /// TypeFn from `(T, Usize<N>)` to `[T; N]`
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "const_marker")))]
     pub(crate) struct PairToArrayFn;
 
     super::simple_inj_type_fn!{
@@ -318,7 +316,6 @@ mod uses_const_marker {
     }
 } 
 
-#[cfg(feature = "const_marker")]
 pub(crate) use uses_const_marker::*;
 
 

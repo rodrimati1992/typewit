@@ -2,10 +2,10 @@
 //! [`TypeEq`](crate::TypeEq)/[`TypeNe`](crate::TypeNe)/[`TypeCmp`](crate::TypeCmp).
 
 
-#[cfg(feature = "generic_fns")]
+#[cfg(feature = "rust_1_61")]
 mod meta_prim_type_wit;
 
-#[cfg(feature = "generic_fns")]
+#[cfg(feature = "rust_1_61")]
 pub use meta_prim_type_wit::MetaBaseTypeWit;
 
 
@@ -16,23 +16,22 @@ pub(crate) mod some_type_arg_is_ne;
 pub(crate) use self::some_type_arg_is_ne::SomeTypeArgIsNe;
 
 
-#[cfg(feature = "generic_fns")]
+#[cfg(feature = "rust_1_65")]
 pub mod type_constructors;
 
-#[cfg(feature = "generic_fns")]
+#[cfg(feature = "rust_1_65")]
 pub mod zipping;
 
 #[doc(inline)]
-#[cfg(feature = "generic_fns")]
+#[cfg(feature = "rust_1_65")]
 pub use self::zipping::{in_array, zip2, zip3, zip4};
-        
 
 
 mod sealed {
-    #[cfg(not(feature = "generic_fns"))]
+    #[cfg(not(feature = "rust_1_65"))]
     pub trait Sealed {}
     
-    #[cfg(feature = "generic_fns")]
+    #[cfg(feature = "rust_1_65")]
     pub trait Sealed {}
 }
 
@@ -53,16 +52,15 @@ macro_rules! cond_supertrait {($($supertrait:tt)*) => {
         /// The [type constructor] corresponding to this type.
         ///
         /// [type constructor]: self::type_constructors::BaseTypeWitnessTc
-        #[cfg(feature = "generic_fns")]
+        #[cfg(feature = "rust_1_65")]
         type TypeCtor: type_constructors::BaseTypeWitnessTc<Type<Self::L, Self::R> = Self>;
-
     }
 }}
 
-#[cfg(not(feature = "generic_fns"))]
+#[cfg(not(feature = "rust_1_61"))]
 cond_supertrait!{}
 
-#[cfg(feature = "generic_fns")]
+#[cfg(feature = "rust_1_61")]
 cond_supertrait!{ + crate::HasTypeWitness<MetaBaseTypeWit<Self::L, Self::R, Self>> }
 
 
@@ -73,7 +71,7 @@ impl<L: ?Sized, R: ?Sized> BaseTypeWitness for crate::TypeEq<L, R> {
     type L = L;
     type R = R;
 
-    #[cfg(feature = "generic_fns")]
+    #[cfg(feature = "rust_1_65")]
     type TypeCtor = type_constructors::TcTypeEq;
 
 }
@@ -83,7 +81,7 @@ impl<L: ?Sized, R: ?Sized> BaseTypeWitness for crate::TypeNe<L, R> {
     type L = L;
     type R = R;
 
-    #[cfg(feature = "generic_fns")]
+    #[cfg(feature = "rust_1_65")]
     type TypeCtor = type_constructors::TcTypeNe;
 }
 
@@ -93,7 +91,7 @@ impl<L: ?Sized, R: ?Sized> BaseTypeWitness for crate::TypeCmp<L, R> {
     type L = L;
     type R = R;
 
-    #[cfg(feature = "generic_fns")]
+    #[cfg(feature = "rust_1_65")]
     type TypeCtor = type_constructors::TcTypeCmp;
 }
 

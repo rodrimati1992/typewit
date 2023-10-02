@@ -183,8 +183,6 @@ error[E0277]: the trait bound `RangeFull: SliceIndex<{integer}>` is not satisfie
 This example demonstrates "downcasting" from a type with a const parameter to 
 a concrete instance of that type.
 
-This example requires the `"const_marker"` feature (enabled by default).
-
 ```rust
 use typewit::{const_marker::Usize, TypeCmp};
 
@@ -383,26 +381,20 @@ These are the features of this crate.
 
 These features are enabled by default:
 
-- `"const_marker"`: enables the [`const_marker`] module,
-and all items that depend on it.
-
 - `"proc_macros"`: uses proc macros to improve compile-errors involving 
 macro-generated impls.
-
-### Non-defaulted features
-
-- `"generic_fns"`(requires Rust 1.65.0):
-enables most items from the `base_type_wit` module,
-the `TypeCmp::zip*` methods, and the `"rust_1_65"` crate feature.
 
 ### Rust-versions and standard crates
 
 These features enable items that have a minimum Rust version:
 
-- `"rust_1_61"`: enables the `TypeNe::{zip*, in_array}` methods.
-
 - `"rust_stable"`: enables all the `"rust_1_*"` features.
 
+- `"rust_1_65"`: enables most items from the [`base_type_wit`] module,
+and the `"rust_1_61"` feature.
+
+- `"rust_1_61"`: enables [`base_type_wit::MetaBaseTypeWit`]
+and the `{TypeCmp, TypeNe}::{zip*, in_array}` methods.
 
 These features enable items that require a non-`core` standard crate:
 
@@ -413,7 +405,7 @@ These features enable items that require a non-`core` standard crate:
 These features require the nightly Rust compiler:
 
 - `"adt_const_marker"`:
-enables the `"rust_stable"` and `"const_marker"` crate features,
+enables the `"rust_stable"` crate feature,
 and marker types in the [`const_marker`] module that have
 non-primitive `const` parameters.
 
@@ -453,3 +445,5 @@ need to be explicitly enabled with crate features.
 [`TypeNe`]: https://docs.rs/typewit/latest/typewit/struct.TypeEq.html
 [`TypeFn`]: https://docs.rs/typewit/latest/typewit/type_fn/trait.TypeFn.html
 [`const_marker`]: https://docs.rs/typewit/latest/typewit/const_marker/index.html
+[`base_type_wit`]: https://docs.rs/typewit/latest/typewit/base_type_wit/index.html
+[`base_type_wit::MetaBaseTypeWit`]: https://docs.rs/typewit/latest/typewit/base_type_wit/enum.MetaBaseTypeWit.html

@@ -4,7 +4,7 @@ use core::fmt::{self, Debug};
 
 /// Type witness for 
 /// [`TypeEq`](crate::TypeEq)/[`TypeNe`](crate::TypeNe)/[`TypeCmp`](crate::TypeCmp).
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_61")))]
 pub enum MetaBaseTypeWit<L: ?Sized, R: ?Sized, W> {
     /// `where W == TypeEq<L, R>`
     Eq(TypeEq<W, TypeEq<L, R>>),

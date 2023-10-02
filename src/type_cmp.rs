@@ -1,6 +1,6 @@
 use crate::{TypeEq, TypeNe};
 
-#[cfg(feature = "generic_fns")]
+#[cfg(feature = "rust_1_61")]
 use crate::base_type_wit::{BaseTypeWitness, MetaBaseTypeWit, SomeTypeArgIsNe};
 
 
@@ -17,10 +17,7 @@ use core::{
 /// 
 /// ### Custom array initialization
 /// 
-/// (this example requires the `"const_marker"` feature, which is enabled by default)
-/// 
-#[cfg_attr(not(feature = "const_marker"), doc = "```ignore")]
-#[cfg_attr(feature = "const_marker", doc = "```rust")]
+/// ```rust
 /// use typewit::{const_marker::Usize, TypeCmp, TypeEq, TypeNe};
 /// 
 /// let empty: [String; 0] = [];
@@ -180,7 +177,7 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     }
 }
 
-#[cfg(feature = "generic_fns")]
+#[cfg(feature = "rust_1_61")]
 macro_rules! alternative_docs {
     ($func:expr) => {concat!(
         "# Alternative\n",
@@ -194,8 +191,8 @@ macro_rules! alternative_docs {
     )};
 }
 
-#[cfg(feature = "generic_fns")]
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
+#[cfg(feature = "rust_1_61")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_61")))]
 impl<L, R> TypeCmp<L, R> {
     /// Combines this `TypeCmp<L, R>` with a [`BaseTypeWitness`] type to produce a
     /// `TypeCmp<(L, A::L), (R, A::R)>`.

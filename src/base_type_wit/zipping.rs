@@ -1,7 +1,5 @@
 //! Everything related to zipping [`BaseTypeWitness`]es
-
-#[cfg(feature = "const_marker")]
-use crate::const_marker::Usize;
+#![cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_65")))]
 
 use crate::{
     base_type_wit::{
@@ -17,6 +15,7 @@ use crate::{
         BaseTypeWitness,
         SomeTypeArgIsNe,
     },
+    const_marker::Usize,
     HasTypeWitness, 
     TypeCmp, TypeEq, TypeNe
 };
@@ -144,7 +143,7 @@ macro_rules! __declare_zip_items {
             " [`BaseTypeWitness`]es.",
         )]
         $(#[$type_alias_attr])*
-        #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
+        #[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_65")))]
         pub type $type_alias<$($ty_params),*> = 
             <$first_typa as $trait<$($middle_typa,)* $end_typa>>::Output;
 
@@ -154,7 +153,7 @@ macro_rules! __declare_zip_items {
             "`]  function returns, ",
         )]
         $(#[$trait_attr])*
-        #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
+        #[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_65")))]
         pub trait $trait<
             $($middle_typa: BaseTypeWitness,)*
             $end_typa: BaseTypeWitness,
@@ -256,7 +255,7 @@ macro_rules! __declare_zip_items {
 
 
         $(#[$fn_attr])*
-        #[cfg_attr(feature = "docsrs", doc(cfg(feature = "generic_fns")))]
+        #[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_65")))]
         pub const fn $fn_name<$($ty_params,)*>(
             $($fn_param: $ty_params,)*
         ) -> $type_alias<$($ty_params,)*>
@@ -428,10 +427,8 @@ declare_zip_items!{
 
 //////////////////////////////////////////////////////////////////////
 
-#[cfg(feature = "const_marker")]
 pub use with_const_marker::*;
 
-#[cfg(feature = "const_marker")]
 mod with_const_marker {
     use super::*;
 
@@ -492,7 +489,7 @@ mod with_const_marker {
     /// let _: TypeCmp<[i16; 0], [u16; 0]> = in_array(cmp_ty, eq_len);
     /// let _: TypeCmp<[i16; 3], [u16; 3]> = in_array(cmp_ty, cmp_len);
     /// ```
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "const_marker")))]
+    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_65")))]
     pub const fn in_array<A, B, LT, RT, const LN: usize, const RN: usize>(
         wit0: A,
         wit1: B,

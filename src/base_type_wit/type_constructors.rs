@@ -1,4 +1,6 @@
 //! Higher Kinded Types for [`BaseTypeWitness`]es
+#![cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_65")))]
+
 
 use crate::{TypeCmp, TypeEq, TypeNe};
 
