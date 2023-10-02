@@ -2,9 +2,7 @@
 #![cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_65")))]
 
 
-use crate::{TypeCmp, TypeEq, TypeNe};
-
-use super::BaseTypeWitness;
+use crate::{BaseTypeWitness, TypeCmp, TypeEq, TypeNe};
 
 use core::fmt::Debug;
 

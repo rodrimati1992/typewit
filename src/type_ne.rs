@@ -7,10 +7,10 @@ use core::{
     fmt::{self, Debug},
 };
 
-use crate::{BaseTypeWitness, TypeEq};
+use crate::TypeEq;
 
 #[cfg(feature = "rust_1_61")]
-use crate::base_type_wit::SomeTypeArgIsNe;
+use crate::{BaseTypeWitness, SomeTypeArgIsNe};
 
 
 /// Marker type, for constructing `TypeNe` in [`TypeNe::with_fn`] constructor.

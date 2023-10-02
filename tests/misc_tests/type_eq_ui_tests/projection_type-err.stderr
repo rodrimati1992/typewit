@@ -129,23 +129,23 @@ error[E0308]: mismatched types
               found struct `TypeEq<L, R>`
 
 error[E0308]: mismatched types
-  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:53:5
+  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:51:5
    |
-50 | fn in_array_to_different_type<'a, L, R>(
+48 | fn in_array_to_different_type<'a, L, R>(
    |                                   - this type parameter
-51 |     te: TypeEq<L, R>
-52 | ) -> TypeEq<[u8; 1], [u16; 1]> {
+49 |     te: TypeEq<L, R>
+50 | ) -> TypeEq<[u8; 1], [u16; 1]> {
    |      ------------------------- expected `TypeEq<[u8; 1], [u16; 1]>` because of return type
-53 |     te.in_array(TypeEq::new::<Usize<1>>())
+51 |     te.in_array(TypeEq::new::<Usize<1>>())
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `TypeEq<[u8; 1], [u16; 1]>`, found `TypeEq<[L; 1], [R; 1]>`
    |
    = note: expected struct `TypeEq<[u8; 1], [u16; 1]>`
               found struct `TypeEq<[L; 1], [R; 1]>`
 
 error[E0308]: mismatched types
-  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:61:17
+  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:58:17
    |
-61 |     te.in_array(te_len)
+58 |     te.in_array(te_len)
    |        -------- ^^^^^^ expected `1`, found `A`
    |        |
    |        arguments to this method are incorrect

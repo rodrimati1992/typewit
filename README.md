@@ -390,10 +390,12 @@ These features enable items that have a minimum Rust version:
 
 - `"rust_stable"`: enables all the `"rust_1_*"` features.
 
-- `"rust_1_65"`: enables most items from the [`base_type_wit`] module,
+- `"rust_1_65"`: enables the [`type_constructors`] module,
+the [`methods`] module,
 and the `"rust_1_61"` feature.
 
-- `"rust_1_61"`: enables [`base_type_wit::MetaBaseTypeWit`]
+- `"rust_1_61"`: enables [`MetaBaseTypeWit`],
+[`BaseTypeWitness`],
 and the `{TypeCmp, TypeNe}::{zip*, in_array}` methods.
 
 These features enable items that require a non-`core` standard crate:
@@ -445,5 +447,7 @@ need to be explicitly enabled with crate features.
 [`TypeNe`]: https://docs.rs/typewit/latest/typewit/struct.TypeEq.html
 [`TypeFn`]: https://docs.rs/typewit/latest/typewit/type_fn/trait.TypeFn.html
 [`const_marker`]: https://docs.rs/typewit/latest/typewit/const_marker/index.html
-[`base_type_wit`]: https://docs.rs/typewit/latest/typewit/base_type_wit/index.html
-[`base_type_wit::MetaBaseTypeWit`]: https://docs.rs/typewit/latest/typewit/base_type_wit/enum.MetaBaseTypeWit.html
+[`type_constructors`]: https://docs.rs/typewit/latest/typewit/type_constructors/index.html
+[`methods`]: https://docs.rs/typewit/latest/typewit/methods/index.html
+[`MetaBaseTypeWit`]: https://docs.rs/typewit/latest/typewit/enum.MetaBaseTypeWit.html
+[`BaseTypeWitness`]: https://docs.rs/typewit/latest/typewit/trait.BaseTypeWitness.html

@@ -1,7 +1,7 @@
 use crate::{TypeEq, TypeNe};
 
 #[cfg(feature = "rust_1_61")]
-use crate::base_type_wit::{BaseTypeWitness, MetaBaseTypeWit, SomeTypeArgIsNe};
+use crate::{BaseTypeWitness, MetaBaseTypeWit, SomeTypeArgIsNe};
 
 
 use core::{
@@ -182,11 +182,11 @@ macro_rules! alternative_docs {
     ($func:expr) => {concat!(
         "# Alternative\n",
         "\n",
-        "[`base_type_wit::", $func,"`](crate::base_type_wit::", $func, ") \n",
+        "[`methods::", $func,"`](crate::methods::", $func, ") \n",
         "is an alternative to this function. \n",
         "\n",
         "This method always returns `TypeCmp`, \n",
-        "while [that function](crate::base_type_wit::", $func, ")\n",
+        "while [that function](crate::methods::", $func, ")\n",
         "returns [`TypeNe`] when any argument is a `TypeNe`.\n",
     )};
 }

@@ -388,10 +388,12 @@
 //! 
 //! - `"rust_stable"`: enables all the `"rust_1_*"` features.
 //! 
-//! - `"rust_1_65"`: enables most items from the [`base_type_wit`] module,
+//! - `"rust_1_65"`: enables the [`type_constructors`] module,
+//! the [`methods`] module,
 //! and the `"rust_1_61"` feature.
 //! 
-//! - `"rust_1_61"`: enables [`base_type_wit::MetaBaseTypeWit`]
+//! - `"rust_1_61"`: enables [`MetaBaseTypeWit`],
+//! [`BaseTypeWitness`],
 //! and the `{TypeCmp, TypeNe}::{zip*, in_array}` methods.
 //!
 //! These features enable items that require a non-`core` standard crate:
@@ -440,8 +442,10 @@
 //! [`TypeNe`]: crate::TypeNe
 //! [`TypeFn`]: crate::type_fn::TypeFn
 //! [`const_marker`]: crate::const_marker
-//! [`base_type_wit`]: crate::base_type_wit
-//! [`base_type_wit::MetaBaseTypeWit`]: crate::base_type_wit::MetaBaseTypeWit
+//! [`type_constructors`]: crate::type_constructors
+//! [`methods`]: crate::methods
+//! [`MetaBaseTypeWit`]: crate::MetaBaseTypeWit
+//! [`BaseTypeWitness`]:  crate::BaseTypeWitness
 #![no_std]
 #![cfg_attr(feature = "nightly_mut_refs", feature(const_mut_refs))]
 #![cfg_attr(feature = "adt_const_marker", feature(adt_const_params))]
@@ -476,12 +480,24 @@ mod all_init_bytes;
 mod utils;
 mod macros;
 
+#[cfg(feature = "rust_1_61")]
+mod base_type_wit;
+
+#[cfg(feature = "rust_1_61")]
+pub use crate::base_type_wit::{BaseTypeWitness, MetaBaseTypeWit};
 
 
-pub mod base_type_wit;
+#[cfg(feature = "rust_1_65")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_65")))]
+pub mod methods;
 
-#[doc(no_inline)]
-pub use crate::base_type_wit::BaseTypeWitness;
+
+#[cfg(feature = "rust_1_61")]
+pub(crate) mod some_type_arg_is_ne;
+
+#[cfg(feature = "rust_1_61")]
+pub(crate) use self::some_type_arg_is_ne::SomeTypeArgIsNe;
+
 
 mod type_cmp;
 mod type_eq;
@@ -489,6 +505,10 @@ mod type_eq_ne_guts;
 mod type_identity;
 pub mod type_ne;
 mod type_witness_traits;
+
+#[cfg(feature = "rust_1_65")]
+pub mod type_constructors;
+
 
 #[doc(inline)]
 pub use crate::{

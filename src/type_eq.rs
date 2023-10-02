@@ -506,7 +506,7 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// 
     /// For an alternative which allows zipping `TypeEq` with any
     ///  [`BaseTypeWitness`](crate::BaseTypeWitness),
-    /// you can use [`base_type_wit::zip2`](crate::base_type_wit::zip2)
+    /// you can use [`methods::zip2`](crate::methods::zip2)
     /// (requires the `"rust_1_65"` feature)
     /// 
     /// # Example
@@ -558,7 +558,7 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// 
     /// For an alternative which allows zipping `TypeEq` with two of any
     ///  [`BaseTypeWitness`](crate::BaseTypeWitness),
-    /// you can use [`base_type_wit::zip3`](crate::base_type_wit::zip3)
+    /// you can use [`methods::zip3`](crate::methods::zip3)
     /// (requires the `"rust_1_65"` feature)
     /// 
     /// # Example
@@ -599,7 +599,7 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// 
     /// For an alternative which allows zipping `TypeEq` with three of any
     ///  [`BaseTypeWitness`](crate::BaseTypeWitness),
-    /// you can use [`base_type_wit::zip4`](crate::base_type_wit::zip4)
+    /// you can use [`methods::zip4`](crate::methods::zip4)
     /// (requires the `"rust_1_65"` feature)
     /// 
     /// # Example
@@ -1083,7 +1083,7 @@ impl<L: Sized, R: Sized> TypeEq<L, R> {
     /// 
     /// For an alternative which allows passing any
     ///  [`BaseTypeWitness`](crate::BaseTypeWitness) for the length,
-    /// you can use [`base_type_wit::in_array`](crate::base_type_wit::in_array)
+    /// you can use [`methods::in_array`](crate::methods::in_array)
     /// (requires the `"rust_1_65"` feature)
     /// 
     /// 

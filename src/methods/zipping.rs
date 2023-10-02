@@ -2,21 +2,18 @@
 #![cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_65")))]
 
 use crate::{
-    base_type_wit::{
-        type_constructors::{
-            BaseTypeWitnessTc,
-            BaseTypeWitnessReparam,
-            MapBaseTypeWitness,
-            TcToBaseTypeWitness,
-            TcTypeCmp, TcTypeEq, TcTypeNe,
-        },
-        MetaBaseTypeWit,
-        MetaBaseTypeWit as MBTW,
-        BaseTypeWitness,
-        SomeTypeArgIsNe,
+    type_constructors::{
+        BaseTypeWitnessTc,
+        BaseTypeWitnessReparam,
+        MapBaseTypeWitness,
+        TcToBaseTypeWitness,
+        TcTypeCmp, TcTypeEq, TcTypeNe,
     },
     const_marker::Usize,
-    HasTypeWitness, 
+    BaseTypeWitness,
+    MetaBaseTypeWit,
+    MetaBaseTypeWit as MBTW,
+    HasTypeWitness, SomeTypeArgIsNe,
     TypeCmp, TypeEq, TypeNe
 };
 
@@ -304,7 +301,7 @@ declare_zip_items!{
     ///
     /// ```rust
     /// use typewit::{TypeCmp, TypeEq, TypeNe};
-    /// use typewit::base_type_wit::zip2;
+    /// use typewit::methods::zip2;
     ///
     /// with::<u8, u8, bool, u16, u32>(TypeEq::NEW, TypeNe::with_any().unwrap(), TypeCmp::with_any());
     ///
@@ -353,7 +350,7 @@ declare_zip_items!{
     /// 
     /// ```rust
     /// use typewit::{TypeCmp, TypeEq, TypeNe, type_eq};
-    /// use typewit::base_type_wit::zip3;
+    /// use typewit::methods::zip3;
     ///
     /// with::<u8, u8, bool, u16, u32>(TypeEq::NEW, TypeNe::with_any().unwrap(), TypeCmp::with_any());
     ///
@@ -398,7 +395,7 @@ declare_zip_items!{
     /// 
     /// ```rust
     /// use typewit::{TypeCmp, TypeEq, TypeNe, type_eq};
-    /// use typewit::base_type_wit::zip4;
+    /// use typewit::methods::zip4;
     ///
     /// with::<u8, u8, bool, u16, u32>(TypeEq::NEW, TypeNe::with_any().unwrap(), TypeCmp::with_any());
     ///
@@ -461,7 +458,7 @@ mod with_const_marker {
     /// 
     /// ```rust
     /// use typewit::{
-    ///     base_type_wit::in_array,
+    ///     methods::in_array,
     ///     const_marker::Usize,
     ///     TypeCmp, TypeEq, TypeNe,
     /// };

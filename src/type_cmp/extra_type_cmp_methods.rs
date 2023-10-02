@@ -149,7 +149,6 @@ impl<L, R> TypeCmp<L, R> {
     /// 
     /// ```rust
     /// use typewit::{
-    ///     base_type_wit::in_array,
     ///     const_marker::Usize,
     ///     TypeCmp, TypeEq, TypeNe,
     /// };

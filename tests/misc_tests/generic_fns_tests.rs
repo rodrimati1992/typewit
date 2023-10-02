@@ -1,5 +1,5 @@
 use typewit::{
-    base_type_wit::{zip2, zip3, zip4},
+    methods::{zip2, zip3, zip4},
     TypeCmp,
     TypeEq,
     TypeNe,
@@ -123,7 +123,7 @@ fn test_zip4() {
 #[test]
 fn test_in_array() {
     use typewit::{
-        base_type_wit::in_array,
+        methods::in_array,
         const_marker::Usize,
     };
 
