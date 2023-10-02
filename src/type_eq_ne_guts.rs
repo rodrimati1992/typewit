@@ -53,7 +53,6 @@ macro_rules! declare_helpers {($_:tt $type_cmp_ty:ident $tyfn:ident $callfn:iden
         projected_te: $type_cmp_ty<$callfn<InvokeAlias<F>, L>, $callfn<InvokeAlias<F>, R>>,
     }
 
-    #[cfg(feature = "inj_type_fn")]
     macro_rules! unprojected_type_cmp {
         ($type_cmp:expr, $L:ty, $R:ty, $F:ty) => ({
             // safety: 
@@ -71,7 +70,6 @@ macro_rules! declare_helpers {($_:tt $type_cmp_ty:ident $tyfn:ident $callfn:iden
         })
     }
 
-    #[cfg(feature = "inj_type_fn")]
     struct __UnprojectVars<F, L: ?Sized, R: ?Sized> 
     where
         InvokeAlias<F>: crate::RevTypeFn<L> + crate::RevTypeFn<R>

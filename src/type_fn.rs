@@ -72,38 +72,17 @@
 
 use core::marker::PhantomData;
 
-#[cfg(feature = "inj_type_fn")]
 mod injective;
 
-#[cfg(feature = "inj_type_fn")]
 pub use self::injective::*;
 
-#[cfg(feature = "inj_type_fn")]
 pub(crate) use self::injective::simple_inj_type_fn;
 
-#[cfg(feature = "inj_type_fn")]
 #[doc(no_inline)]
 pub use crate::inj_type_fn;
 
 #[doc(no_inline)]
 pub use crate::type_fn;
-
-
-#[cfg(not(feature = "inj_type_fn"))]
-macro_rules! simple_inj_type_fn {
-    (
-        impl[$($impl:tt)*] ($arg:ty => $ret:ty) for $func:ty
-        $(where[$($where:tt)*])?
-    ) => {
-        impl<$($impl)*> crate::TypeFn<$arg> for $func
-        $(where $($where)*)?
-        {
-            type Output = $ret;
-        }
-    }
-}
-#[cfg(not(feature = "inj_type_fn"))]
-pub(crate) use simple_inj_type_fn;
 
 
 /// A function that operates purely on the level of types.
@@ -182,10 +161,8 @@ pub trait TypeFn<T: ?Sized> {
 
 /// Calls the `F` [type-level function](TypeFn) with `T` as its argument.
 /// 
-#[cfg_attr(feature = "inj_type_fn", doc = "\
-    For `F:`[`InjTypeFn<T>`](crate::InjTypeFn), it's better to \
-    use [`CallInjFn`](crate::CallInjFn) instead of this type alias.\
-")]
+/// For `F:`[`InjTypeFn<T>`](crate::InjTypeFn), it's better to 
+/// use [`CallInjFn`](crate::CallInjFn) instead of this type alias.
 /// 
 /// 
 /// # Example
@@ -299,7 +276,6 @@ where
     type Output = CallFn<F, T>;
 }
 
-#[cfg(feature = "inj_type_fn")]
 impl<F, R: ?Sized> RevTypeFn<R> for Invoke<F> 
 where
     F: RevTypeFn<R>,
@@ -317,7 +293,6 @@ where
     type Output = CallFn<F, T>;
 }
 
-#[cfg(feature = "inj_type_fn")]
 impl<F, R: ?Sized> RevTypeFn<R> for PhantomData<F> 
 where
     F: RevTypeFn<R>,

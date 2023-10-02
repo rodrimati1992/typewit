@@ -19,7 +19,6 @@ mod misc_tests {
     mod polymatch_tests;
     mod type_fn_macro_tests;
     
-    #[cfg(feature = "inj_type_fn")]
     mod inj_type_fn_macro_tests;
     
     mod type_ne_tests;

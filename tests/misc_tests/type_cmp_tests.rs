@@ -4,7 +4,6 @@ use typewit::{TypeCmp, TypeEq, TypeNe};
 use crate::misc_tests::test_utils::{assertm, assert_type};
 
 
-#[cfg(feature = "inj_type_fn")]
 mod typecmp_extra_method_tests;
 
 

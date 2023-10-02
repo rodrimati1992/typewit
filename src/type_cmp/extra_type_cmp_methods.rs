@@ -14,7 +14,6 @@ use alloc::boxed::Box;
 /// 
 /// [injective]: mod@crate::type_fn#injective
 /// 
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// Maps the type arguments of this `TypeCmp`
     /// by using the `F` [injective type-level function](crate::InjTypeFn).

@@ -27,7 +27,6 @@ crate::type_eq_ne_guts::declare_helpers!{
 /// 
 /// [injective]: mod@crate::type_fn#injective
 /// 
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     /// Maps the type arguments of this `TypeNe`
     /// by using the `F` [injective type-level function](crate::InjTypeFn).

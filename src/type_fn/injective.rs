@@ -65,7 +65,6 @@ use core::marker::PhantomData;
 /// ```
 /// 
 /// [injective]: mod@crate::type_fn#injective
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 pub trait InjTypeFn<A: ?Sized>: TypeFn<A, Output = Self::Ret> + RevTypeFn<Self::Ret, Arg = A> {
     /// Return value of the function
     type Ret: ?Sized;
@@ -175,7 +174,6 @@ where
 /// ```
 /// 
 /// [injective]: mod@crate::type_fn#injective
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 pub trait RevTypeFn<Ret: ?Sized>: TypeFn<Self::Arg, Output = Ret> {
     /// The argument to this function with `Ret` as the return value.
     type Arg: ?Sized;
@@ -197,7 +195,6 @@ pub trait RevTypeFn<Ret: ?Sized>: TypeFn<Self::Arg, Output = Ret> {
 ///     impl<T> T => Vec<T>
 /// }
 /// ```
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 pub type UncallFn<F, Ret> = <F as RevTypeFn<Ret>>::Arg;
 
 
@@ -255,7 +252,6 @@ pub type UncallFn<F, Ret> = <F as RevTypeFn<Ret>>::Arg;
 ///              <Upcast as TypeFn<u64>>
 ///              <Upcast as TypeFn<u8>>
 /// ```
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 pub type CallInjFn<F, A> = <F as InjTypeFn<A>>::Ret;
 
 
@@ -314,7 +310,6 @@ macro_rules! simple_inj_type_fn {
 /// ```
 /// 
 /// [`CallFn`]: crate::CallFn
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 pub struct FnRev<F: ?Sized>(PhantomData<fn() -> F>);
 
 

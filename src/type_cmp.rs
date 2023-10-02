@@ -17,11 +17,10 @@ use core::{
 /// 
 /// ### Custom array initialization
 /// 
-/// (this example requires both the `"const_marker"` and `"inj_type_fn"`, 
-/// both enabled by default)
+/// (this example requires the `"const_marker"` feature, which is enabled by default)
 /// 
-#[cfg_attr(not(all(feature = "inj_type_fn", feature = "const_marker")), doc = "```ignore")]
-#[cfg_attr(all(feature = "inj_type_fn", feature = "const_marker"), doc = "```rust")]
+#[cfg_attr(not(feature = "const_marker"), doc = "```ignore")]
+#[cfg_attr(feature = "const_marker", doc = "```rust")]
 /// use typewit::{const_marker::Usize, TypeCmp, TypeEq, TypeNe};
 /// 
 /// let empty: [String; 0] = [];
@@ -81,7 +80,6 @@ use core::{
 ///     impl<const LEN: usize> Usize<LEN> => [T; LEN]
 /// }
 /// ```
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "cmp")))]
 pub enum TypeCmp<L: ?Sized, R: ?Sized>{
     /// proof of `L == R`
     Eq(TypeEq<L, R>),
@@ -308,7 +306,6 @@ impl<L, R> TypeCmp<L, R> {
 
 // using this instead of `mod extra_type_cmp_methods;`
 // to document the impls in the submodule below the constructors.
-#[cfg(feature = "inj_type_fn")]
 include!{"./type_cmp/extra_type_cmp_methods.rs"}
 
 

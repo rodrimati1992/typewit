@@ -1,8 +1,4 @@
-use typewit::{TypeEq, TypeNe};
-
-#[cfg(feature = "cmp")]
-use typewit::TypeCmp;
-
+use typewit::{TypeCmp, TypeEq, TypeNe};
 
 use crate::misc_tests::test_utils::{assert_type, assert_type_ne};
 
@@ -78,7 +74,6 @@ fn zip_test() {
         let _ = do_zip(typene::<u16, _>(), TypeEq::NEW);        
     }
 
-    #[cfg(feature = "cmp")]
     {
         const fn do_zip<A, B>(
             left: TypeNe<A, u8>,
@@ -131,7 +126,6 @@ fn zip3_test() {
         let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), TypeEq::NEW);
     }
 
-    #[cfg(feature = "cmp")]
     {
         const fn do_zip<A, B, C>(
             a: TypeNe<A, u8>,

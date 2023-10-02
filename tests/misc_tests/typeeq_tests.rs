@@ -121,7 +121,6 @@ fn project_test() {
 }
 
 #[test]
-#[cfg(feature = "inj_type_fn")]
 fn unmap_test() {
     assert_type_eq(TypeEq::new::<&u8>().unmap(GRef::NEW), TypeEq::new::<u8>());
     assert_type_eq(TypeEq::new::<&mut u16>().unmap(GRefMut::NEW), TypeEq::new::<u16>());
@@ -132,7 +131,6 @@ fn unmap_test() {
 }
 
 #[test]
-#[cfg(feature = "inj_type_fn")]
 fn unproject_test() {
     #[derive(Debug, PartialEq)]
     struct Foo<T>(T);

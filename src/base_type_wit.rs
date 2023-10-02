@@ -87,9 +87,8 @@ impl<L: ?Sized, R: ?Sized> BaseTypeWitness for crate::TypeNe<L, R> {
     type TypeCtor = type_constructors::TcTypeNe;
 }
 
-#[cfg(feature = "cmp")]
 impl<L: ?Sized, R: ?Sized> sealed::Sealed for crate::TypeCmp<L, R> {}
-#[cfg(feature = "cmp")]
+
 impl<L: ?Sized, R: ?Sized> BaseTypeWitness for crate::TypeCmp<L, R> {
     type L = L;
     type R = R;

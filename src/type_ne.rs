@@ -14,13 +14,9 @@ use crate::base_type_wit::SomeTypeArgIsNe;
 
 
 /// Marker type, for constructing `TypeNe` in [`TypeNe::with_fn`] constructor.
-#[cfg(feature = "inj_type_fn")]
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 pub enum LeftArg {}
 
 /// Marker type, for constructing `TypeNe` in [`TypeNe::with_fn`] constructor.
-#[cfg(feature = "inj_type_fn")]
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 pub enum RightArg {}
 
 
@@ -139,8 +135,6 @@ impl TypeNe<(), ()> {
     ///     impl RightArg => Vec<U>;
     /// }
     /// ```
-    #[cfg(feature = "inj_type_fn")]
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
     pub const fn with_fn<F>(
         _func: F,
     ) -> TypeNe<CallInjFn<InvokeAlias<F>, LeftArg>, CallInjFn<InvokeAlias<F>, RightArg>>
@@ -173,8 +167,6 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     }
 
     /// Converts this `TypeNe` into a [`TypeCmp`](crate::TypeCmp)
-    #[cfg(feature = "cmp")]
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "cmp")))]
     #[inline(always)]
     pub const fn to_cmp(self) -> crate::TypeCmp<L, R> {
         crate::TypeCmp::Ne(self)
@@ -260,7 +252,6 @@ impl<L, R> TypeNe<L, R> {
 
 // using this instead of `mod extra_type_ne_methods;`
 // to document the impls in the submodule below the constructors.
-#[cfg(feature = "inj_type_fn")]
 include!{"./type_ne/extra_type_ne_methods.rs"}
 
 

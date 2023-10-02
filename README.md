@@ -384,15 +384,7 @@ These are the features of this crate.
 These features are enabled by default:
 
 - `"const_marker"`: enables the [`const_marker`] module,
-the `"cmp"` crate feature,
 and all items that depend on it.
-
-- `"cmp"`: enables the [`TypeCmp`] type.
-
-- `"inj_type_fn"`: 
-Enables `type_fn::{CallInjFn, FnRev, InjTypeFn, RevTypeFn, UncallFn}`,
-[`TypeEq`]`::{unmap, unproject}`, 
-and all [`TypeNe`] functions that project its type arguments.
 
 - `"proc_macros"`: uses proc macros to improve compile-errors involving 
 macro-generated impls.
@@ -401,8 +393,7 @@ macro-generated impls.
 
 - `"generic_fns"`(requires Rust 1.65.0):
 enables most items from the `base_type_wit` module,
-the `TypeCmp::zip*` methods,
-and the `"cmp"`, `"inj_type_fn"`, `"rust_1_65"` crate features.
+the `TypeCmp::zip*` methods, and the `"rust_1_65"` crate feature.
 
 ### Rust-versions and standard crates
 

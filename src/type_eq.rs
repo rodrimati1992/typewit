@@ -1,13 +1,11 @@
 use crate::{
-    type_fn::{self, CallFn, InvokeAlias, TypeFn}, 
+    type_fn::{self, CallFn, InvokeAlias, RevTypeFn, TypeFn, UncallFn}, 
     MakeTypeWitness, TypeWitnessTypeArg,
 };
 
 #[cfg(feature = "const_marker")]
 use crate::const_marker::Usize;
 
-#[cfg(feature = "inj_type_fn")]
-use crate::{RevTypeFn, UncallFn};
 
 
 use core::{
@@ -441,8 +439,6 @@ impl<L: ?Sized, R: ?Sized> Clone for TypeEq<L, R> {
 
 impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// Converts this `TypeEq` into a [`TypeCmp`](crate::TypeCmp)
-    #[cfg(feature = "cmp")]
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "cmp")))]
     #[inline(always)]
     pub const fn to_cmp(self) -> crate::TypeCmp<L, R> {
         crate::TypeCmp::Eq(self)
@@ -855,8 +851,6 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     }
 }
 
-#[cfg(feature = "inj_type_fn")]
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "inj_type_fn")))]
 impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// Maps the type arguments of this `TypeEq`
     /// by using the [reversed](crate::RevTypeFn) 

@@ -383,15 +383,7 @@
 //! These features are enabled by default:
 //! 
 //! - `"const_marker"`: enables the [`const_marker`] module,
-//! the `"cmp"` crate feature,
 //! and all items that depend on it.
-//! 
-//! - `"cmp"`: enables the [`TypeCmp`] type.
-//! 
-//! - `"inj_type_fn"`: 
-//! Enables `type_fn::{CallInjFn, FnRev, InjTypeFn, RevTypeFn, UncallFn}`,
-//! [`TypeEq`]`::{unmap, unproject}`, 
-//! and all [`TypeNe`] functions that project its type arguments.
 //! 
 //! - `"proc_macros"`: uses proc macros to improve compile-errors involving 
 //! macro-generated impls.
@@ -400,8 +392,7 @@
 //! 
 //! - `"generic_fns"`(requires Rust 1.65.0):
 //! enables most items from the `base_type_wit` module,
-//! the `TypeCmp::zip*` methods,
-//! and the `"cmp"`, `"inj_type_fn"`, `"rust_1_65"` crate features.
+//! the `TypeCmp::zip*` methods, and the `"rust_1_65"` crate feature.
 //! 
 //! ### Rust-versions and standard crates
 //! 
@@ -501,7 +492,6 @@ pub mod base_type_wit;
 #[doc(no_inline)]
 pub use crate::base_type_wit::BaseTypeWitness;
 
-#[cfg(feature = "cmp")]
 mod type_cmp;
 mod type_eq;
 mod type_eq_ne_guts;
@@ -518,15 +508,10 @@ pub use crate::{
 };
 
 
-#[cfg(feature = "cmp")]
 pub use crate::type_cmp::TypeCmp;
 
 #[doc(no_inline)]
-pub use crate::type_fn::{CallFn, TypeFn};
-
-#[cfg(feature = "inj_type_fn")]
-#[doc(no_inline)]
-pub use crate::type_fn::{CallInjFn, UncallFn, RevTypeFn, InjTypeFn};
+pub use crate::type_fn::{CallFn, CallInjFn, InjTypeFn, RevTypeFn, TypeFn, UncallFn};
 
 
 #[cfg(feature = "proc_macros")]
