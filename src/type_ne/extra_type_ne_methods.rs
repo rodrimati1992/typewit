@@ -107,7 +107,7 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     /// const NE: TypeNe<[CmpOrdering], [MemOrdering]> = type_ne!([CmpOrdering], [MemOrdering]);
     /// 
     /// 
-    /// const N3: TypeNe<CmpOrdering, MemOrdering> = NE.unmap::<SliceFn>();
+    /// const N3: TypeNe<CmpOrdering, MemOrdering> = NE.unmap(SliceFn);
     /// 
     /// inj_type_fn!{
     ///     struct SliceFn;
@@ -245,6 +245,23 @@ impl<L: Sized, R: Sized> TypeNe<L, R> {
     /// into `TypeNe<[L; UL], [R; UR]>`
     /// 
     /// [`BaseTypeWitness`]: crate::BaseTypeWitness
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{const_marker::Usize, TypeCmp, TypeEq, TypeNe, type_ne};
+    /// 
+    /// const NE: TypeNe<u8, i8> = type_ne!(u8, i8);
+    /// 
+    /// const NE_L: TypeNe<Usize<3>, Usize<5>> = Usize::<3>.equals(Usize::<5>).unwrap_ne();
+    /// const EQ_L: TypeEq<Usize<8>, Usize<8>> = TypeEq::NEW;
+    /// const TC_L: TypeCmp<Usize<13>, Usize<21>> = Usize::<13>.equals(Usize::<21>);
+    /// 
+    /// let _: TypeNe<[u8; 3], [i8; 5]> = NE.in_array(NE_L);
+    /// let _: TypeNe<[u8; 8], [i8; 8]> = NE.in_array(EQ_L);
+    /// let _: TypeNe<[u8; 13], [i8; 21]> = NE.in_array(TC_L);
+    /// 
+    /// ```
     pub const fn in_array<O, const UL: usize, const UR: usize>(
         self,
         _other: O,

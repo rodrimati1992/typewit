@@ -148,6 +148,18 @@ impl TypeNe<(), ()> {
 
 impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     /// Constructs `TypeNe<L, R>` if `L != R`, otherwise returns None.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::TypeNe;
+    /// 
+    /// 
+    /// let _ne: TypeNe<u8, i8> = TypeNe::with_any().unwrap();
+    /// 
+    /// assert!(TypeNe::<u8, u8>::with_any().is_none());
+    /// 
+    /// ```
     pub fn with_any() -> Option<Self>
     where
         L: Sized + Any,
@@ -162,12 +174,34 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     }
 
     /// Converts this `TypeNe` into a [`TypeCmp`](crate::TypeCmp)
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeNe, type_ne};
+    /// 
+    /// const NE: TypeNe<u8, i8> = type_ne!(u8, i8);
+    /// const TC: TypeCmp<u8, i8> = NE.to_cmp();
+    /// 
+    /// assert!(matches!(TC, TypeCmp::Ne(_)));
+    /// ```
     #[inline(always)]
     pub const fn to_cmp(self) -> crate::TypeCmp<L, R> {
         crate::TypeCmp::Ne(self)
     }
 
     /// Swaps the type arguments of this `TypeNe`
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeNe, type_ne};
+    /// 
+    /// const NE: TypeNe<u8, i8> = type_ne!(u8, i8);
+    /// 
+    /// const N3: TypeNe<i8, u8> = NE.flip();
+    /// 
+    /// ```
     pub const fn flip(self: TypeNe<L, R>) -> TypeNe<R, L> {
         // SAFETY: type inequality is commutative
         unsafe { TypeNe::<R, L>::new_unchecked() }
@@ -175,6 +209,18 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
 
     /// Joins a proof of `L != R` with a proof of `J == L`,
     /// creating a proof of `J != R`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeEq, TypeNe, type_ne};
+    /// 
+    /// const NE: TypeNe<str, [u8]> = type_ne!(str, [u8]);
+    /// 
+    /// const fn foo<A: ?Sized>(eq: TypeEq<A, str>) {
+    ///     let _ne: TypeNe<A, [u8]> = NE.join_left(eq);
+    /// }
+    /// ```
     pub const fn join_left<J: ?Sized>(self: TypeNe<L, R>, _eq: TypeEq<J, L>) -> TypeNe<J, R> {
         // SAFETY: (L != R, J == L) implies J != R
         unsafe { TypeNe::<J, R>::new_unchecked() }
@@ -182,6 +228,18 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
 
     /// Joins a proof of `L != R` with a proof of `R == J`,
     /// creating a proof of `L != J`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeEq, TypeNe, type_ne};
+    /// 
+    /// const NE: TypeNe<String, Vec<u8>> = type_ne!(String, Vec<u8>);
+    /// 
+    /// const fn foo<A>(eq: TypeEq<Vec<u8>, A>) {
+    ///     let _ne: TypeNe<String, A> = NE.join_right(eq);
+    /// }
+    /// ```
     pub const fn join_right<J: ?Sized>(self: TypeNe<L, R>, _eq: TypeEq<R, J>) -> TypeNe<L, J> {
         // SAFETY: (L != R, R == J) implies L != J
         unsafe { TypeNe::<L, J>::new_unchecked() }
@@ -194,6 +252,21 @@ impl<L, R> TypeNe<L, R> {
     /// Combines this `TypeNe<L, R>` with an 
     /// [`A: BaseTypeWitness`](BaseTypeWitness) to produce a
     /// `TypeNe<(L, A::L), (R, A::R)>`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
+    /// 
+    /// const NE: TypeNe<u8, i8> = type_ne!(u8, i8);
+    /// const EQ: TypeEq<u16, u16> = TypeEq::NEW;
+    /// const TC: TypeCmp<u32, u64> = TypeCmp::Ne(type_ne!(u32, u64));
+    /// 
+    /// let _: TypeNe<(u8, i8), (i8, u8)> = NE.zip(NE.flip());
+    /// let _: TypeNe<(u8, u16), (i8, u16)> = NE.zip(EQ);
+    /// let _: TypeNe<(u8, u32), (i8, u64)> = NE.zip(TC);
+    /// 
+    /// ```
     pub const fn zip<A>(
         self: TypeNe<L, R>,
         other: A,
@@ -207,6 +280,21 @@ impl<L, R> TypeNe<L, R> {
     /// Combines this `TypeNe<L, R>` with 
     /// two [`BaseTypeWitness`](BaseTypeWitness)es to produce a
     /// `TypeNe<(L, A::L, B::L), (R, A::R, B::R)>`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
+    /// 
+    /// const NE: TypeNe<u8, i8> = type_ne!(u8, i8);
+    /// const EQ: TypeEq<u16, u16> = TypeEq::NEW;
+    /// const TC: TypeCmp<u32, u64> = TypeCmp::Ne(type_ne!(u32, u64));
+    /// 
+    /// let _: TypeNe<(u8, i8, u8), (i8, u8, i8)> = NE.zip3(NE.flip(), NE);
+    /// let _: TypeNe<(u8, u16, u16), (i8, u16, u16)> = NE.zip3(EQ, EQ.flip());
+    /// let _: TypeNe<(u8, u32, u64), (i8, u64, u32)> = NE.zip3(TC, TC.flip());
+    /// 
+    /// ```
     pub const fn zip3<A, B>(
         self: TypeNe<L, R>,
         other1: A,
@@ -224,6 +312,21 @@ impl<L, R> TypeNe<L, R> {
     /// Combines this `TypeNe<L, R>` with 
     /// three [`BaseTypeWitness`](BaseTypeWitness)es to produce a
     /// `TypeNe<(L, A::L, B::L, C::L), (R, A::R, B::R, C::R)> `.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
+    /// 
+    /// const NE: TypeNe<u8, i8> = type_ne!(u8, i8);
+    /// const EQ: TypeEq<u16, u16> = TypeEq::NEW;
+    /// const TC: TypeCmp<u32, u64> = TypeCmp::Ne(type_ne!(u32, u64));
+    /// 
+    /// let _: TypeNe<(u8, i8, u8, i8), (i8, u8, i8, u8)> = NE.zip4(NE.flip(), NE, NE.flip());
+    /// let _: TypeNe<(u8, u16, u16, u16), (i8, u16, u16, u16)> = NE.zip4(EQ, EQ.flip(), EQ);
+    /// let _: TypeNe<(u8, u32, u64, u32), (i8, u64, u32, u64)> = NE.zip4(TC, TC.flip(), TC);
+    /// 
+    /// ```
     pub const fn zip4<A, B, C>(
         self: TypeNe<L, R>,
         other1: A,

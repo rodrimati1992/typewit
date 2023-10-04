@@ -11,7 +11,13 @@
 /// 
 /// # Example
 /// 
-/// This macro is also demonstrated in [`TypeNe::project`] and [`TypeNe::map`].
+/// This macro is also demonstrated in 
+/// `TypeNe::{`[`map`]`, `[`project`]`, `[`unmap`]`, `[`unproject`]`}`.
+/// 
+/// [`map`]: crate::TypeNe::map
+/// [`project`]: crate::TypeNe::project
+/// [`unmap`]: crate::TypeNe::unmap
+/// [`unproject`]: crate::TypeNe::unproject
 /// 
 /// ### Basic
 /// 

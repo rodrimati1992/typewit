@@ -511,7 +511,7 @@ pub mod type_ne {
     pub use crate::type_ne_::{LeftArg, RightArg};
     
     #[doc(no_inline)]
-    pub use crate::TypeNe;
+    pub use crate::{TypeNe, type_ne};
 }
 
 

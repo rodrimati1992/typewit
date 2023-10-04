@@ -85,7 +85,8 @@ The `methods::zipping` submodule (which requires `"rust_1_65"`) contains:
 - `Zip4Out` type alias
 
 Added `type_ne` module, which contains:
-- `TypeNe` reexport
+- reexport of `TypeNe`
+- reexport of `type_ne` macro
 - `LeftArg` marker type
 - `RightArg` marker type
 
