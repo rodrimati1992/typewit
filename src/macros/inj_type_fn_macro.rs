@@ -11,6 +11,8 @@
 /// 
 /// # Example
 /// 
+/// This macro is also demonstrated in [`TypeNe::project`] and [`TypeNe::map`].
+/// 
 /// ### Basic
 /// 
 /// ```rust

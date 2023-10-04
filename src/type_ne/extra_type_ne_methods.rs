@@ -33,6 +33,21 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     /// Use this function over [`project`](Self::project) 
     /// if you want the type of the passed in function to be inferred.
     /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeNe, inj_type_fn, type_ne};
+    /// 
+    /// const NE: TypeNe<u8, u16> = type_ne!(u8, u16);
+    /// 
+    /// const N3: TypeNe<[u8; 0], [u16; 0]> = NE.map(ArrayFn::NEW);
+    /// 
+    /// inj_type_fn!{
+    ///     struct ArrayFn<const LEN: usize>;
+    ///     
+    ///     impl<T> T => [T; LEN]
+    /// }
+    /// ```
     pub const fn map<F>(
         self: TypeNe<L, R>,
         _func: F,
@@ -50,6 +65,21 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     /// Use this function over [`map`](Self::map) 
     /// if you want to specify the type of the passed in function explicitly.
     /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeNe, inj_type_fn, type_ne};
+    /// 
+    /// const NE: TypeNe<u8, u16> = type_ne!(u8, u16);
+    /// 
+    /// const N3: TypeNe<Vec<u8>, Vec<u16>> = NE.project::<VecFn>();
+    /// 
+    /// inj_type_fn!{
+    ///     struct VecFn;
+    ///     
+    ///     impl<T> T => Vec<T>
+    /// }
+    /// ```
     pub const fn project<F>(
         self: TypeNe<L, R>,
     ) -> TypeNe<CallInjFn<InvokeAlias<F>, L>, CallInjFn<InvokeAlias<F>, R>> 
@@ -66,6 +96,25 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     /// Use this function over [`unproject`](Self::unproject) 
     /// if you want the type of the passed in function to be inferred.
     /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeNe, inj_type_fn, type_ne};
+    /// 
+    /// use std::cmp::Ordering as CmpOrdering;
+    /// use std::sync::atomic::Ordering as MemOrdering;
+    /// 
+    /// const NE: TypeNe<[CmpOrdering], [MemOrdering]> = type_ne!([CmpOrdering], [MemOrdering]);
+    /// 
+    /// 
+    /// const N3: TypeNe<CmpOrdering, MemOrdering> = NE.unmap::<SliceFn>();
+    /// 
+    /// inj_type_fn!{
+    ///     struct SliceFn;
+    ///     
+    ///     impl<T> T => [T]
+    /// }
+    /// ```
     pub const fn unmap<F>(
         self,
         func: F,
@@ -84,6 +133,21 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     /// Use this function over [`unmap`](Self::unmap) 
     /// if you want to specify the type of the passed in function explicitly.
     /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeNe, inj_type_fn, type_ne};
+    /// 
+    /// const NE: TypeNe<Option<()>, Option<bool>> = type_ne!(Option<()>, Option<bool>);
+    /// 
+    /// const N3: TypeNe<(), bool> = NE.unproject::<OptionFn>();
+    /// 
+    /// inj_type_fn!{
+    ///     struct OptionFn;
+    ///     
+    ///     impl<T> T => Option<T>
+    /// }
+    /// ```
     pub const fn unproject<F>(
         self,
     ) -> TypeNe<UncallFn<InvokeAlias<F>, L>, UncallFn<InvokeAlias<F>, R>>
@@ -94,6 +158,23 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     }
 
     /// Converts a `TypeNe<L, R>` to `TypeNe<&L, &R>`
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeNe, inj_type_fn, type_ne};
+    /// 
+    /// const NE: TypeNe<i32, u32> = type_ne!(i32, u32);
+    /// 
+    /// let foo: i32 = 3;
+    /// let bar: u32 = 5;
+    /// 
+    /// baz(&foo, &bar, NE.in_ref());
+    /// 
+    /// const fn baz<'a, T, U>(foo: &'a T, bar: &'a U, _ne: TypeNe<&'a T, &'a U>) {
+    ///     // stuff
+    /// }
+    /// ```
     pub const fn in_ref<'a>(self) -> TypeNe<&'a L, &'a R> {
         projected_type_cmp!{self, L, R, crate::type_fn::GRef<'a>}
     }
@@ -108,12 +189,47 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
         /// This requires either of the `"mut_refs"` or `"const_mut_refs"` 
         /// crate features to be enabled to be a `const fn`.
         /// 
+        /// # Example
+        /// 
+        /// ```rust
+        /// use typewit::{TypeNe, inj_type_fn, type_ne};
+        /// 
+        /// const NE: TypeNe<String, Vec<u8>> = type_ne!(String, Vec<u8>);
+        /// 
+        /// let mut foo: String = "hello".to_string();
+        /// let mut bar: Vec<u8> = vec![3, 5, 8];
+        /// 
+        /// baz(&mut foo, &mut bar, NE.in_mut());
+        /// 
+        /// fn baz<'a, T, U>(foo: &'a mut T, bar: &'a mut U, _ne: TypeNe<&'a mut T, &'a mut U>) {
+        ///     // stuff
+        /// }
+        /// ```
         pub fn in_mut['a](self) -> TypeNe<&'a mut L, &'a mut R> {
             projected_type_cmp!{self, L, R, crate::type_fn::GRefMut<'a>}
         }
     }
 
     /// Converts a `TypeNe<L, R>` to `TypeNe<Box<L>, Box<R>>`
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeNe, inj_type_fn, type_ne};
+    /// 
+    /// use std::num::{NonZeroI8, NonZeroU8};
+    /// 
+    /// const NE: TypeNe<NonZeroI8, NonZeroU8> = type_ne!(NonZeroI8, NonZeroU8);
+    /// 
+    /// let foo: NonZeroI8 = NonZeroI8::new(-1).unwrap();
+    /// let bar: NonZeroU8 = NonZeroU8::new(1).unwrap();
+    /// 
+    /// baz(Box::new(foo), Box::new(bar), NE.in_mut());
+    /// 
+    /// fn baz<T, U>(foo: Box<T>, bar: Box<U>, _ne: TypeNe<Box<T>, Box<U>>) {
+    ///     // stuff
+    /// }
+    /// ```
     #[cfg(feature = "alloc")]
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "alloc")))]
     pub const fn in_box(self) -> TypeNe<Box<L>, Box<R>> {
