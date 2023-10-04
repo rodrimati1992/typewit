@@ -438,6 +438,16 @@ impl<L: ?Sized, R: ?Sized> Clone for TypeEq<L, R> {
 
 impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// Converts this `TypeEq` into a [`TypeCmp`](crate::TypeCmp)
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq};
+    /// 
+    /// const TC: TypeCmp<bool, bool> = TypeEq::NEW.to_cmp();
+    /// 
+    /// assert!(matches!(TC, TypeCmp::Eq(_)));
+    /// ```
     #[inline(always)]
     pub const fn to_cmp(self) -> crate::TypeCmp<L, R> {
         crate::TypeCmp::Eq(self)

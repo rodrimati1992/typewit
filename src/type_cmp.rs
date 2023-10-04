@@ -15,58 +15,61 @@ use core::{
 /// 
 /// # Example
 /// 
-/// ### Custom array initialization
+/// ### Custom array creation
 /// 
-/// ```rust
+/// (this example requires Rust 1.61.0 because it takes a function pointer in a const fn).
+/// 
+#[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
+#[cfg_attr(feature = "rust_1_61", doc = "```rust")]
 /// use typewit::{const_marker::Usize, TypeCmp, TypeEq, TypeNe};
 /// 
 /// let empty: [String; 0] = [];
-/// assert_eq!(InitArray::<String, 0>::empty().init(), empty);
+/// assert_eq!(ArrayMaker::<String, 0>::empty().make(), empty);
 /// 
-/// assert_eq!(InitArray::<u8, 2>::defaulted().init(), [0u8, 0u8]);
+/// assert_eq!(ArrayMaker::<u8, 2>::defaulted().make(), [0u8, 0u8]);
 /// 
-/// assert_eq!(InitArray::with(|i| i.pow(2)).init(), [0usize, 1, 4, 9]);
+/// assert_eq!(ArrayMaker::with(|i| i.pow(2)).make(), [0usize, 1, 4, 9]);
 /// 
 /// 
-/// enum InitArray<T, const LEN: usize> {
+/// enum ArrayMaker<T, const LEN: usize> {
 ///     NonEmpty(fn(usize) -> T, TypeNe<[T; LEN], [T; 0]>),
 ///     Empty(TypeEq<[T; LEN], [T; 0]>),
 /// }
 /// 
-/// impl<T, const LEN: usize> InitArray<T, LEN> {
-///     pub fn init(self) -> [T; LEN] {
+/// impl<T, const LEN: usize> ArrayMaker<T, LEN> {
+///     pub fn make(self) -> [T; LEN] {
 ///         match self {
-///             InitArray::NonEmpty(func, _) => std::array::from_fn(func),
-///             InitArray::Empty(te) => te.to_left([]),
+///             ArrayMaker::NonEmpty(func, _) => std::array::from_fn(func),
+///             ArrayMaker::Empty(te) => te.to_left([]),
 ///         }
 ///     }
 /// 
-///     pub fn defaulted() -> Self 
+///     pub const fn defaulted() -> Self 
 ///     where
 ///         T: Default
 ///     {
 ///         Self::with(|_| Default::default())
 ///     }
 /// 
-///     pub fn with(func: fn(usize) -> T) -> Self {
+///     pub const fn with(func: fn(usize) -> T) -> Self {
 ///         match  Usize::<LEN>.equals(Usize::<0>) // : TypeCmp<Usize<LEN>, Usize<0>>
 ///             .project::<ArrayFn<T>>() // : TypeCmp<[T; LEN], [T; 0]>
 ///         {
-///             TypeCmp::Ne(ne) => InitArray::NonEmpty(func, ne),
-///             TypeCmp::Eq(eq) => InitArray::Empty(eq),
+///             TypeCmp::Ne(ne) => ArrayMaker::NonEmpty(func, ne),
+///             TypeCmp::Eq(eq) => ArrayMaker::Empty(eq),
 ///         }
 ///     }
 /// }
 /// 
-/// impl<T> InitArray<T, 0> {
+/// impl<T> ArrayMaker<T, 0> {
 ///     pub const fn empty() -> Self {
 ///         Self::Empty(TypeEq::NEW)
 ///     }
 /// }
 /// 
-/// impl<T, const LEN: usize> Copy for InitArray<T, LEN> {}
+/// impl<T, const LEN: usize> Copy for ArrayMaker<T, LEN> {}
 /// 
-/// impl<T, const LEN: usize> Clone for InitArray<T, LEN> {
+/// impl<T, const LEN: usize> Clone for ArrayMaker<T, LEN> {
 ///     fn clone(&self) -> Self { *self }
 /// }
 /// 

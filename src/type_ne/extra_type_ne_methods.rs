@@ -224,7 +224,7 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     /// let foo: NonZeroI8 = NonZeroI8::new(-1).unwrap();
     /// let bar: NonZeroU8 = NonZeroU8::new(1).unwrap();
     /// 
-    /// baz(Box::new(foo), Box::new(bar), NE.in_mut());
+    /// baz(Box::new(foo), Box::new(bar), NE.in_box());
     /// 
     /// fn baz<T, U>(foo: Box<T>, bar: Box<U>, _ne: TypeNe<Box<T>, Box<U>>) {
     ///     // stuff
