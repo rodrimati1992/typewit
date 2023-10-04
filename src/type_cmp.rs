@@ -86,6 +86,18 @@ pub enum TypeCmp<L: ?Sized, R: ?Sized>{
 
 impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// Constructs a `TypeCmp<L, R>` of types that implement `Any`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::TypeCmp;
+    /// 
+    /// let eq: TypeCmp<u8, u8> = TypeCmp::with_any();
+    /// assert!(matches!(eq, TypeCmp::Eq(_)));
+    /// 
+    /// let ne = TypeCmp::<u8, i8>::with_any();
+    /// assert!(matches!(ne, TypeCmp::Ne(_)));
+    /// ```
     pub fn with_any() -> Self
     where
         L: Sized + Any,
@@ -101,6 +113,17 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     }
 
     /// Swaps the type arguments of this `TypeCmp`
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, type_ne};
+    /// 
+    /// const TC: TypeCmp<u8, i8> = TypeCmp::Ne(type_ne!(u8, i8));
+    /// 
+    /// const TK: TypeCmp<i8, u8> = TC.flip();
+    /// 
+    /// ```
     pub const fn flip(self) -> TypeCmp<R, L> {
         match self {
             TypeCmp::Eq(te) => TypeCmp::Eq(te.flip()),
@@ -109,6 +132,18 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     }
 
     /// Joins this `TypeCmp<L, R>` with a `TypeEq<Q, L>`, producing a `TypeCmp<Q, R>`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, type_ne};
+    /// 
+    /// const TC: TypeCmp<str, [u8]> = type_ne!(str, [u8]).to_cmp();
+    /// 
+    /// const fn foo<A: ?Sized>(eq: TypeEq<A, str>) {
+    ///     let _tc: TypeCmp<A, [u8]> = TC.join_left(eq);
+    /// }
+    /// ```
     pub const fn join_left<Q: ?Sized>(self, left: TypeEq<Q, L>) -> TypeCmp<Q, R> {
         match self {
             TypeCmp::Eq(te) => TypeCmp::Eq(left.join(te)),
@@ -117,6 +152,18 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     }
 
     /// Joins this `TypeCmp<L, R>` with a `TypeEq<R, Q>`, producing a `TypeCmp<L, Q>`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, type_ne};
+    /// 
+    /// const NE: TypeCmp<String, Vec<u8>> = type_ne!(String, Vec<u8>).to_cmp();
+    /// 
+    /// const fn foo<A>(eq: TypeEq<Vec<u8>, A>) {
+    ///     let _ne: TypeCmp<String, A> = NE.join_right(eq);
+    /// }
+    /// ```
     pub const fn join_right<Q: ?Sized>(self, right: TypeEq<R, Q>) -> TypeCmp<L, Q> {
         match self {
             TypeCmp::Eq(te) => TypeCmp::Eq(te.join(right)),
@@ -125,6 +172,18 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     }
 
     /// Converts this `TypeCmp<L, R>` into an `Option<TypeEq<L, R>>`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe};
+    /// 
+    /// let eq: TypeCmp<u8, u8> = TypeCmp::with_any();
+    /// assert!(matches!(eq.eq(), Some(TypeEq::<u8, u8>{..})));
+    /// 
+    /// let ne = TypeCmp::<u8, i8>::with_any();
+    /// assert!(matches!(ne.eq(), None::<TypeEq<u8, i8>>));
+    /// ```
     pub const fn eq(self) -> Option<TypeEq<L, R>> {
         match self {
             TypeCmp::Eq(te) => Some(te),
@@ -133,6 +192,18 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     }
 
     /// Converts this `TypeCmp<L, R>` into an `Option<TypeNe<L, R>>`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe};
+    /// 
+    /// let eq: TypeCmp<u8, u8> = TypeCmp::with_any();
+    /// assert!(matches!(eq.ne(), None::<TypeNe<u8, u8>>));
+    /// 
+    /// let ne = TypeCmp::<u8, i8>::with_any();
+    /// assert!(matches!(ne.ne(), Some(TypeNe::<u8, i8>{..})));
+    /// ```
     pub const fn ne(self) -> Option<TypeNe<L, R>> {
         match self {
             TypeCmp::Eq(_) => None,
@@ -141,11 +212,35 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     }
 
     /// Returns whether this `TypeCmp` is a `TypeCmp::Eq`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
+    /// 
+    /// const EQ: TypeCmp<u8, u8> = TypeEq::NEW.to_cmp();
+    /// assert_eq!(EQ.is_eq(), true);
+    /// 
+    /// const NE: TypeCmp<i8, u8> = type_ne!(i8, u8).to_cmp();
+    /// assert_eq!(NE.is_eq(), false);
+    /// ```
     pub const fn is_eq(self) -> bool {
         matches!(self, TypeCmp::Eq(_))
     }
 
     /// Returns whether this `TypeCmp` is a `TypeCmp::Ne`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
+    /// 
+    /// const EQ: TypeCmp<u8, u8> = TypeEq::NEW.to_cmp();
+    /// assert_eq!(EQ.is_ne(), false);
+    /// 
+    /// const NE: TypeCmp<i8, u8> = type_ne!(i8, u8).to_cmp();
+    /// assert_eq!(NE.is_ne(), true);
+    /// ```
     pub const fn is_ne(self) -> bool {
         matches!(self, TypeCmp::Ne(_))
     }
@@ -155,6 +250,15 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// # Panic
     /// 
     /// Panics if the contained value is a `TypeNe`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq};
+    /// 
+    /// let eq: TypeCmp<u8, u8> = TypeCmp::with_any();
+    /// assert!(matches!(eq.unwrap_eq(), TypeEq::<u8, u8>{..}));
+    /// ```
     #[track_caller]
     pub const fn unwrap_eq(self) -> TypeEq<L, R> {
         match self {
@@ -168,6 +272,15 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// # Panic
     /// 
     /// Panics if the contained value is a `TypeEq`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeNe};
+    /// 
+    /// let ne = TypeCmp::<u8, i8>::with_any();
+    /// assert!(matches!(ne.unwrap_ne(), TypeNe::<u8, i8>{..}));
+    /// ```
     #[track_caller]
     pub const fn unwrap_ne(self) -> TypeNe<L, R> {
         match self {
@@ -188,6 +301,15 @@ macro_rules! alternative_docs {
         "This method always returns `TypeCmp`, \n",
         "while [that function](crate::methods::", $func, ")\n",
         "returns [`TypeNe`] when any argument is a `TypeNe`.\n",
+        "\n",
+        "# Returned variant\n",
+        "\n",
+        "This returns either [`TypeCmp::Eq`] or [`TypeCmp::Ne`]",
+        " depending on the arguments:\n",
+        "- if all arguments (including `self`)",
+        " are [`TypeEq`] or [`TypeCmp::Eq`], this returns [`TypeCmp::Eq`] \n",
+        "- if any argument (including `self`) ",
+        "is a [`TypeNe`] or [`TypeCmp::Ne`], this returns [`TypeCmp::Ne`] \n",
     )};
 }
 
@@ -199,13 +321,37 @@ impl<L, R> TypeCmp<L, R> {
     /// 
     #[doc = alternative_docs!("zip2")]
     /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
     /// 
     /// 
+    /// const NE: TypeNe<u8, i8> = type_ne!(u8, i8);
+    /// const EQ: TypeEq<u16, u16> = TypeEq::NEW;
+    /// const TC_NE: TypeCmp<u32, u64> = TypeCmp::Ne(type_ne!(u32, u64));
+    /// const TC_EQ: TypeCmp<i64, i64> = TypeCmp::Eq(TypeEq::NEW);
     /// 
+    /// assert!(matches!(
+    ///     TC_EQ.zip(NE),
+    ///     TypeCmp::<(i64, u8), (i64, i8)>::Ne(_),
+    /// ));
     /// 
+    /// assert!(matches!(
+    ///     TC_EQ.zip(EQ),
+    ///     TypeCmp::<(i64, u16), (i64, u16)>::Eq(_),
+    /// ));
     /// 
+    /// assert!(matches!(
+    ///     TC_EQ.zip(TC_EQ),
+    ///     TypeCmp::<(i64, i64), (i64, i64)>::Eq(_),
+    /// ));
     /// 
-    /// 
+    /// assert!(matches!(
+    ///     TC_EQ.zip(TC_NE),
+    ///     TypeCmp::<(i64, u32), (i64, u64)>::Ne(_),
+    /// ));
+    /// ```
     pub const fn zip<A>(self, other: A) -> TypeCmp<(L, A::L), (R, A::R)> 
     where
         A: BaseTypeWitness,
@@ -230,6 +376,32 @@ impl<L, R> TypeCmp<L, R> {
     /// 
     #[doc = alternative_docs!("zip3")]
     /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
+    /// 
+    /// 
+    /// const NE: TypeNe<u8, i8> = type_ne!(u8, i8);
+    /// const EQ: TypeEq<u16, u16> = TypeEq::NEW;
+    /// const TC_NE: TypeCmp<u32, u64> = TypeCmp::Ne(type_ne!(u32, u64));
+    /// const TC_EQ: TypeCmp<i64, i64> = TypeCmp::Eq(TypeEq::NEW);
+    /// 
+    /// assert!(matches!(
+    ///     TC_EQ.zip3(EQ, NE),
+    ///     TypeCmp::<(i64, u16, u8), (i64, u16, i8)>::Ne(_),
+    /// ));
+    /// 
+    /// assert!(matches!(
+    ///     TC_EQ.zip3(EQ, TC_EQ),
+    ///     TypeCmp::<(i64, u16, i64), (i64, u16, i64)>::Eq(_),
+    /// ));
+    /// 
+    /// assert!(matches!(
+    ///     TC_EQ.zip3(NE, TC_NE),
+    ///     TypeCmp::<(i64, u8, u32), (i64, i8, u64)>::Ne(_),
+    /// ));
+    /// ```
     pub const fn zip3<A, B>(self, arg0: A, arg1: B) -> TypeCmp<(L, A::L, B::L), (R, A::R, B::R)> 
     where
         A: BaseTypeWitness,
@@ -261,6 +433,28 @@ impl<L, R> TypeCmp<L, R> {
     ///
     #[doc = alternative_docs!("zip4")]
     ///
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
+    /// 
+    /// 
+    /// const NE: TypeNe<u8, i8> = type_ne!(u8, i8);
+    /// const EQ: TypeEq<u16, u16> = TypeEq::NEW;
+    /// const TC_NE: TypeCmp<u32, u64> = TypeCmp::Ne(type_ne!(u32, u64));
+    /// const TC_EQ: TypeCmp<i64, i64> = TypeCmp::Eq(TypeEq::NEW);
+    /// 
+    /// assert!(matches!(
+    ///     TC_EQ.zip4(EQ, NE, TC_NE),
+    ///     TypeCmp::<(i64, u16, u8, u32), (i64, u16, i8, u64)>::Ne(_),
+    /// ));
+    /// 
+    /// assert!(matches!(
+    ///     TC_EQ.zip4(EQ, TC_EQ, EQ),
+    ///     TypeCmp::<(i64, u16, i64, u16), (i64, u16, i64, u16)>::Eq(_),
+    /// ));
+    /// ```
     pub const fn zip4<A, B, C>(
         self, 
         arg0: A, 
