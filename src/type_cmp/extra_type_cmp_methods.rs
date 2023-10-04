@@ -21,6 +21,27 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// Use this function over [`project`](Self::project) 
     /// if you want the type of the passed in function to be inferred.
     /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, inj_type_fn, type_ne};
+    /// 
+    /// use std::num::Wrapping;
+    /// 
+    /// 
+    /// const EQ: TypeCmp<u8, u8> = TypeEq::NEW.to_cmp();
+    /// assert!(matches!(EQ.map(WrappingFn), TypeCmp::<Wrapping<u8>, Wrapping<u8>>::Eq(_)));
+    /// 
+    /// const NE: TypeCmp<i8, u8> = type_ne!(i8, u8).to_cmp();
+    /// assert!(matches!(NE.map(WrappingFn), TypeCmp::<Wrapping<i8>, Wrapping<u8>>::Ne(_)));
+    /// 
+    /// 
+    /// inj_type_fn!{
+    ///     struct WrappingFn;
+    /// 
+    ///     impl<T> T => Wrapping<T>
+    /// }
+    /// ```
     pub const fn map<F>(
         self: TypeCmp<L, R>,
         func: F,
@@ -40,6 +61,27 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// Use this function over [`map`](Self::map) 
     /// if you want to specify the type of the passed in function explicitly.
     /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, inj_type_fn, type_ne};
+    /// 
+    /// use std::mem::ManuallyDrop as ManDrop;
+    /// 
+    /// 
+    /// const EQ: TypeCmp<u8, u8> = TypeEq::NEW.to_cmp();
+    /// assert!(matches!(EQ.project::<ManDropFn>(), TypeCmp::<ManDrop<u8>, ManDrop<u8>>::Eq(_)));
+    /// 
+    /// const NE: TypeCmp<i8, u8> = type_ne!(i8, u8).to_cmp();
+    /// assert!(matches!(NE.project::<ManDropFn>(), TypeCmp::<ManDrop<i8>, ManDrop<u8>>::Ne(_)));
+    /// 
+    /// 
+    /// inj_type_fn!{
+    ///     struct ManDropFn;
+    /// 
+    ///     impl<T> T => ManDrop<T>
+    /// }
+    /// ```
     pub const fn project<F>(
         self: TypeCmp<L, R>,
     ) -> TypeCmp<CallInjFn<InvokeAlias<F>, L>, CallInjFn<InvokeAlias<F>, R>> 
@@ -59,6 +101,30 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// Use this function over [`unproject`](Self::unproject) 
     /// if you want the type of the passed in function to be inferred.
     /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, inj_type_fn, type_ne};
+    /// 
+    /// use std::num::Wrapping;
+    /// 
+    /// 
+    /// const EQ: TypeCmp<Wrapping<u8>, Wrapping<u8>> = TypeEq::NEW.to_cmp();
+    /// 
+    /// assert!(matches!(EQ.unmap(WrappingFn), TypeCmp::<u8, u8>::Eq(_)));
+    /// 
+    /// const NE: TypeCmp<Wrapping<i8>, Wrapping<u8>> = 
+    ///     type_ne!(Wrapping<i8>, Wrapping<u8>).to_cmp();
+    /// 
+    /// assert!(matches!(NE.unmap(WrappingFn), TypeCmp::<i8, u8>::Ne(_)));
+    /// 
+    /// 
+    /// inj_type_fn!{
+    ///     struct WrappingFn;
+    /// 
+    ///     impl<T> T => Wrapping<T>
+    /// }
+    /// ```
     pub const fn unmap<F>(
         self,
         func: F,
@@ -78,6 +144,31 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// Use this function over [`unmap`](Self::unmap) 
     /// if you want to specify the type of the passed in function explicitly.
     /// 
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, inj_type_fn, type_ne};
+    /// 
+    /// use std::mem::MaybeUninit as MaybeUn;
+    /// 
+    /// 
+    /// const EQ: TypeCmp<MaybeUn<u8>, MaybeUn<u8>> = TypeEq::NEW.to_cmp();
+    /// 
+    /// assert!(matches!(EQ.unproject::<MaybeUnFn>(), TypeCmp::<u8, u8>::Eq(_)));
+    /// 
+    /// const NE: TypeCmp<MaybeUn<i8>, MaybeUn<u8>> = 
+    ///     type_ne!(MaybeUn<i8>, MaybeUn<u8>).to_cmp();
+    /// 
+    /// assert!(matches!(NE.unproject::<MaybeUnFn>(), TypeCmp::<i8, u8>::Ne(_)));
+    /// 
+    /// 
+    /// inj_type_fn!{
+    ///     struct MaybeUnFn;
+    /// 
+    ///     impl<T> T => MaybeUn<T>
+    /// }
+    /// ```
     pub const fn unproject<F>(
         self,
     ) -> TypeCmp<UncallFn<InvokeAlias<F>, L>, UncallFn<InvokeAlias<F>, R>>
@@ -91,6 +182,19 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     }
 
     /// Converts a `TypeCmp<L, R>` to `TypeCmp<&L, &R>`
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
+    /// 
+    /// const EQ: TypeCmp<u8, u8> = TypeEq::NEW.to_cmp();
+    /// assert!(matches!(EQ.in_ref(), TypeCmp::<&u8, &u8>::Eq(_)));
+    /// 
+    /// const NE: TypeCmp<i8, u8> = type_ne!(i8, u8).to_cmp();
+    /// assert!(matches!(NE.in_ref(), TypeCmp::<&i8, &u8>::Ne(_)));
+    /// 
+    /// ```
     pub const fn in_ref<'a>(self) -> TypeCmp<&'a L, &'a R> {
         match self {
             TypeCmp::Eq(te) => TypeCmp::Eq(te.in_ref()),
@@ -108,6 +212,18 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
         /// This requires either of the `"mut_refs"` or `"const_mut_refs"` 
         /// crate features to be enabled to be a `const fn`.
         /// 
+        /// # Example
+        /// 
+        /// ```rust
+        /// use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
+        /// 
+        /// const EQ: TypeCmp<u8, u8> = TypeEq::NEW.to_cmp();
+        /// assert!(matches!(EQ.in_mut(), TypeCmp::<&mut u8, &mut u8>::Eq(_)));
+        /// 
+        /// const NE: TypeCmp<i8, u8> = type_ne!(i8, u8).to_cmp();
+        /// assert!(matches!(NE.in_mut(), TypeCmp::<&mut i8, &mut u8>::Ne(_)));
+        /// 
+        /// ```
         pub fn in_mut['a](self) -> TypeCmp<&'a mut L, &'a mut R> {
             match self {
                 TypeCmp::Eq(te) => TypeCmp::Eq(te.in_mut()),
@@ -117,6 +233,19 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     }
 
     /// Converts a `TypeCmp<L, R>` to `TypeCmp<Box<L>, Box<R>>`
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
+    /// 
+    /// const EQ: TypeCmp<u8, u8> = TypeEq::NEW.to_cmp();
+    /// assert!(matches!(EQ.in_box(), TypeCmp::<Box<u8>, Box<u8>>::Eq(_)));
+    /// 
+    /// const NE: TypeCmp<i8, u8> = type_ne!(i8, u8).to_cmp();
+    /// assert!(matches!(NE.in_box(), TypeCmp::<Box<i8>, Box<u8>>::Ne(_)));
+    /// 
+    /// ```
     #[cfg(feature = "alloc")]
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "alloc")))]
     pub const fn in_box(self) -> TypeCmp<Box<L>, Box<R>> {
