@@ -303,30 +303,9 @@
 //!     /// Builds `Struct`, 
 //!     /// providing default values for fields that haven't been set.
 //!     pub fn build(self) -> Struct {
-//!         typewit::type_fn! {
-//!             struct HelperFn<T>;
-//!             impl<I: InitState> I => BuilderField<I, T>
-//!         }
-//! 
 //!         Struct {
-//!             // matching on the type-level `InitState` enum by using `InitWit`.
-//!             // `WITNESS` comes from the `HasTypeWitness` trait
-//!             foo: match FooInit::WITNESS {
-//!                 // `te: TypeEq<FooInit, Init>`
-//!                 InitWit::InitW(te) => {
-//!                     te.map(HelperFn::NEW) //: TypeEq<BuilderField<FooInit, String>, String>
-//!                       .to_right(self.foo)
-//!                 }
-//!                 InitWit::UninitW(_) => "default value".to_string(),
-//!             },
-//!             bar: match BarInit::WITNESS {
-//!                 // `te: TypeEq<BarInit, Init>`
-//!                 InitWit::InitW(te) => {
-//!                     te.map(HelperFn::NEW) //: TypeEq<BuilderField<BarInit, Vec<u32>>, Vec<u32>>
-//!                       .to_right(self.bar)
-//!                 }
-//!                 InitWit::UninitW(_) => vec![3, 5, 8],
-//!             },
+//!             foo: init_or_else::<FooInit, _, _>(self.foo, || "default value".to_string()),
+//!             bar: init_or_else::<BarInit, _, _>(self.bar, || vec![3, 5, 8]),
 //!         }
 //!     }
 //! }
@@ -343,6 +322,32 @@
 //! // If `I` is `Init`, then this evaluates to `T`
 //! type BuilderField<I, T> = <I as InitState>::BuilderField::<T>;
 //! 
+//! /// Gets `T` out of `maybe_init` if it's actually initialized,
+//! /// otherwise returns `else_()`.
+//! fn init_or_else<I, T, F>(maybe_init: BuilderField<I, T>, else_: F) -> T
+//! where
+//!     I: InitState,
+//!     F: FnOnce() -> T
+//! {
+//!     typewit::type_fn! {
+//!         // Declares the `HelperFn` type-level function (TypeFn implementor)
+//!         // from `I` to `BuilderField<I, T>`
+//!         struct HelperFn<T>;
+//!         impl<I: InitState> I => BuilderField<I, T>
+//!     }
+//! 
+//!     // matching on the type-level `InitState` enum by using `InitWit`.
+//!     // `WITNESS` comes from the `HasTypeWitness` trait
+//!     match I::WITNESS {
+//!         // `te: TypeEq<FooInit, Init>`
+//!         InitWit::InitW(te) => {
+//!             te.map(HelperFn::NEW) //: TypeEq<BuilderField<I, T>, T>
+//!               .to_right(maybe_init)
+//!         }
+//!         InitWit::UninitW(_) => else_(),
+//!     }
+//! }
+//! 
 //! // Emulates a type-level `InitState::Init` variant.
 //! // Marks a field as initialized.
 //! enum Init {}
@@ -351,7 +356,7 @@
 //!     type BuilderField<T> = T;
 //! }
 //! 
-//! // Emulates a type-level `InitState::Uninit` variant
+//! // Emulates a type-level `InitState::Uninit` variant.
 //! // Marks a field as uninitialized.
 //! enum Uninit {}
 //! 

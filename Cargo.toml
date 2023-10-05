@@ -1,6 +1,6 @@
 [package]
 name = "typewit"
-version = "1.7.0"
+version = "1.8.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 rust-version = "1.57.0"
 edition = "2021"
@@ -8,8 +8,8 @@ license = "Zlib"
 description = "type-witness-based abstractions, mostly for emulating polymorphism in const fns"
 documentation = "https://docs.rs/typewit/"
 readme="./README.md"
-keywords = ["no-std", "const_fn"]
-categories = ["no-std"]
+keywords = ["no-std", "const_fn", "GADT", "type_witness", "type-equality", "refl"]
+categories = ["no-std", "rust-patterns"]
 repository = "https://github.com/rodrimati1992/typewit/"
 include = [
     "Cargo.toml", 
