@@ -2,6 +2,99 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.8.0
+
+Added `"rust_1_65"` feature
+
+Added `BaseTypeWitness` trait, which requires `"rust_1_61"` feature.
+
+Added `MetaBaseTypeWit` enum, which requires `"rust_1_61"` feature.
+
+
+Added these items to `type_fn` module:
+- `InjTypeFn` trait
+- `RevTypeFn` trait
+- `FnRev` type-level function
+- `CallInjFn` type alias
+- `UncallFn` type alias
+
+Added `inj_type_fn` macro
+
+Added reexport of these in `type_fn` module:
+- `inj_type_fn` macro
+- `type_fn` macro
+
+
+Added `TypeCmp` enum
+
+Added these associated items to `TypeEq`: 
+- `with_any` constructor
+- `to_cmp` method
+- `unmap` method
+- `unproject` method
+
+Added `type_ne` macro
+
+Added these associated items to `TypeNe`: 
+- `with_any` constructor
+- `with_fn` constructor
+- `to_cmp` method
+- `flip` method
+- `join_left` method
+- `join_right` method
+- `map` method
+- `project` method
+- `unmap` method
+- `unproject` method
+- `in_mut` method
+- `in_ref` method
+- `in_array` method (requires `"rust_1_61"` feature)
+- `zip` method (requires `"rust_1_61"` feature)
+- `zip3` method (requires `"rust_1_61"` feature)
+- `zip4` method (requires `"rust_1_61"` feature)
+
+Removed the need to enable `"const_marker"` feature to enable `const_marker` module.
+
+Added `equals` method to all marker types in `const_marker` module.
+
+Deprecated `eq` methods of all marker types in `const_marker` module.
+
+Added `type_constructors` module, which requires `"rust_1_65"` and includes these items:
+- `BaseTypeWitnessTc` trait
+- `TcTypeCmp` struct
+- `TcTypeEq` struct
+- `TcTypeNe` struct
+- `BaseTypeWitnessReparam` type alias
+- `BaseTypeWitnessToTc` type alias
+- `MapBaseTypeWitness` type alias
+- `TcToBaseTypeWitness` type alias
+
+Added `methods` module, which requires `"rust_1_65"` and includes these items:
+- `zipping` module
+- `in_array` function
+- `zip2` function
+- `zip3` function
+- `zip4` function
+
+The `methods::zipping` submodule (which requires `"rust_1_65"`) contains:
+- `Zip2` trait
+- `Zip3` trait
+- `Zip4` trait
+- `Zip2Out` type alias
+- `Zip3Out` type alias
+- `Zip4Out` type alias
+
+Added `type_ne` module, which contains:
+- reexport of `TypeNe`
+- reexport of `type_ne` macro
+- `LeftArg` marker type
+- `RightArg` marker type
+
+Added `typewit_proc_macros` optional dependency.
+
+Added `"proc_macros"` feature, enabled by default, which enables `typewit_proc_macros` dependency.
+
+
 ### 1.7.0
 
 Added `polymatch` macro.

@@ -1,5 +1,6 @@
 use crate::{
     const_marker::Bool,
+    TypeCmp,
     TypeEq,
     TypeWitnessTypeArg, MakeTypeWitness,
 };
@@ -172,9 +173,9 @@ impl<const B: bool> TypeWitnessTypeArg for BoolWit<B> {
 
 impl<const B: bool> MakeTypeWitness for BoolWit<B> {
     const MAKE: Self = {
-        if let Ok(te) = Bool.eq(Bool) {
+        if let TypeCmp::Eq(te) = Bool.equals(Bool) {
             BoolWit::True(te)
-        } else if let Ok(te) = Bool.eq(Bool) {
+        } else if let TypeCmp::Eq(te) = Bool.equals(Bool) {
             BoolWit::False(te)
         } else {
             panic!("unreachable: `B` is either `true` or `false`")

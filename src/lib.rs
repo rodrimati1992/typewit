@@ -3,7 +3,7 @@
 //! [type witnesses](#what-are-type-witnesses).
 //! 
 //! The inciting motivation for this crate is emulating trait polymorphism in `const fn`
-//! (as of 2023-09-10, it's not possible to call trait methods in const contexts on stable).
+//! (as of 2023-10-01, it's not possible to call trait methods in const contexts on stable).
 //! 
 //! # What are type witnesses
 //! 
@@ -23,7 +23,7 @@
 //! ### Polymorphic function
 //! 
 //! This demonstrates how one can write a return-type-polymorphic `const fn`
-//! (as of 2023-09-10, trait methods can't be called in const fns on stable)
+//! (as of 2023-10-01, trait methods can't be called in const fns on stable)
 //! 
 //! ```rust
 //! use typewit::{MakeTypeWitness, TypeEq};
@@ -180,11 +180,8 @@
 //! This example demonstrates "downcasting" from a type with a const parameter to 
 //! a concrete instance of that type.
 //! 
-//! This example requires the `"const_marker"` feature (enabled by default).
-//! 
-#![cfg_attr(not(feature = "const_marker"), doc = "```ignore")]
-#![cfg_attr(feature = "const_marker", doc = "```rust")]
-//! use typewit::{const_marker::Usize, TypeEq};
+//! ```rust
+//! use typewit::{const_marker::Usize, TypeCmp, TypeEq};
 //! 
 //! assert_eq!(*mutate(&mut Arr([])), Arr([]));
 //! assert_eq!(*mutate(&mut Arr([1])), Arr([1]));
@@ -196,7 +193,7 @@
 //! struct Arr<const N: usize>([u8; N]);
 //! 
 //! fn mutate<const N: usize>(arr: &mut Arr<N>) -> &mut Arr<N> {
-//!     if let Ok(te) =  Usize::<N>.eq(Usize::<3>) {
+//!     if let TypeCmp::Eq(te) =  Usize::<N>.equals(Usize::<3>) {
 //!         let tem = te // `te` is a `TypeEq<Usize<N>, Usize<3>>`
 //!             .project::<GArr>() // returns `TypeEq<Arr<N>, Arr<3>>`
 //!             .in_mut(); // returns `TypeEq<&mut Arr<N>, &mut Arr<3>>`
@@ -306,30 +303,9 @@
 //!     /// Builds `Struct`, 
 //!     /// providing default values for fields that haven't been set.
 //!     pub fn build(self) -> Struct {
-//!         typewit::type_fn! {
-//!             struct HelperFn<T>;
-//!             impl<I: InitState> I => BuilderField<I, T>
-//!         }
-//! 
 //!         Struct {
-//!             // matching on the type-level `InitState` enum by using `InitWit`.
-//!             // `WITNESS` comes from the `HasTypeWitness` trait
-//!             foo: match FooInit::WITNESS {
-//!                 // `te: TypeEq<FooInit, Init>`
-//!                 InitWit::InitW(te) => {
-//!                     te.map(HelperFn::NEW) //: TypeEq<BuilderField<FooInit, String>, String>
-//!                       .to_right(self.foo)
-//!                 }
-//!                 InitWit::UninitW(_) => "default value".to_string(),
-//!             },
-//!             bar: match BarInit::WITNESS {
-//!                 // `te: TypeEq<BarInit, Init>`
-//!                 InitWit::InitW(te) => {
-//!                     te.map(HelperFn::NEW) //: TypeEq<BuilderField<BarInit, Vec<u32>>, Vec<u32>>
-//!                       .to_right(self.bar)
-//!                 }
-//!                 InitWit::UninitW(_) => vec![3, 5, 8],
-//!             },
+//!             foo: init_or_else::<FooInit, _, _>(self.foo, || "default value".to_string()),
+//!             bar: init_or_else::<BarInit, _, _>(self.bar, || vec![3, 5, 8]),
 //!         }
 //!     }
 //! }
@@ -346,6 +322,32 @@
 //! // If `I` is `Init`, then this evaluates to `T`
 //! type BuilderField<I, T> = <I as InitState>::BuilderField::<T>;
 //! 
+//! /// Gets `T` out of `maybe_init` if it's actually initialized,
+//! /// otherwise returns `else_()`.
+//! fn init_or_else<I, T, F>(maybe_init: BuilderField<I, T>, else_: F) -> T
+//! where
+//!     I: InitState,
+//!     F: FnOnce() -> T
+//! {
+//!     typewit::type_fn! {
+//!         // Declares the `HelperFn` type-level function (TypeFn implementor)
+//!         // from `I` to `BuilderField<I, T>`
+//!         struct HelperFn<T>;
+//!         impl<I: InitState> I => BuilderField<I, T>
+//!     }
+//! 
+//!     // matching on the type-level `InitState` enum by using `InitWit`.
+//!     // `WITNESS` comes from the `HasTypeWitness` trait
+//!     match I::WITNESS {
+//!         // `te: TypeEq<FooInit, Init>`
+//!         InitWit::InitW(te) => {
+//!             te.map(HelperFn::NEW) //: TypeEq<BuilderField<I, T>, T>
+//!               .to_right(maybe_init)
+//!         }
+//!         InitWit::UninitW(_) => else_(),
+//!     }
+//! }
+//! 
 //! // Emulates a type-level `InitState::Init` variant.
 //! // Marks a field as initialized.
 //! enum Init {}
@@ -354,7 +356,7 @@
 //!     type BuilderField<T> = T;
 //! }
 //! 
-//! // Emulates a type-level `InitState::Uninit` variant
+//! // Emulates a type-level `InitState::Uninit` variant.
 //! // Marks a field as uninitialized.
 //! enum Uninit {}
 //! 
@@ -376,35 +378,58 @@
 //! 
 //! # Cargo features
 //! 
-//! These are the features of this crates:
+//! These are the features of this crate.
 //! 
-//! - `"rust_1_61"`: allows the `typewit` crate to use Rust 1.61.0 features.
+//! ### Default-features
+//! 
+//! These features are enabled by default:
+//! 
+//! - `"proc_macros"`: uses proc macros to improve compile-errors involving 
+//! macro-generated impls.
+//! 
+//! ### Rust-versions and standard crates
+//! 
+//! These features enable items that have a minimum Rust version:
 //! 
 //! - `"rust_stable"`: enables all the `"rust_1_*"` features.
 //! 
+//! - `"rust_1_65"`: enables the [`type_constructors`] module,
+//! the [`methods`] module,
+//! and the `"rust_1_61"` feature.
+//! 
+//! - `"rust_1_61"`: enables [`MetaBaseTypeWit`],
+//! [`BaseTypeWitness`],
+//! and the `{TypeCmp, TypeNe}::{zip*, in_array}` methods.
+//!
+//! These features enable items that require a non-`core` standard crate:
+//! 
 //! - `"alloc"`: enable items that use anything from the standard `alloc` crate.
 //! 
-//! - `"const_marker"`(enabled by default): enables the [`const_marker`] module,
-//! and all items that depend on it.
+//! ### Nightly features
 //! 
-//! - `"adt_const_marker"`(requires the nightly compiler):
-//! enables the `"rust_stable"` and `"const_marker"` crate features,
+//! These features require the nightly Rust compiler:
+//! 
+//! - `"adt_const_marker"`:
+//! enables the `"rust_stable"` crate feature,
 //! and marker types in the [`const_marker`] module that have
 //! non-primitive `const` parameters.
 //! 
-//! - `"mut_refs"`: turns functions that take mutable references into const fns.
-//! note: as of September 2023, 
-//! this crate feature requires a stable compiler from the future.
-//! 
-//! - `"nightly_mut_refs"`(requires the nightly compiler):
+//! - `"nightly_mut_refs"`:
 //! Enables the `"rust_stable"` and `"mut_refs"` crate features,
-//! and the `const_mut_refs` nightly feature.
+//! and turns functions that use mutable references into `const fn`s.
 //! 
-//! None of the crate features are enabled by default.
+//! ### Future-Rust features
+//! 
+//! These features currently require future compiler versions:
+//! 
+//! - `"mut_refs"`: turns functions that take mutable references into `const fn`s.
+//! note: as of October 2023, 
+//! this crate feature requires a stable compiler from the future.
 //! 
 //! # No-std support
 //! 
 //! `typewit` is `#![no_std]`, it can be used anywhere Rust can be used.
+//! 
 //! You need to enable the `"alloc"` feature to enable items that use anything 
 //! from the standard `alloc` crate.
 //! 
@@ -417,9 +442,15 @@
 //! 
 //! 
 //! 
+//! [`TypeCmp`]: crate::TypeCmp
 //! [`TypeEq`]: crate::TypeEq
+//! [`TypeNe`]: crate::TypeNe
 //! [`TypeFn`]: crate::type_fn::TypeFn
 //! [`const_marker`]: crate::const_marker
+//! [`type_constructors`]: crate::type_constructors
+//! [`methods`]: crate::methods
+//! [`MetaBaseTypeWit`]: crate::MetaBaseTypeWit
+//! [`BaseTypeWitness`]:  crate::BaseTypeWitness
 #![no_std]
 #![cfg_attr(feature = "nightly_mut_refs", feature(const_mut_refs))]
 #![cfg_attr(feature = "adt_const_marker", feature(adt_const_params))]
@@ -446,8 +477,6 @@ macro_rules! explain_type_witness {
 #[macro_use]
 pub mod type_fn;
 
-#[cfg(feature = "const_marker")]
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "const_marker")))]
 pub mod const_marker;
 
 #[cfg(feature = "adt_const_marker")]
@@ -455,20 +484,67 @@ mod all_init_bytes;
 
 mod utils;
 mod macros;
+
+#[cfg(feature = "rust_1_61")]
+mod base_type_wit;
+
+#[cfg(feature = "rust_1_61")]
+pub use crate::base_type_wit::{BaseTypeWitness, MetaBaseTypeWit};
+
+
+#[cfg(feature = "rust_1_65")]
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_65")))]
+pub mod methods;
+
+
+#[cfg(feature = "rust_1_61")]
+pub(crate) mod some_type_arg_is_ne;
+
+#[cfg(feature = "rust_1_61")]
+pub(crate) use self::some_type_arg_is_ne::SomeTypeArgIsNe;
+
+
+mod type_cmp;
 mod type_eq;
+mod type_eq_ne_guts;
 mod type_identity;
-mod type_ne;
+
+mod type_ne_;
+
+/// [`TypeNe`]-related items
+pub mod type_ne {
+    pub use crate::type_ne_::{LeftArg, RightArg};
+    
+    #[doc(no_inline)]
+    pub use crate::{TypeNe, type_ne};
+}
+
+
 mod type_witness_traits;
 
+#[cfg(feature = "rust_1_65")]
+pub mod type_constructors;
+
+
+#[doc(inline)]
 pub use crate::{
     type_eq::*,
-    type_ne::*,
+    type_ne_::TypeNe,
     type_witness_traits::*,
     type_identity::Identity,
 };
 
+
+pub use crate::type_cmp::TypeCmp;
+
 #[doc(no_inline)]
-pub use crate::type_fn::{CallFn, TypeFn};
+pub use crate::type_fn::{CallFn, CallInjFn, InjTypeFn, RevTypeFn, TypeFn, UncallFn};
+
+
+#[cfg(feature = "proc_macros")]
+#[doc(hidden)]
+pub use typewit_proc_macros::__impl_with_span;
+
 
 #[doc(hidden)]
 pub mod __ {
@@ -503,6 +579,6 @@ pub mod __ {
 
 
 
-#[cfg(all(doctest, feature = "rust_stable", feature = "const_marker"))]
+#[cfg(all(doctest, feature = "rust_stable"))]
 #[doc = include_str!("../README.md")]
 pub struct ReadmeTest;

@@ -140,12 +140,27 @@
 /// [`TypeEq::map`]: crate::TypeEq::map
 #[macro_export]
 macro_rules! type_fn {
+    ($($args:tt)*) => {
+        $crate::__type_fn!{
+            __tyfn_typefn_impl
+            $($args)*
+        }
+    }
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __type_fn {
     (
+        $typefn_impl_callback:ident
+
         $(#[$attrs:meta])*
         $vis:vis struct $struct_name:ident < $($rem:tt)*
     ) => {
         $crate::__::__parse_in_generics! {
             ($crate::__tyfn_parsed_capture_generics !((
+                $typefn_impl_callback
+
                 $(#[$attrs])*
                 $vis struct $struct_name
             )))
@@ -153,6 +168,8 @@ macro_rules! type_fn {
         }
     };
     (
+        $typefn_impl_callback:ident
+
         $(#[$attrs:meta])*
         $vis:vis struct $struct_name:ident
         $($rem:tt)*
@@ -160,6 +177,8 @@ macro_rules! type_fn {
         $crate::__trailing_comma_for_where_clause!{
             ($crate::__tyfn_parsed_capture_where! (
                 (
+                    $typefn_impl_callback
+
                     $(#[$attrs])*
                     $vis struct $struct_name [] [] []
                 )
@@ -175,7 +194,6 @@ macro_rules! type_fn {
         }
     };
 }
-
 
 #[doc(hidden)]
 #[macro_export]
@@ -234,6 +252,7 @@ macro_rules! __tyfn_parsed_capture_where {
             ( $($struct_stuff)* captures_where $captures_where )
             []
             [$($fns)*]
+            [$($fns)*]
         }
     };
     (
@@ -256,6 +275,8 @@ macro_rules! __tyfn_parsed_capture_where {
 macro_rules! __tyfn_parse_fns {
     (
         (
+            $typefn_impl_callback:ident
+
             $(#[$attrs:meta])*
             $vis:vis struct $struct_name:ident 
 
@@ -267,8 +288,11 @@ macro_rules! __tyfn_parse_fns {
 
         $fns:tt
         []
+        $rem_dup:tt // duplicate of the parsed tokens
     ) => {
         $crate::__tyfn_split_capture_generics! {
+            $typefn_impl_callback
+
             $fns
 
             $(#[$attrs])*
@@ -281,7 +305,7 @@ macro_rules! __tyfn_parse_fns {
             captures_where $captures_where
         }
     };
-    ( $fixed:tt $fns:tt [] ) => {
+    ( $fixed:tt $fns:tt [] []) => {
         $crate::__::compile_error!{$crate::__::concat!(
             "bug: unhandled syntax in `typewit` macro: ",
             stringify!($fixed),
@@ -295,12 +319,13 @@ macro_rules! __tyfn_parse_fns {
             $(#[$impl_attrs:meta])*
             impl < $($rem:tt)*
         ]
+        [ $(#[$_attr:meta])* $impl:ident $($rem_dup:tt)* ]
     ) => {
         $crate::__::__parse_in_generics!{
             ($crate::__tyfn_parsed_fn_generics!(
                 $fixed
                 $fns
-                [$(#[$impl_attrs])*]
+                [$(#[$impl_attrs])* $impl]
             ))
             [] [] [$($rem)*]
         }
@@ -312,11 +337,12 @@ macro_rules! __tyfn_parse_fns {
             $(#[$impl_attrs:meta])*
             impl $($rem:tt)*
         ]
+        [ $(#[$_attr:meta])* $impl:ident $($rem_dup:tt)* ]
     ) => {
         $crate::__tyfn_parsed_fn_generics!{
             $fixed
             $fns
-            [$(#[$impl_attrs])*]
+            [$(#[$impl_attrs])* $impl]
             [] [] [] $($rem)*
         }
     };
@@ -328,6 +354,7 @@ macro_rules! __tyfn_parse_fns {
             impl $type_fn_arg:ty => $ret_ty:ty
             where $($rem:tt)*
         ]
+        [ $(#[$_attr:meta])* $impl:ident $($rem_dup:tt)* ]
     ) => {
         $crate::__trailing_comma_for_where_clause!{
             ($crate::__tyfn_parsed_fn_where!(
@@ -335,7 +362,7 @@ macro_rules! __tyfn_parse_fns {
                 $fns
                 [
                     $(#[$impl_attrs])*
-                    impl[] $type_fn_arg => $ret_ty
+                    $impl[] $type_fn_arg => $ret_ty
                 ]
             ))
             []
@@ -350,6 +377,7 @@ macro_rules! __tyfn_parse_fns {
             impl $type_fn_arg:ty => $ret_ty:ty
             $(; $($rem:tt)*)?
         ]
+        [ $(#[$_attr:meta])* $impl:ident $($rem_dup:tt)* ]
     ) => {
         $crate::__tyfn_parse_fns!{
             $fixed
@@ -357,10 +385,11 @@ macro_rules! __tyfn_parse_fns {
                 $($fns)*
                 (
                     $(#[$impl_attrs])*
-                    impl[] $type_fn_arg => $ret_ty
+                    $impl[] $type_fn_arg => $ret_ty
                     where[]
                 )
             ]
+            [$($($rem)*)?]
             [$($($rem)*)?]
         }
     };
@@ -371,6 +400,7 @@ macro_rules! __tyfn_parse_fns {
             $(#[$impl_attrs:meta])*
             $type_fn_arg:ty => $($rem:tt)*
         ]
+        $rem_dup:tt
     ) => {
         $crate::__::compile_error!{$crate::__::concat!(
             "expected `impl`, found `",
@@ -385,10 +415,11 @@ macro_rules! __tyfn_parse_fns {
         $fixed:tt
         $fns:tt
         [ $(#[$attrs:meta])* impl $arg:ty where $($rem:tt)* ]
+        $rem_dup:tt
     ) => {
         $crate::__::compile_error!{"where clauses for functions go after the return type"}
     };
-    ( $fixed:tt [] [] ) => {
+    ( $fixed:tt [] [] [] ) => {
         $crate::__::compile_error!{"expected type-level function definitions"}
     };
 }
@@ -400,7 +431,7 @@ macro_rules! __tyfn_parsed_fn_generics {
     (
         $fixed:tt
         [$($fns:tt)*]
-        [$(#[$impl_attrs:meta])*]
+        [$($prev_impl_tts:tt)*]
         $__gen_args:tt
         $gen_params:tt
         $deleted_markers:tt
@@ -412,18 +443,18 @@ macro_rules! __tyfn_parsed_fn_generics {
             [
                 $($fns)*
                 (
-                    $(#[$impl_attrs])*
-                    impl $gen_params $type_fn_arg => $ret_ty
+                    $($prev_impl_tts)* $gen_params $type_fn_arg => $ret_ty
                     where[]
                 )
             ]
+            [$($($rem)*)?]
             [$($($rem)*)?]
         }
     };
     (
         $fixed:tt
         $fns:tt
-        [$(#[$impl_attrs:meta])*]
+        [$($prev_impl_tts:tt)*]
         $__gen_args:tt
         $gen_params:tt
         $deleted_markers:tt
@@ -435,8 +466,7 @@ macro_rules! __tyfn_parsed_fn_generics {
                 $fixed
                 $fns
                 [
-                    $(#[$impl_attrs])*
-                    impl $gen_params $type_fn_arg => $ret_ty
+                    $($prev_impl_tts)* $gen_params $type_fn_arg => $ret_ty
                 ]
             ))
             []
@@ -470,6 +500,7 @@ macro_rules! __tyfn_parsed_fn_where {
             $fixed
             [ $($fns)* ( $($fn_decl)* where $where_preds ) ]
             [$($rem)*]
+            [$($rem)*]
         }
     };
 }
@@ -480,6 +511,7 @@ macro_rules! __tyfn_parsed_fn_where {
 #[macro_export]
 macro_rules! __tyfn_split_capture_generics {
     (
+        $typefn_impl_callback:ident
         $functions:tt
         
         $(#[$attrs:meta])*
@@ -492,6 +524,7 @@ macro_rules! __tyfn_split_capture_generics {
         captures_where $captures_where:tt
     ) => {
         $crate::__tyfn_parsed!{
+            $typefn_impl_callback
             $functions
             
             $(#[$attrs])*
@@ -509,6 +542,7 @@ macro_rules! __tyfn_split_capture_generics {
 #[macro_export]
 macro_rules! __tyfn_parsed {
     (
+        $typefn_impl_callback:ident
         [$($functions:tt)+]
         
         $(#[$attrs:meta])*
@@ -531,7 +565,7 @@ macro_rules! __tyfn_parsed {
         }
 
         $(
-            $crate::__tyfn_typefn_impl!{
+            $crate::$typefn_impl_callback!{
                 $functions
 
                 $function_name
@@ -581,7 +615,7 @@ macro_rules! __tyfn_typefn_impl {
     (
         (
             $(#[$attrs:meta])*
-            impl[$(($($fn_gen_param:tt)*))*] $ty_arg:ty => $ret_ty:ty
+            $impl:ident[$(($($fn_gen_param:tt)*))*] $ty_arg:ty => $ret_ty:ty
             where[ $($where_preds:tt)* ] 
         )
 
@@ -593,23 +627,28 @@ macro_rules! __tyfn_typefn_impl {
             $(($capt_tcp:ident $($capt_tcp_rem:tt)*))*
         ]
         where [$($capt_where:tt)*]
-    
-
         
     ) => {
-        $(#[$attrs])*
-        #[allow(unused_parens)]
-        impl<
-            $($capt_lt $($capt_lt_rem)*,)*
-            $($($fn_gen_param)*,)*
-            $($capt_tcp $($capt_tcp_rem)*,)*
-        > $crate::TypeFn<$ty_arg>
-        for $function_name<$($capt_gen_args),*>
-        where
-            $($capt_where)*
-            $($where_preds)*
-        {
-            type Output = $ret_ty;
+        $crate::__impl_with_span! {
+            $ty_arg // span
+            ( $(#[$attrs])* #[allow(unused_parens)] )
+            (
+                <
+                    $($capt_lt $($capt_lt_rem)*,)*
+                    $($($fn_gen_param)*,)*
+                    $($capt_tcp $($capt_tcp_rem)*,)*
+                > $crate::TypeFn<$ty_arg>
+            )
+            // for
+            ( $function_name<$($capt_gen_args),*> )
+            (
+                where
+                    $($capt_where)*
+                    $($where_preds)*
+            )
+            (
+                type Output = $ret_ty;
+            )
         }
     };
 }

@@ -1,6 +1,5 @@
 use typewit::{HasTypeWitness, MakeTypeWitness, TypeEq};
 
-#[cfg(feature = "rust_1_61")]
 use typewit::type_fn::{GRef, GRefMut, TypeFn};
 
 use crate::misc_tests::test_utils::{assert_type, assert_type_eq};
@@ -17,6 +16,14 @@ fn to_left_to_right() {
     const TE: TypeEq<String, String> = TypeEq::new();
     assert_eq!(TE.to_left("3".to_string()), "3");
     assert_eq!(TE.to_right("5".to_string()), "5");
+}
+
+#[test]
+fn with_any_test() {
+    assert!(TypeEq::<u32, i32>::with_any().is_none());
+    
+    let _: TypeEq<u32, u32> = TypeEq::<u32, u32>::with_any().unwrap();
+    let _: TypeEq<i32, i32> = TypeEq::<i32, i32>::with_any().unwrap();
 }
 
 #[test]
@@ -85,7 +92,6 @@ fn assert_type_eq_as_type_witness() {
 
 
 #[test]
-#[cfg(feature = "rust_1_61")]
 fn map_test() {
     assert_type_eq(TypeEq::new::<u8>().map(GRef::NEW), TypeEq::new::<&u8>());
     assert_type_eq(TypeEq::new::<u8>().map(GRefMut::NEW), TypeEq::new::<&mut u8>());
@@ -96,7 +102,6 @@ fn map_test() {
 }
 
 #[test]
-#[cfg(feature = "rust_1_61")]
 fn project_test() {
     #[derive(Debug, PartialEq)]
     struct Foo<T>(T);
@@ -113,6 +118,38 @@ fn project_test() {
         te.project::<FooFn>().to_right(x)
     }
     assert_eq!(te_map(TypeEq::new::<u8>(), Foo(8u8)), Foo(8u8));
+}
+
+#[test]
+fn unmap_test() {
+    assert_type_eq(TypeEq::new::<&u8>().unmap(GRef::NEW), TypeEq::new::<u8>());
+    assert_type_eq(TypeEq::new::<&mut u16>().unmap(GRefMut::NEW), TypeEq::new::<u16>());
+    const fn te_unmap<'a, T>(te: TypeEq<&'a T, &'a u32>, x: T) -> u32 {
+        te.unmap(GRef::NEW).to_right(x)
+    }
+    assert_eq!(te_unmap(TypeEq::new::<&u32>(), 8), 8u32);
+}
+
+#[test]
+fn unproject_test() {
+    #[derive(Debug, PartialEq)]
+    struct Foo<T>(T);
+
+    struct FooFn;
+    impl<T> TypeFn<T> for FooFn {
+        type Output = Foo<T>;
+    }
+    impl<T> typewit::RevTypeFn<Foo<T>> for FooFn {
+        type Arg = T;
+    }
+
+
+    assert_type_eq(TypeEq::new::<&u8>().unproject::<GRef<'_>>(), TypeEq::new::<u8>());
+    assert_type_eq(TypeEq::new::<&mut u16>().unproject::<GRefMut<'_>>(), TypeEq::new::<u16>());
+    const fn te_unmap<'a, T>(te: TypeEq<Foo<T>, Foo<u8>>, x: T) -> u8 {
+        te.unproject::<FooFn>().to_right(x)
+    }
+    assert_eq!(te_unmap(TypeEq::new::<Foo<u8>>(), 8u8), 8u8);
 }
 
 #[test]
@@ -193,14 +230,13 @@ fn zip4_test() {
 
 
 
-#[cfg(feature = "const_marker")]
 #[test]
 fn test_in_array() {
     use typewit::const_marker::Usize;
 
-    Usize::<0>.eq(Usize::<1>).unwrap_err();
+    Usize::<0>.equals(Usize::<1>).unwrap_ne();
 
-    let te = TypeEq::new::<Vec<u8>>().in_array(Usize::<1>.eq(Usize::<1>).unwrap());
+    let te = TypeEq::new::<Vec<u8>>().in_array(Usize::<1>.equals(Usize::<1>).unwrap_eq());
     assert_type::<_, TypeEq<[Vec<u8>; 1], [Vec<u8>; 1]>>(te);
     assert_eq!(te.to_left([vec![3, 5, 8]]), [vec![3, 5, 8]]);
 }

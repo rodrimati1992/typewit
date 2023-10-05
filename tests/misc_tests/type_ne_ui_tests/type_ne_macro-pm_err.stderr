@@ -1,0 +1,19 @@
+error[E0119]: conflicting implementations of trait `RevTypeFn<u8>` for type `_::__TypeNeParameterizer`
+ --> tests/misc_tests/type_ne_ui_tests/./type_ne_macro-err.rs
+  |
+  |     let _ = typewit::type_ne!{u8, u8};
+  |                               --  ^^ conflicting implementation for `_::__TypeNeParameterizer`
+  |                               |
+  |                               first implementation here
+  |
+  = note: this error originates in the macro `$crate::__impl_with_span` which comes from the expansion of the macro `typewit::type_ne` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0119]: conflicting implementations of trait `RevTypeFn<_>` for type `_::__TypeNeParameterizer<_>`
+ --> tests/misc_tests/type_ne_ui_tests/./type_ne_macro-err.rs
+  |
+  |     let _ = typewit::type_ne!{<T> T, T};
+  |                                   -  ^ conflicting implementation for `_::__TypeNeParameterizer<_>`
+  |                                   |
+  |                                   first implementation here
+  |
+  = note: this error originates in the macro `$crate::__impl_with_span` which comes from the expansion of the macro `typewit::type_ne` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -1,0 +1,85 @@
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/projection_type_ne-err.rs:15:5
+   |
+14 | fn flipper<L, R>(te: TypeNe<L, R>) -> TypeNe<L, R> {
+   |            -  - found type parameter  ------------ expected `TypeNe<L, R>` because of return type
+   |            |
+   |            expected type parameter
+15 |     te.flip()
+   |     ^^^^^^^^^ expected `TypeNe<L, R>`, found `TypeNe<R, L>`
+   |
+   = note: expected struct `TypeNe<L, R>`
+              found struct `TypeNe<R, L>`
+   = note: a type parameter was expected, but a different one was found; you might be missing a type parameter or trait bound
+   = note: for more information, visit https://doc.rust-lang.org/book/ch10-02-traits.html#traits-as-parameters
+help: try removing the method call
+   |
+15 -     te.flip()
+15 +     te
+   |
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/projection_type_ne-err.rs:19:5
+   |
+18 | fn joiner_right<A, B, C>(first: TypeNe<A, B>, second: TypeEq<B, C>) -> TypeNe<(), ()> {
+   |                 - this type parameter                                  -------------- expected `TypeNe<(), ()>` because of return type
+19 |     first.join_right(second)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^ expected `TypeNe<(), ()>`, found `TypeNe<A, C>`
+   |
+   = note: expected struct `TypeNe<(), ()>`
+              found struct `TypeNe<A, C>`
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/projection_type_ne-err.rs:23:5
+   |
+22 | fn joiner_left<A, B, C>(first: TypeNe<A, B>, second: TypeEq<C, A>) -> TypeNe<(), ()> {
+   |                      - this type parameter                            -------------- expected `TypeNe<(), ()>` because of return type
+23 |     first.join_left(second)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^ expected `TypeNe<(), ()>`, found `TypeNe<C, B>`
+   |
+   = note: expected struct `TypeNe<(), ()>`
+              found struct `TypeNe<C, B>`
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/projection_type_ne-err.rs:27:5
+   |
+26 | fn map_to_different_type<'a, L, R>(te: TypeNe<L, R>) -> TypeNe<u8, u16> {
+   |                                                         --------------- expected `TypeNe<u8, u16>` because of return type
+27 |     te.map(Mapper)
+   |     ^^^^^^^^^^^^^^ expected `TypeNe<u8, u16>`, found `TypeNe<[L; 1], [R; 1]>`
+   |
+   = note: expected struct `TypeNe<u8, u16>`
+              found struct `TypeNe<[L; 1], [R; 1]>`
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/projection_type_ne-err.rs:30:5
+   |
+29 | fn project_to_different_type<'a, L, R>(te: TypeNe<L, R>) -> TypeNe<u8, u16> {
+   |                                                             --------------- expected `TypeNe<u8, u16>` because of return type
+30 |     te.project::<Mapper>()
+   |     ^^^^^^^^^^^^^^^^^^^^^^ expected `TypeNe<u8, u16>`, found `TypeNe<[L; 1], [R; 1]>`
+   |
+   = note: expected struct `TypeNe<u8, u16>`
+              found struct `TypeNe<[L; 1], [R; 1]>`
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/projection_type_ne-err.rs:33:5
+   |
+32 | fn unmap_to_different_type<'a, L, R>(te: TypeNe<[L; 1], [R; 1]>) -> TypeNe<u8, u16> {
+   |                                - this type parameter                --------------- expected `TypeNe<u8, u16>` because of return type
+33 |     te.unmap(Mapper)
+   |     ^^^^^^^^^^^^^^^^ expected `TypeNe<u8, u16>`, found `TypeNe<L, R>`
+   |
+   = note: expected struct `TypeNe<u8, u16>`
+              found struct `TypeNe<L, R>`
+
+error[E0308]: mismatched types
+  --> tests/misc_tests/type_eq_ui_tests/projection_type_ne-err.rs:36:5
+   |
+35 | fn unproject_to_different_type<'a, L, R>(te: TypeNe<[L; 1], [R; 1]>) -> TypeNe<u8, u16> {
+   |                                    - this type parameter                --------------- expected `TypeNe<u8, u16>` because of return type
+36 |     te.unproject::<Mapper>()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^ expected `TypeNe<u8, u16>`, found `TypeNe<L, R>`
+   |
+   = note: expected struct `TypeNe<u8, u16>`
+              found struct `TypeNe<L, R>`

@@ -1,0 +1,39 @@
+error[E0277]: the trait bound `MakeNe<_, _>: TypeFn<RightArg>` is not satisfied
+  --> tests/misc_tests/type_ne_ui_tests/with_fn_bounds-err.rs:10:57
+   |
+10 | const _: TypeNe<[i16; 0], Option<i8>> = TypeNe::with_fn(MakeNe::NEW);
+   |                                         --------------- ^^^^^^^^^^^ the trait `TypeFn<RightArg>` is not implemented for `MakeNe<_, _>`
+   |                                         |
+   |                                         required by a bound introduced by this call
+   |
+   = help: the following other types implement trait `TypeFn<T>`:
+             <MakeNe<T, U> as TypeFn<u32>>
+             <MakeNe<T, U> as TypeFn<LeftArg>>
+   = note: required for `MakeNe<_, _>` to implement `InjTypeFn<RightArg>`
+note: required by a bound in `typewit::type_ne_::<impl TypeNe<(), ()>>::with_fn`
+  --> src/type_ne_.rs
+   |
+   |     pub const fn with_fn<F>(
+   |                  ------- required by a bound in this associated function
+...
+   |         InvokeAlias<F>: InjTypeFn<LeftArg> + InjTypeFn<RightArg>
+   |                                              ^^^^^^^^^^^^^^^^^^^ required by this bound in `typewit::type_ne_::<impl TypeNe<(), ()>>::with_fn`
+
+error[E0271]: type mismatch resolving `<MakeNe<i8, i16> as RevTypeFn<Option<i8>>>::Arg == RightArg`
+  --> tests/misc_tests/type_ne_ui_tests/with_fn_bounds-err.rs:10:41
+   |
+10 | const _: TypeNe<[i16; 0], Option<i8>> = TypeNe::with_fn(MakeNe::NEW);
+   |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `u32`, found `RightArg`
+   |
+   = note: required for `MakeNe<i8, i16>` to implement `InjTypeFn<RightArg>`
+
+error[E0277]: the trait bound `MakeNe<i8, i16>: TypeFn<RightArg>` is not satisfied
+  --> tests/misc_tests/type_ne_ui_tests/with_fn_bounds-err.rs:10:41
+   |
+10 | const _: TypeNe<[i16; 0], Option<i8>> = TypeNe::with_fn(MakeNe::NEW);
+   |                                         ^^^^^^^^^^^^^^^ the trait `TypeFn<RightArg>` is not implemented for `MakeNe<i8, i16>`
+   |
+   = help: the following other types implement trait `TypeFn<T>`:
+             <MakeNe<T, U> as TypeFn<u32>>
+             <MakeNe<T, U> as TypeFn<LeftArg>>
+   = note: required for `MakeNe<i8, i16>` to implement `InjTypeFn<RightArg>`

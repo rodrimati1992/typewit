@@ -1,0 +1,5 @@
+error: cannot find attribute `asdkaspokaopskd` in this scope
+ --> tests/misc_tests/stw_ui_tests/stw_macro_variant_attribute-err.rs:3:11
+  |
+3 |         #[asdkaspokaopskd]
+  |           ^^^^^^^^^^^^^^^

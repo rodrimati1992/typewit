@@ -1,0 +1,8 @@
+error[E0592]: duplicate definitions with name `foo`
+ --> tests/misc_tests/misc_ui_tests/polymatch_semantic-err.rs:7:17
+  |
+7 |                 fn foo() {}
+  |                 ^^^^^^^^
+  |                 |
+  |                 duplicate definitions for `foo`
+  |                 other definition for `foo`

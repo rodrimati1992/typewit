@@ -1,0 +1,1 @@
+include!{"./inj_type_fn_from_too_generic-err.rs"}

@@ -1,0 +1,21 @@
+error: The `simple_type_witness` macro does not support deriving `Serialize`.
+       help: You could try using `#[derive(Serialize)]`.
+ --> tests/misc_tests/stw_ui_tests/stw_invalid_syntax-err.rs:2:1
+  |
+2 | / typewit::simple_type_witness!{
+3 | |     derive(Serialize)
+4 | |     enum NoDerives {U8 = u8, U16 = u16}
+5 | | }
+  | |_^
+  |
+  = note: this error originates in the macro `$crate::__stw_single_derive` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected end of where clause, expected rest of item
+  --> tests/misc_tests/stw_ui_tests/stw_invalid_syntax-err.rs:8:1
+   |
+8  | / typewit::simple_type_witness!{
+9  | |     enum NoVariants where
+10 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__::__parse_where_clause_for_item_inner` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)

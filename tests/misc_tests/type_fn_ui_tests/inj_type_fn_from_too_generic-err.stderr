@@ -1,0 +1,25 @@
+error[E0207]: the const parameter `N` is not constrained by the impl trait, self type, or predicates
+ --> tests/misc_tests/type_fn_ui_tests/inj_type_fn_from_too_generic-err.rs:1:1
+  |
+1 | / typewit::inj_type_fn!{
+2 | |     struct FromTooGenericA;
+3 | |
+4 | |     impl<T, const N: usize> [T; N] => T;
+5 | | }
+  | |_^ unconstrained const parameter
+  |
+  = note: expressions using a const parameter must map each value to a distinct output value
+  = note: proving the result of expressions other than the parameter are unique is not supported
+  = note: this error originates in the macro `$crate::__::__parse_in_generics` which comes from the expansion of the macro `typewit::inj_type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0207]: the type parameter `U` is not constrained by the impl trait, self type, or predicates
+  --> tests/misc_tests/type_fn_ui_tests/inj_type_fn_from_too_generic-err.rs:10:13
+   |
+10 |     impl<T, U> (T, U) => T;
+   |             ^ unconstrained type parameter
+
+error[E0207]: the type parameter `I` is not constrained by the impl trait, self type, or predicates
+  --> tests/misc_tests/type_fn_ui_tests/inj_type_fn_from_too_generic-err.rs:16:10
+   |
+16 |     impl<I: IntoIterator> I => <I as IntoIterator>::Item;
+   |          ^ unconstrained type parameter

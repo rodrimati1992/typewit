@@ -1,10 +1,10 @@
 use crate::{
-    type_fn::{self, CallFn, InvokeAlias, TypeFn}, 
+    type_fn::{self, CallFn, InvokeAlias, RevTypeFn, TypeFn, UncallFn}, 
     MakeTypeWitness, TypeWitnessTypeArg,
 };
 
-#[cfg(feature = "const_marker")]
 use crate::const_marker::Usize;
+
 
 
 use core::{
@@ -17,54 +17,16 @@ use core::{
 #[cfg(feature = "alloc")]
 use alloc::boxed::Box;
 
-
-macro_rules! projected_type_eq {
-    // Since `$L` and `$R` are used only onces
-    // it's safe to declare them as `:ty` (safe against malicious type macros).
-    ($type_eq:expr, $L:ty, $R:ty, $F:ty) => ({
-        // safety: 
-        // This macro takes a `TypeEq<$L, $R>` value,
-        // which requires `$L == $R` to be constructed,
-        // therefore `CallFn<F, $L> == CallFn<F, $R>`
-        unsafe {
-            $crate::type_eq::__ProjectVars::<$F, $L, $R> {
-                te: $type_eq,
-                projected_te: $crate::TypeEq::new_unchecked(),
-            }.projected_te
-        }
-    })
+crate::type_eq_ne_guts::declare_helpers!{
+    $
+    TypeEq
+    TypeFn
+    CallFn
 }
 
-struct __ProjectVars<F, L: ?Sized, R: ?Sized> 
-where
-    InvokeAlias<F>: TypeFn<L> + TypeFn<R>
-{
-    #[allow(dead_code)]
-    te: TypeEq<L, R>,
-
-    //         TypeEq<L, R> 
-    // implies TypeEq<CallFn<F, L>, CallFn<F, R>>
-    projected_te: TypeEq<CallFn<InvokeAlias<F>, L>, CallFn<InvokeAlias<F>, R>>,
+crate::type_eq_ne_guts::declare_zip_helper!{
+    $ TypeEq
 }
-
-
-macro_rules! __zip_impl {
-    // Using `:ident` to prevent usage of macros,
-    // which can expand to different values on each use
-    ($( $type_eq:ident [$L:ident, $R:ident] ),* $(,)*) => {
-        $(
-            let _te: $crate::TypeEq<$L, $R> = $type_eq;
-        )*
-
-        // SAFETY: 
-        // `$L == $R` for every passed `$type_eq`
-        // implies `(L0, L1, ...) == (R0, R1, ...)`
-        unsafe {
-            $crate::TypeEq::<($($L,)*), ($($R,)*)>::new_unchecked()
-        }
-    }
-}
-
 
 // Equivalent to `type_eq.zip(other_type_eq).project::<Func>()`,
 // defined to ensure that methods which do zip+project have 0 overhead in debug builds.
@@ -78,18 +40,19 @@ macro_rules! zip_project {
         ($L0:ty, $R0:ty),
         ($L1:ty, $R1:ty),
     ) => ({
-        $crate::type_eq::__ZipProjectVars::<$F, $L0, $R0, $L1, $R1> {
+        __ZipProjectVars::<$F, $L0, $R0, $L1, $R1> {
             left_te: $left_type_eq,
             right_te: $right_type_eq,
             projected_te: {
                 // SAFETY: 
-                // `$L0 == $R0` and `$L1 == $R1` implies `($L0, $L1) == ($R0, $R1)`,
+                // `TypeEq<$L0, $R0>` and `TypeEq<$L1, $R1>` 
+                // implies `TypeEq<($L0, $L1), ($R0, $R1)>`,
                 // 
                 // Using `$F` only once, as a type argument,
                 // to protect against type-position macros that expand to 
                 // different types on each use.
                 unsafe {
-                    $crate::TypeEq::new_unchecked()
+                    TypeEq::new_unchecked()
                 }
             }
         }.projected_te
@@ -111,12 +74,6 @@ where
     // implies TypeEq<CallFn<F, (L0, L1)>, CallFn<F, (R0, R1)>>
     projected_te: TypeEq<CallFn<F, (L0, L1)>, CallFn<F, (R0, R1)>>,
 }
-
-
-/// A [`TypeEq`] whose type arguments are projected using the 
-/// `F` [type-level function](crate::type_fn::TypeFn).
-#[doc(hidden)]
-pub type __ProjectedTypeEq<F, L, R> = TypeEq<CallFn<F, L>, CallFn<F, R>>;
 
 
 /// Constructs a [`TypeEq<T, T>`](TypeEq)
@@ -222,11 +179,13 @@ pub const fn type_eq<T: ?Sized>() -> TypeEq<T, T> {
 }
 
 
-
 // Declaring `TypeEq` in a submodule to prevent "safely" constructing `TypeEq` with
 // two different type arguments in the `crate::type_eq` module.
 mod type_eq_ {
-    use core::marker::PhantomData;
+    use core::{
+        any::{Any, TypeId},
+        marker::PhantomData,
+    };
 
     /// Value-level proof that `L` is the same type as `R`
     ///
@@ -383,6 +342,50 @@ mod type_eq_ {
     }
 
     impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
+        /// Constructs `TypeEq<L, R>` if `L == R`, otherwise returns None.
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// use typewit::TypeEq;
+        /// 
+        /// use std::any::Any;
+        /// 
+        /// assert_eq!(sum_u32s(&[3u32, 5, 8]), Some(16));
+        /// assert_eq!(sum_u32s(&[3i32, 5, 8]), None);
+        /// 
+        /// 
+        /// fn sum_u32s<T: Clone + Any>(foo: &[T]) -> Option<u32> {
+        ///     downcast_slice::<T, u32>(foo)
+        ///         .map(|foo: &[u32]| foo.iter().copied().sum())
+        /// }
+        /// 
+        /// fn downcast_slice<T: Any, U: Any>(foo: &[T]) -> Option<&[U]> {
+        ///     struct SliceFn;
+        ///     impl<T> typewit::TypeFn<T> for SliceFn {
+        ///         type Output = [T];
+        ///     }
+        /// 
+        ///     TypeEq::<T, U>::with_any().map(|te: TypeEq<T, U>|{
+        ///         te.map(SliceFn) // TypeEq<[T], [U]>
+        ///           .in_ref()   // TypeEq<&[T]>, &[U]>
+        ///           .to_right(foo) // identity cast from `&[T]` to `&[U]`
+        ///     })
+        /// }
+        /// ```
+        pub fn with_any() -> Option<Self>
+        where
+            L: Sized + Any,
+            R: Sized + Any,
+        {
+            if TypeId::of::<L>() == TypeId::of::<R>() {
+                // SAFETY: the two TypeIds compare equal, so L == R
+                unsafe { Some(TypeEq::new_unchecked()) }
+            } else {
+                None
+            }
+        }
+
         /// Constructs a `TypeEq<L, R>`.
         ///
         /// # Safety
@@ -421,58 +424,6 @@ mod type_eq_ {
         pub const unsafe fn new_unchecked() -> TypeEq<L, R> {
             TypeEq(PhantomData)
         }
-
-        /// Swaps the type parameters of this `TypeEq`
-        /// 
-        /// # Example
-        /// 
-        /// ```rust
-        /// use typewit::TypeEq;
-        /// 
-        /// assert_eq!(flip_bytes([3, 5], TypeEq::NEW), [5, 3]);
-        /// 
-        /// const fn flip_bytes<T>(val: T, te: TypeEq<T, [u8; 2]>) -> T {
-        ///     bar(val, te.flip())
-        /// }
-        /// const fn bar<T>(val: T, te: TypeEq<[u8; 2], T>) -> T {
-        ///     let [l, r] = te.to_left(val);
-        ///     te.to_right([r, l])
-        /// }
-        /// ```
-        /// 
-        #[inline(always)]
-        pub const fn flip(self: TypeEq<L, R>) -> TypeEq<R, L> {
-            TypeEq(PhantomData)
-        }
-
-        /// Joins this `TypeEq<L, R>` with a `TypeEq<R, O>`, producing a `TypeEq<L, O>`.
-        /// 
-        /// The returned `TypeEq` can then be used to coerce between `L` and `O`.
-        /// 
-        /// # Example
-        /// 
-        /// ```rust
-        /// use typewit::TypeEq;
-        /// 
-        /// assert_eq!(foo(TypeEq::NEW, TypeEq::NEW, Some(3)), Some(3));
-        /// assert_eq!(foo(TypeEq::NEW, TypeEq::NEW, None), None);
-        /// 
-        /// 
-        /// fn foo<L, X>(
-        ///     this: TypeEq<L, Option<X>>,
-        ///     that: TypeEq<Option<X>, Option<u32>>,
-        ///     value: Option<u32>,
-        /// ) -> L {
-        ///     let te: TypeEq<L, Option<u32>> = this.join(that);
-        ///     te.to_left(value)
-        /// }
-        /// 
-        /// ```
-        /// 
-        #[inline(always)]
-        pub const fn join<O: ?Sized>(self: TypeEq<L, R>, _other: TypeEq<R, O>) -> TypeEq<L, O> {
-            TypeEq(PhantomData)
-        }
     }
 }
 pub use type_eq_::TypeEq;
@@ -485,20 +436,95 @@ impl<L: ?Sized, R: ?Sized> Clone for TypeEq<L, R> {
     }
 }
 
+impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
+    /// Converts this `TypeEq` into a [`TypeCmp`](crate::TypeCmp)
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq};
+    /// 
+    /// const TC: TypeCmp<bool, bool> = TypeEq::NEW.to_cmp();
+    /// 
+    /// assert!(matches!(TC, TypeCmp::Eq(_)));
+    /// ```
+    #[inline(always)]
+    pub const fn to_cmp(self) -> crate::TypeCmp<L, R> {
+        crate::TypeCmp::Eq(self)
+    }
+
+    /// Swaps the type parameters of this `TypeEq`
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::TypeEq;
+    /// 
+    /// assert_eq!(flip_bytes([3, 5], TypeEq::NEW), [5, 3]);
+    /// 
+    /// const fn flip_bytes<T>(val: T, te: TypeEq<T, [u8; 2]>) -> T {
+    ///     bar(val, te.flip())
+    /// }
+    /// const fn bar<T>(val: T, te: TypeEq<[u8; 2], T>) -> T {
+    ///     let [l, r] = te.to_left(val);
+    ///     te.to_right([r, l])
+    /// }
+    /// ```
+    /// 
+    #[inline(always)]
+    pub const fn flip(self: TypeEq<L, R>) -> TypeEq<R, L> {
+        // SAFETY: L == R implies R == L
+        unsafe { TypeEq::new_unchecked() }
+    }
+
+    /// Joins this `TypeEq<L, R>` with a `TypeEq<R, O>`, producing a `TypeEq<L, O>`.
+    /// 
+    /// The returned `TypeEq` can then be used to coerce between `L` and `O`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::TypeEq;
+    /// 
+    /// assert_eq!(foo(TypeEq::NEW, TypeEq::NEW, Some(3)), Some(3));
+    /// assert_eq!(foo(TypeEq::NEW, TypeEq::NEW, None), None);
+    /// 
+    /// 
+    /// fn foo<L, X>(
+    ///     this: TypeEq<L, Option<X>>,
+    ///     that: TypeEq<Option<X>, Option<u32>>,
+    ///     value: Option<u32>,
+    /// ) -> L {
+    ///     let te: TypeEq<L, Option<u32>> = this.join(that);
+    ///     te.to_left(value)
+    /// }
+    /// 
+    /// ```
+    /// 
+    #[inline(always)]
+    pub const fn join<O: ?Sized>(self: TypeEq<L, R>, _other: TypeEq<R, O>) -> TypeEq<L, O> {
+        // SAFETY: (L == R, R == O) implies L == O
+        unsafe { TypeEq::new_unchecked() }
+    }
+}
+
 impl<L0, R0> TypeEq<L0, R0> {
     /// Combines this `TypeEq<L0, R0>` with a `TypeEq<L1, R1>`, 
     /// producing a `TypeEq<(L0, L1), (R0, R1)>`.
+    /// 
+    /// # Alternative
+    /// 
+    /// For an alternative which allows zipping `TypeEq` with any
+    ///  [`BaseTypeWitness`](crate::BaseTypeWitness),
+    /// you can use [`methods::zip2`](crate::methods::zip2)
+    /// (requires the `"rust_1_65"` feature)
     /// 
     /// # Example
     /// 
     /// This example demonstrates how one can combine two `TypeEq`s to use
     /// with a multi-parameter type.
     /// 
-    /// This example requires the `"const_marker"` feature (enabled by default)
-    /// because it uses [`Usize`](crate::const_marker::Usize)
-    /// 
-    #[cfg_attr(not(feature = "const_marker"), doc = "```ignore")]
-    #[cfg_attr(feature = "const_marker", doc = "```rust")]
+    /// ```rust
     /// use typewit::{const_marker::Usize, TypeEq, TypeFn};
     /// 
     /// assert_eq!(make_foo(TypeEq::NEW, TypeEq::NEW), Foo("hello", [3, 5, 8]));
@@ -528,15 +554,22 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// ```
     /// 
     #[inline(always)]
-    pub const fn zip<L1, R1>(
+    pub const fn zip<L1: ?Sized, R1: ?Sized>(
         self: TypeEq<L0, R0>,
         other: TypeEq<L1, R1>,
     ) -> TypeEq<(L0, L1), (R0, R1)> {
-        __zip_impl!{self[L0, R0], other[L1, R1]}
+        zip_impl!{self[L0, R0], other[L1, R1]}
     }
 
     /// Combines three `TypeEq<L*, R*>` to produce a
     /// `TypeEq<(L0, L1, L2), (R0, R1, R2)>`.
+    /// 
+    /// # Alternative
+    /// 
+    /// For an alternative which allows zipping `TypeEq` with two of any
+    ///  [`BaseTypeWitness`](crate::BaseTypeWitness),
+    /// you can use [`methods::zip3`](crate::methods::zip3)
+    /// (requires the `"rust_1_65"` feature)
     /// 
     /// # Example
     /// 
@@ -557,12 +590,12 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// }
     /// 
     /// ```
-    pub const fn zip3<L1, R1, L2, R2>(
+    pub const fn zip3<L1, R1, L2: ?Sized, R2: ?Sized>(
         self: TypeEq<L0, R0>,
         other1: TypeEq<L1, R1>,
         other2: TypeEq<L2, R2>,
     ) -> TypeEq<(L0, L1, L2), (R0, R1, R2)> {
-        __zip_impl!{
+        zip_impl!{
             self[L0, R0],
             other1[L1, R1],
             other2[L2, R2],
@@ -571,6 +604,13 @@ impl<L0, R0> TypeEq<L0, R0> {
 
     /// Combines four `TypeEq<L*, R*>` to produce a
     /// `TypeEq<(L0, L1, L2, L3), (R0, R1, R2, L3)>`.
+    /// 
+    /// # Alternative
+    /// 
+    /// For an alternative which allows zipping `TypeEq` with three of any
+    ///  [`BaseTypeWitness`](crate::BaseTypeWitness),
+    /// you can use [`methods::zip4`](crate::methods::zip4)
+    /// (requires the `"rust_1_65"` feature)
     /// 
     /// # Example
     /// 
@@ -595,13 +635,13 @@ impl<L0, R0> TypeEq<L0, R0> {
     /// }
     /// 
     /// ```
-    pub const fn zip4<L1, R1, L2, R2, L3, R3>(
+    pub const fn zip4<L1, R1, L2, R2, L3: ?Sized, R3: ?Sized>(
         self: TypeEq<L0, R0>,
         other1: TypeEq<L1, R1>,
         other2: TypeEq<L2, R2>,
         other3: TypeEq<L3, R3>,
     ) -> TypeEq<(L0, L1, L2, L3), (R0, R1, R2, R3)> {
-        __zip_impl!{
+        zip_impl!{
             self[L0, R0],
             other1[L1, R1],
             other2[L2, R2],
@@ -778,7 +818,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
         InvokeAlias<F>: crate::TypeFn<L> + crate::TypeFn<R>
     {
         core::mem::forget(func);
-        projected_type_eq!{self, L, R, InvokeAlias<F>}
+        projected_type_cmp!{self, L, R, F}
     }
 
     /// Maps the type arguments of this `TypeEq`
@@ -812,9 +852,104 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     where
         InvokeAlias<F>: crate::TypeFn<L> + crate::TypeFn<R>
     {
-        projected_type_eq!{self, L, R, InvokeAlias<F>}
+        projected_type_cmp!{self, L, R, F}
+    }
+}
+
+impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
+    /// Maps the type arguments of this `TypeEq`
+    /// by using the [reversed](crate::RevTypeFn) 
+    /// version of the `F` type-level function.
+    /// 
+    /// Use this function over [`unproject`](Self::unproject) 
+    /// if you want the type of the passed in function to be inferred.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeEq, UncallFn};
+    /// 
+    /// assert_eq!(first_int(&[3, 5, 8, 13], TypeEq::NEW), 3);
+    /// 
+    /// const fn first_int<T, const N: usize>(
+    ///     array: &[T; N],
+    ///     te_slice: TypeEq<[T], [u8]>,
+    /// ) -> u8 {
+    ///     let te: TypeEq<T, u8> = te_slice.unmap(SliceFn);
+    ///
+    ///     let te_ref: TypeEq<&T, &u8> = te.in_ref();
+    ///
+    ///     *te_ref.to_right(&array[0])
+    /// }
+    ///
+    /// typewit::inj_type_fn! {
+    ///     struct SliceFn;
+    /// 
+    ///     impl<T> T => [T]
+    /// }
+    /// ```
+    pub const fn unmap<F>(
+        self,
+        func: F,
+    ) -> TypeEq<UncallFn<InvokeAlias<F>, L>, UncallFn<InvokeAlias<F>, R>>
+    where
+        InvokeAlias<F>: RevTypeFn<L> + RevTypeFn<R>
+    {
+        core::mem::forget(func);
+        
+        unprojected_type_cmp!{self, L, R, F}
     }
 
+    /// Maps the type arguments of this `TypeEq`
+    /// by using the [reversed](crate::RevTypeFn) 
+    /// version of the `F` type-level function.
+    /// 
+    /// Use this function over [`unmap`](Self::unmap) 
+    /// if you want to specify the type of the passed in function explicitly.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::TypeEq;
+    /// use std::ops::{Range, RangeInclusive as RangeInc};
+    /// 
+    /// assert_eq!(usize_bounds(3..=5, TypeEq::NEW), (3, 5));
+    /// 
+    /// const fn usize_bounds<T>(
+    ///     range: RangeInc<T>,
+    ///     te_range: TypeEq<Range<T>, Range<usize>>,
+    /// ) -> (usize, usize) {
+    ///     let te: TypeEq<T, usize> = te_range.unproject::<RangeFn>();
+    ///     
+    ///     let te_range_inc: TypeEq<RangeInc<T>, RangeInc<usize>> = te.project::<RangeIncFn>();
+    ///     
+    ///     let range: RangeInc<usize> = te_range_inc.to_right(range);
+    ///     
+    ///     (*range.start(), *range.end())
+    /// }
+    /// 
+    /// typewit::inj_type_fn! {
+    ///     struct RangeFn;
+    /// 
+    ///     impl<T> T => Range<T>
+    /// }
+    /// typewit::inj_type_fn! {
+    ///     struct RangeIncFn;
+    /// 
+    ///     impl<T> T => RangeInc<T>
+    /// }
+    /// ```
+    pub const fn unproject<F>(
+        self,
+    ) -> TypeEq<UncallFn<InvokeAlias<F>, L>, UncallFn<InvokeAlias<F>, R>>
+    where
+        InvokeAlias<F>: crate::RevTypeFn<L> + crate::RevTypeFn<R>
+    {
+        unprojected_type_cmp!{self, L, R, F}
+    }
+}
+
+impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// Converts a `TypeEq<L, R>` to `TypeEq<&L, &R>`
     /// 
     /// # Example
@@ -851,7 +986,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     /// ```
     /// 
     pub const fn in_ref<'a>(self) -> TypeEq<&'a L, &'a R> {
-        projected_type_eq!{self, L, R, type_fn::GRef<'a>}
+        projected_type_cmp!{self, L, R, type_fn::GRef<'a>}
     }
 
     crate::utils::conditionally_const!{
@@ -901,7 +1036,7 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
         /// ```
         /// 
         pub fn in_mut['a](self) -> TypeEq<&'a mut L, &'a mut R> {
-            projected_type_eq!{self, L, R, type_fn::GRefMut<'a>}
+            projected_type_cmp!{self, L, R, type_fn::GRefMut<'a>}
         }
     }
 
@@ -946,15 +1081,21 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     #[cfg(feature = "alloc")]
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "alloc")))]
     pub const fn in_box(self) -> TypeEq<Box<L>, Box<R>> {
-        projected_type_eq!{self, L, R, type_fn::GBox}
+        projected_type_cmp!{self, L, R, type_fn::GBox}
     }
 }
 
-#[cfg(feature = "const_marker")]
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "const_marker")))]
 impl<L: Sized, R: Sized> TypeEq<L, R> {
     /// Combines `TypeEq<L, R>` and `TypeEq<Usize<UL>, Usize<UR>>`
     /// into `TypeEq<[L; UL], [R; UR]>`
+    /// 
+    /// # Alternative
+    /// 
+    /// For an alternative which allows passing any
+    ///  [`BaseTypeWitness`](crate::BaseTypeWitness) for the length,
+    /// you can use [`methods::in_array`](crate::methods::in_array)
+    /// (requires the `"rust_1_65"` feature)
+    /// 
     /// 
     /// # Example
     /// 
@@ -1000,7 +1141,7 @@ impl<L: Sized, R: Sized> TypeEq<L, R> {
     /// (this example requires Rust 1.61.0, because it uses trait bounds in const fns)
     #[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
     #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
-    /// use typewit::{const_marker::Usize, TypeEq};
+    /// use typewit::{const_marker::Usize, TypeCmp, TypeEq};
     /// 
     /// use std::num::Wrapping;
     /// 
@@ -1009,7 +1150,7 @@ impl<L: Sized, R: Sized> TypeEq<L, R> {
     /// 
     /// const fn map_wrapping<T: Copy, const LEN: usize>(arr: [T; LEN]) -> [Wrapping<T>; LEN] {
     ///     // `teq` is a `TypeEq<Usize<LEN>, Usize<0>>`
-    ///     if let Ok(teq) = Usize::<LEN>.eq(Usize::<0>) {
+    ///     if let TypeCmp::Eq(teq) = Usize::<LEN>.equals(Usize::<0>) {
     ///         return TypeEq::new::<Wrapping<T>>()
     ///             .in_array(teq) // `TypeEq<[Wrapping<T>; LEN], [Wrapping<T>; 0]>`
     ///             .to_left([]);
@@ -1031,16 +1172,10 @@ impl<L: Sized, R: Sized> TypeEq<L, R> {
         self,
         other: TypeEq<Usize<UL>, Usize<UR>>,
     ) -> TypeEq<[L; UL], [R; UR]> {
-        struct PairToArray;
-
-        impl<T, const N: usize> TypeFn<(T, Usize<N>)> for PairToArray {
-            type Output = [T; N];
-        }
-
         zip_project!{
             self,
             other,
-            PairToArray,
+            crate::type_fn::PairToArrayFn,
             (L, R),
             (Usize<UL>, Usize<UR>),
         }

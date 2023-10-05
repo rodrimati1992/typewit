@@ -1,0 +1,33 @@
+error: lifetime may not live long enough
+ --> tests/misc_tests/type_fn_ui_tests/type_fn_lifetime_bound-err.rs:8:12
+  |
+7 | fn _with_lifetime<'a, 'b, 'c, 'd>() {
+  |                   --  -- lifetime `'b` defined here
+  |                   |
+  |                   lifetime `'a` defined here
+8 |     let _: WithLts<'a, 'b, 'c, 'd>;
+  |            ^^^^^^^^^^^^^^^^^^^^^^^ requires that `'b` must outlive `'a`
+  |
+  = help: consider adding the following bound: `'b: 'a`
+
+error: lifetime may not live long enough
+ --> tests/misc_tests/type_fn_ui_tests/type_fn_lifetime_bound-err.rs:8:12
+  |
+7 | fn _with_lifetime<'a, 'b, 'c, 'd>() {
+  |                           -- lifetime `'c` defined here
+8 |     let _: WithLts<'a, 'b, 'c, 'd>;
+  |            ^^^^^^^^^^^^^^^^^^^^^^^ requires that `'c` must outlive `'static`
+
+error: lifetime may not live long enough
+ --> tests/misc_tests/type_fn_ui_tests/type_fn_lifetime_bound-err.rs:8:12
+  |
+7 | fn _with_lifetime<'a, 'b, 'c, 'd>() {
+  |                               -- lifetime `'d` defined here
+8 |     let _: WithLts<'a, 'b, 'c, 'd>;
+  |            ^^^^^^^^^^^^^^^^^^^^^^^ requires that `'d` must outlive `'static`
+
+help: the following changes may resolve your lifetime errors
+  |
+  = help: add bound `'b: 'a`
+  = help: replace `'c` with `'static`
+  = help: replace `'d` with `'static`

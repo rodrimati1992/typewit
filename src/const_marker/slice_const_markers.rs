@@ -77,7 +77,7 @@ super::declare_const_param_type! {
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "adt_const_marker")))]
     Str(&'static str)
 
-    fn eq(l, r) { u8_slice_eq(l.as_bytes(), r.as_bytes()) };
+    fn equals(l, r) { u8_slice_eq(l.as_bytes(), r.as_bytes()) };
 }
 
 
@@ -85,65 +85,65 @@ super::declare_const_param_type! {
     StrSlice(&'static [&'static str])
 
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "adt_const_marker")))]
-    fn eq(l, r) { str_slice_eq(l, r) };
+    fn equals(l, r) { str_slice_eq(l, r) };
 }
 
 
 super::declare_const_param_type! {
     BoolSlice(&'static [bool])
-    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+    fn equals(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 super::declare_const_param_type! {
     CharSlice(&'static [char])
-    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+    fn equals(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 super::declare_const_param_type! {
     U8Slice(&'static [u8])
-    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+    fn equals(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 super::declare_const_param_type! {
     U16Slice(&'static [u16])
-    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+    fn equals(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 super::declare_const_param_type! {
     U32Slice(&'static [u32])
-    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+    fn equals(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 super::declare_const_param_type! {
     U64Slice(&'static [u64])
-    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+    fn equals(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 super::declare_const_param_type! {
     U128Slice(&'static [u128])
-    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+    fn equals(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 super::declare_const_param_type! {
     UsizeSlice(&'static [usize])
-    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+    fn equals(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 super::declare_const_param_type! {
     I8Slice(&'static [i8])
-    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+    fn equals(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 super::declare_const_param_type! {
     I16Slice(&'static [i16])
-    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+    fn equals(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 super::declare_const_param_type! {
     I32Slice(&'static [i32])
-    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+    fn equals(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 super::declare_const_param_type! {
     I64Slice(&'static [i64])
-    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+    fn equals(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 super::declare_const_param_type! {
     I128Slice(&'static [i128])
-    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+    fn equals(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 super::declare_const_param_type! {
     IsizeSlice(&'static [isize])
-    fn eq(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
+    fn equals(l, r) { u8_slice_eq(slice_as_bytes(l), slice_as_bytes(r)) };
 }
 
 macro_rules! cmp_slice_of {
