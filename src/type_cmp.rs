@@ -88,7 +88,7 @@ pub enum TypeCmp<L: ?Sized, R: ?Sized>{
 }
 
 impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
-    /// Constructs a `TypeCmp<L, R>` of types that implement `Any`.
+    /// Constructs a `TypeCmp<L, R>` by comparing the `L` and `R` types for equality.
     /// 
     /// # Example
     /// 

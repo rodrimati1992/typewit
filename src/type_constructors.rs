@@ -9,6 +9,13 @@ use core::fmt::Debug;
 
 /// The type constructor for a [`BaseTypeWitness`],
 /// only implemented for [`TcTypeCmp`]/[`TcTypeEq`]/[`TcTypeNe`].
+/// 
+/// A type constructor is a "type" which needs to be provided 
+/// generic arguments to produce a concrete type.
+/// 
+/// This crate emulates type constructors for [`BaseTypeWitness`] types by using this trait,
+/// concrete types are produced with the [`Type`](Self::Type) associated constant.
+/// 
 pub trait BaseTypeWitnessTc: 'static + Copy + Debug {
     /// The [`BaseTypeWitness`] type that corresponds to this type constructor.
     /// 
@@ -22,7 +29,7 @@ pub trait BaseTypeWitnessTc: 'static + Copy + Debug {
 }
 
 
-/// Queries the [`BaseTypeWitness`] of a [`BaseTypeWitnessTc`]
+/// Computes a [`BaseTypeWitness`] type from a [`BaseTypeWitnessTc`]
 pub type TcToBaseTypeWitness<TC, L, R> = <TC as BaseTypeWitnessTc>::Type::<L, R>;
 
 /// Queries the [`BaseTypeWitnessTc`] of a [`BaseTypeWitness`]

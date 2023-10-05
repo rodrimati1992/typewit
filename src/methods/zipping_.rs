@@ -479,9 +479,9 @@ mod with_const_marker {
     /// let _: TypeNe<[i16; 1], [u16; 2]> = in_array(cmp_ty, ne_len);
     /// 
     /// // If there are TypeCmp args, and no TypeNe args, this returns a TypeCmp
-    /// let _: TypeCmp<[i16; 3], [i16; 3]> = in_array(eq_ty, cmp_len);
-    /// let _: TypeCmp<[i16; 0], [u16; 0]> = in_array(cmp_ty, eq_len);
-    /// let _: TypeCmp<[i16; 3], [u16; 3]> = in_array(cmp_ty, cmp_len);
+    /// assert!(matches!(in_array(eq_ty, cmp_len), TypeCmp::<[i16; 3], [i16; 3]>::Eq(_)));
+    /// assert!(matches!(in_array(cmp_ty, eq_len), TypeCmp::<[i16; 0], [u16; 0]>::Ne(_)));
+    /// assert!(matches!(in_array(cmp_ty, cmp_len), TypeCmp::<[i16; 3], [u16; 3]>::Ne(_)));
     /// ```
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_65")))]
     pub const fn in_array<A, B, LT, RT, const LN: usize, const RN: usize>(

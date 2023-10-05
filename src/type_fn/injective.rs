@@ -23,7 +23,7 @@ use core::marker::PhantomData;
 /// 4. If `CallInjFn<F, A> != CallInjFn<F, B>`, then `A != B`.
 /// 
 /// 
-/// # Example
+/// # Examples
 /// 
 /// ### Macro-based Implementation
 /// 
@@ -97,7 +97,7 @@ where
 /// since `RevTypeFn<Ret>` can't know if `Self::Arg` is the only argument 
 /// that could produce `Ret`.
 /// 
-/// # Example
+/// # Examples
 /// 
 /// ### Macro-based impl
 /// 
