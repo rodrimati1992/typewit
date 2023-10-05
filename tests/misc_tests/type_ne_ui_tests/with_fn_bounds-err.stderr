@@ -10,14 +10,14 @@ error[E0277]: the trait bound `MakeNe<_, _>: TypeFn<RightArg>` is not satisfied
              <MakeNe<T, U> as TypeFn<u32>>
              <MakeNe<T, U> as TypeFn<LeftArg>>
    = note: required for `MakeNe<_, _>` to implement `InjTypeFn<RightArg>`
-note: required by a bound in `type_ne::<impl TypeNe<(), ()>>::with_fn`
-  --> src/type_ne.rs
+note: required by a bound in `typewit::type_ne_::<impl TypeNe<(), ()>>::with_fn`
+  --> src/type_ne_.rs
    |
    |     pub const fn with_fn<F>(
    |                  ------- required by a bound in this associated function
 ...
    |         InvokeAlias<F>: InjTypeFn<LeftArg> + InjTypeFn<RightArg>
-   |                                              ^^^^^^^^^^^^^^^^^^^ required by this bound in `type_ne::<impl TypeNe<(), ()>>::with_fn`
+   |                                              ^^^^^^^^^^^^^^^^^^^ required by this bound in `typewit::type_ne_::<impl TypeNe<(), ()>>::with_fn`
 
 error[E0271]: type mismatch resolving `<MakeNe<i8, i16> as RevTypeFn<Option<i8>>>::Arg == RightArg`
   --> tests/misc_tests/type_ne_ui_tests/with_fn_bounds-err.rs:10:41

@@ -79,6 +79,12 @@ macro_rules! __tyne_parsed_capture_generics {
             )>
         )$( where $($where)* )?;
 
+        impl<$($($gen_params)*,)*> __TypeNeParameterizer<$($gen_arg,)*> 
+        $( where $($where)* )?
+        {
+            const NEW: Self = Self($crate::__::PhantomData);
+        }
+
         $crate::__impl_with_span! {
             $left_ty // span
             () // impl attrs
@@ -136,7 +142,7 @@ macro_rules! __tyne_parsed_capture_generics {
         }
 
         $crate::TypeNe::with_fn(
-            __TypeNeParameterizer($crate::__::PhantomData)
+            __TypeNeParameterizer::NEW
         )
     });
 }

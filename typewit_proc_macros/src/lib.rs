@@ -7,7 +7,7 @@ fn unwrap_paren(tt: Option<TokenTree>, where_: &str) -> proc_macro::Group {
         Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Parenthesis => {
             group
         }
-        _ => panic!("expected {where_} to be `()`-delimited ")
+        _ => panic!("expected {} to be `()`-delimited ", where_)
     }
 }
 

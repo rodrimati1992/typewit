@@ -17,10 +17,10 @@ use core::{
 /// 
 /// ### Custom array creation
 /// 
-/// (this example requires Rust 1.61.0 because it takes a function pointer in a const fn).
+/// (this example requires Rust 1.63.0, because of [`std::array::from_fn`]).
 /// 
-#[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
-#[cfg_attr(feature = "rust_1_61", doc = "```rust")]
+#[cfg_attr(not(feature = "rust_1_65"), doc = "```ignore")]
+#[cfg_attr(feature = "rust_1_65", doc = "```rust")]
 /// use typewit::{const_marker::Usize, TypeCmp, TypeEq, TypeNe};
 /// 
 /// let empty: [String; 0] = [];
