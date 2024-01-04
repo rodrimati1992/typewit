@@ -356,11 +356,11 @@ mod type_eq_ {
         /// 
         /// 
         /// fn sum_u32s<T: Clone + Any>(foo: &[T]) -> Option<u32> {
-        ///     downcast_slice::<T, u32>(foo)
+        ///     typecast_slice::<T, u32>(foo)
         ///         .map(|foo: &[u32]| foo.iter().copied().sum())
         /// }
         /// 
-        /// fn downcast_slice<T: Any, U: Any>(foo: &[T]) -> Option<&[U]> {
+        /// fn typecast_slice<T: Any, U: Any>(foo: &[T]) -> Option<&[U]> {
         ///     struct SliceFn;
         ///     impl<T> typewit::TypeFn<T> for SliceFn {
         ///         type Output = [T];
