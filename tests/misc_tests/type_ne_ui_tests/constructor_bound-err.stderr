@@ -1,10 +1,21 @@
+warning: use of deprecated associated function `typewit::type_ne_::<impl typewit::TypeNe<L, R>>::with_any`: fallout of `https://github.com/rust-lang/rust/issues/97156`,`TypeId::of::<L>() != TypeId::of::<R>()` does not imply `L != R`
+ --> tests/misc_tests/type_ne_ui_tests/constructor_bound-err.rs:4:21
+  |
+4 |     TypeNe::<T, U>::with_any()
+  |                     ^^^^^^^^
+  |
+  = note: `#[warn(deprecated)]` on by default
+
 error[E0310]: the parameter type `T` may not live long enough
  --> tests/misc_tests/type_ne_ui_tests/constructor_bound-err.rs:4:5
   |
 4 |     TypeNe::<T, U>::with_any()
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^ ...so that the type `T` will meet its required lifetime bounds
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^
+  |     |
+  |     the parameter type `T` must be valid for the static lifetime...
+  |     ...so that the type `T` will meet its required lifetime bounds
   |
-help: consider adding an explicit lifetime bound...
+help: consider adding an explicit lifetime bound
   |
 3 | fn unconstrained_with_any_call<T: 'static, U>() -> Option<TypeNe<T, U>> {
   |                                 +++++++++
@@ -13,9 +24,12 @@ error[E0310]: the parameter type `U` may not live long enough
  --> tests/misc_tests/type_ne_ui_tests/constructor_bound-err.rs:4:5
   |
 4 |     TypeNe::<T, U>::with_any()
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^ ...so that the type `U` will meet its required lifetime bounds
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^
+  |     |
+  |     the parameter type `U` must be valid for the static lifetime...
+  |     ...so that the type `U` will meet its required lifetime bounds
   |
-help: consider adding an explicit lifetime bound...
+help: consider adding an explicit lifetime bound
   |
 3 | fn unconstrained_with_any_call<T, U: 'static>() -> Option<TypeNe<T, U>> {
   |                                    +++++++++

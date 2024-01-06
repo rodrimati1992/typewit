@@ -74,7 +74,7 @@ error: unexpected `;` in generic parameter list
    |
    = note: this error originates in the macro `$crate::__::__parse_in_generics` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: unexpected end of bound: `Add < Type < u16 > > ;`
+error: unexpected end of bound: `Add< Type< u16> > ;`
   --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:35:1
    |
 35 | / typewit::type_fn!{
@@ -106,7 +106,7 @@ error: unexpected `impl` in generic parameter list
    |
    = note: this error originates in the macro `$crate::__::__parse_in_generics` which comes from the expansion of the macro `typewit::type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: unexpected end of bound: `Add < Type < u16 > > impl`
+error: unexpected end of bound: `Add< Type< u16> > impl`
   --> tests/misc_tests/type_fn_ui_tests/type_fn_misc_syntax_errors-err.rs:50:1
    |
 50 | / typewit::type_fn!{

@@ -2,7 +2,7 @@ error[E0271]: type mismatch resolving `<NonInjective as RevTypeFn<u8>>::Arg == T
   --> tests/misc_tests/type_fn_ui_tests/rev_typefn_impl_noninjective-err.rs:8:67
    |
 5  | impl<T> TypeFn<T> for NonInjective {
-   |      - this type parameter
+   |      - expected this type parameter
 ...
 8  |     const TYPE_FN_ASSERTS: () = { let _: typewit::CallInjFn<Self, T>; };
    |                                                                   ^ type mismatch resolving `<NonInjective as RevTypeFn<u8>>::Arg == T`
