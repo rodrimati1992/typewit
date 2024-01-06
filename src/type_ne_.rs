@@ -160,13 +160,17 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     /// assert!(TypeNe::<u8, u8>::with_any().is_none());
     /// 
     /// ```
+    #[deprecated = concat!(
+        "fallout of `https://github.com/rust-lang/rust/issues/97156`,",
+        "`TypeId::of::<L>() != TypeId::of::<R>()` does not imply `L != R`"
+    )]
     pub fn with_any() -> Option<Self>
     where
         L: Sized + Any,
         R: Sized + Any,
     {
         if TypeId::of::<L>() != TypeId::of::<R>() {
-            // SAFETY: the two TypeIds compare unequal, so L != R
+            // SAFETY: unsound for the deprecated reason
             unsafe { Some(TypeNe::new_unchecked()) }
         } else {
             None
