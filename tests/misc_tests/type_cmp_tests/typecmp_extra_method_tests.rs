@@ -1,6 +1,7 @@
 use typewit::{
     type_fn::GRef,
-    TypeCmp,
+    TypeCmp, TypeEq,
+    type_ne,
 };
 
 use crate::misc_tests::test_utils::assert_type;
@@ -29,11 +30,11 @@ fn test_map() {
     }
 
     {
-        let x = constness(TypeCmp::<u8, u8>::with_any()).map(GRef::NEW);
+        let x = constness(TypeCmp::<u8, u8>::Eq(TypeEq::NEW)).map(GRef::NEW);
         assert_type::<_, TypeCmp<&u8, &u8>>(x);
     }
     {
-        let x = constness(TypeCmp::<u8, i8>::with_any()).map(GRef::NEW);
+        let x = constness(TypeCmp::Ne(type_ne!(u8, i8))).map(GRef::NEW);
         assert_type::<_, TypeCmp<&u8, &i8>>(x);
     }
 }
@@ -46,11 +47,11 @@ fn test_project() {
     }
 
     {
-        let x = constness(TypeCmp::<u8, u8>::with_any()).project::<FooFn>();
+        let x = constness(TypeCmp::<u8, u8>::Eq(TypeEq::NEW)).project::<FooFn>();
         assert_type::<_, TypeCmp<Foo<u8>, Foo<u8>>>(x);
     }
     {
-        let x = constness(TypeCmp::<u8, i8>::with_any()).project::<FooFn>();
+        let x = constness(TypeCmp::Ne(type_ne!(u8, i8))).project::<FooFn>();
         assert_type::<_, TypeCmp<Foo<u8>, Foo<i8>>>(x);
     }
 }
@@ -65,11 +66,11 @@ fn test_unmap() {
     }
 
     {
-        let x = constness(TypeCmp::<Bar<u8>, Bar<u8>>::with_any()).unmap(BarFn);
+        let x = constness(TypeCmp::<Bar<u8>, Bar<u8>>::Eq(TypeEq::NEW)).unmap(BarFn);
         assert_type::<_, TypeCmp<u8, u8>>(x);
     }
     {
-        let x = constness(TypeCmp::<Bar<u8>, Bar<i8>>::with_any()).unmap(BarFn);
+        let x = constness(TypeCmp::Ne(type_ne!(Bar<u8>, Bar<i8>))).unmap(BarFn);
         assert_type::<_, TypeCmp<u8, i8>>(x);
     }
 }
@@ -84,11 +85,11 @@ fn test_unproject() {
     }
 
     {
-        let x = constness(TypeCmp::<&u8, &u8>::with_any()).unproject::<GRef<'_>>();
+        let x = constness(TypeCmp::<&u8, &u8>::Eq(TypeEq::NEW)).unproject::<GRef<'_>>();
         assert_type::<_, TypeCmp<u8, u8>>(x);
     }
     {
-        let x = constness(TypeCmp::<&u8, &i8>::with_any()).unproject::<GRef<'_>>();
+        let x = constness(TypeCmp::Ne(type_ne!(<'a> &'a u8, &'a i8))).unproject::<GRef<'_>>();
         assert_type::<_, TypeCmp<u8, i8>>(x);
     }
 }
@@ -101,11 +102,11 @@ fn test_in_ref() {
     }
 
     {
-        let x = constness(TypeCmp::<u8, u8>::with_any()).in_ref();
+        let x = constness(TypeCmp::<u8, u8>::Eq(TypeEq::NEW)).in_ref();
         assert_type::<_, TypeCmp<&u8, &u8>>(x);
     }
     {
-        let x = constness(TypeCmp::<u8, i8>::with_any()).in_ref();
+        let x = constness(TypeCmp::Ne(type_ne!(u8, i8))).in_ref();
         assert_type::<_, TypeCmp<&u8, &i8>>(x);
     }
 }
@@ -119,11 +120,11 @@ fn test_in_mut() {
     }
 
     {
-        let x = TypeCmp::<u8, u8>::with_any().in_mut();
+        let x = TypeCmp::<u8, u8>::Eq(TypeEq::NEW).in_mut();
         assert_type::<_, TypeCmp<&mut u8, &mut u8>>(x);
     }
     {
-        let x = TypeCmp::<u8, i8>::with_any().in_mut();
+        let x = TypeCmp::Ne(type_ne!(u8, i8)).in_mut();
         assert_type::<_, TypeCmp<&mut u8, &mut i8>>(x);
     }
 }
@@ -137,11 +138,11 @@ fn test_in_box() {
     }
 
     {
-        let x = constness(TypeCmp::<u8, u8>::with_any()).in_box();
+        let x = constness(TypeCmp::<u8, u8>::Eq(TypeEq::NEW)).in_box();
         assert_type::<_, TypeCmp<Box<u8>, Box<u8>>>(x);
     }
     {
-        let x = constness(TypeCmp::<u8, i8>::with_any()).in_box();
+        let x = constness(TypeCmp::Ne(type_ne!(u8, i8))).in_box();
         assert_type::<_, TypeCmp<Box<u8>, Box<i8>>>(x);
     }
 }

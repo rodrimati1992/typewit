@@ -280,10 +280,11 @@ impl<L, R> TypeCmp<L, R> {
     /// use typewit::{
     ///     const_marker::Usize,
     ///     TypeCmp, TypeEq, TypeNe,
+    ///     type_ne,
     /// };
     /// 
-    /// let cmp_eq_ty: TypeCmp<i32, i32> = TypeCmp::with_any();
-    /// let cmp_ne_ty: TypeCmp<i64, u64> = TypeCmp::with_any();
+    /// let cmp_eq_ty: TypeCmp<i32, i32> = TypeCmp::Eq(TypeEq::NEW);
+    /// let cmp_ne_ty: TypeCmp<i64, u64> = TypeCmp::Ne(type_ne!(i64, u64));
     /// 
     /// let eq_len: TypeEq<Usize<0>, Usize<0>> = TypeEq::NEW;
     /// let ne_len: TypeNe<Usize<1>, Usize<2>> = Usize.equals(Usize).unwrap_ne();

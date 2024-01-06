@@ -297,10 +297,14 @@ declare_zip_items!{
     /// This example shows all permutations of argument and return types.
     ///
     /// ```rust
-    /// use typewit::{TypeCmp, TypeEq, TypeNe};
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
     /// use typewit::methods::zip2;
     ///
-    /// with::<u8, u8, bool, u16, u32>(TypeEq::NEW, TypeNe::with_any().unwrap(), TypeCmp::with_any());
+    /// with::<u8, u8, bool, u16, u32>(
+    ///     TypeEq::NEW, 
+    ///     type_ne!(u8, bool),
+    ///     TypeCmp::Ne(type_ne!(u16, u32)),
+    /// );
     ///
     /// const fn with<A, B, C, D, E>(eq: TypeEq<A, B>, ne: TypeNe<B, C>, cmp: TypeCmp<D, E>) {
     ///     let _: TypeEq<(A, B), (B, A)> = zip2(eq, eq.flip());
@@ -346,10 +350,14 @@ declare_zip_items!{
     /// This example shows basic usage.
     /// 
     /// ```rust
-    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_eq};
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_eq, type_ne};
     /// use typewit::methods::zip3;
     ///
-    /// with::<u8, u8, bool, u16, u32>(TypeEq::NEW, TypeNe::with_any().unwrap(), TypeCmp::with_any());
+    /// with::<u8, u8, bool, u16, u32>(
+    ///     TypeEq::NEW,
+    ///     type_ne!(u8, bool),
+    ///     TypeCmp::Ne(type_ne!(u16, u32)),
+    /// );
     ///
     /// const fn with<A, B, C, D, E>(eq: TypeEq<A, B>, ne: TypeNe<B, C>, cmp: TypeCmp<D, E>) {
     ///     let _: TypeEq<(A, B, i64), (B, A, i64)> = zip3(eq, eq.flip(), type_eq::<i64>());
@@ -391,10 +399,14 @@ declare_zip_items!{
     /// This example shows basic usage.
     /// 
     /// ```rust
-    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_eq};
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_eq, type_ne};
     /// use typewit::methods::zip4;
     ///
-    /// with::<u8, u8, bool, u16, u32>(TypeEq::NEW, TypeNe::with_any().unwrap(), TypeCmp::with_any());
+    /// with::<u8, u8, bool, u16, u32>(
+    ///     TypeEq::NEW,
+    ///     type_ne!(u8, bool),
+    ///     TypeCmp::Ne(type_ne!(u16, u32)),
+    /// );
     ///
     /// const fn with<A, B, C, D, E>(eq: TypeEq<A, B>, ne: TypeNe<B, C>, cmp: TypeCmp<D, E>) {
     ///     let _: TypeEq<(A, u64, B, i64), (B, u64, A, i64)> = 
@@ -458,11 +470,12 @@ mod with_const_marker {
     ///     methods::in_array,
     ///     const_marker::Usize,
     ///     TypeCmp, TypeEq, TypeNe,
+    ///     type_ne,
     /// };
     ///
     /// let eq_ty: TypeEq<i16, i16> = TypeEq::NEW;
-    /// let ne_ty: TypeNe<i16, u16> = TypeNe::with_any().unwrap();
-    /// let cmp_ty: TypeCmp<i16, u16> = TypeCmp::with_any();
+    /// let ne_ty: TypeNe<i16, u16> = type_ne!(i16, u16);
+    /// let cmp_ty: TypeCmp<i16, u16> = TypeCmp::Ne(type_ne!(i16, u16));
     /// 
     /// let eq_len: TypeEq<Usize<0>, Usize<0>> = TypeEq::NEW;
     /// let ne_len: TypeNe<Usize<1>, Usize<2>> = Usize.equals(Usize).unwrap_ne();

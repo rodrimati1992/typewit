@@ -1,16 +1,12 @@
-use typewit::{TypeCmp, TypeEq, TypeNe};
+use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
 
 use crate::misc_tests::test_utils::{assert_type, assert_type_ne};
 
 mod typene_extra_method_tests;
 
 
-#[track_caller]
-fn typene<L: 'static, R: 'static>() -> TypeNe<L, R> {
-    TypeNe::with_any().unwrap()
-}
 
-
+#[allow(deprecated)]
 #[test]
 fn with_any_test() {
     assert!(TypeNe::<u32, u32>::with_any().is_none());
@@ -25,7 +21,7 @@ fn flip_method() {
         assert_type_ne(te.flip(), te);
         let _ = |te: TypeNe<u8, u16>| -> TypeNe<u16, u8> { te.flip() };
     }
-    flipper(typene::<u8, u16>());
+    flipper(type_ne!(u8, u16));
 }
 
 #[test]
@@ -34,7 +30,7 @@ fn join_left_method() {
         let _: TypeNe<Q, B> = tea.join_left(teb);
         assert_type::<_, TypeNe<Q, B>>(tea.join_left(teb));
     }
-    joiner(typene::<u8, u16>(), TypeEq::NEW);
+    joiner(type_ne!(u8, u16), TypeEq::NEW);
 }
 
 #[test]
@@ -43,7 +39,7 @@ fn join_right_method() {
         let _: TypeNe<A, Q> = tea.join_right(teb);
         assert_type::<_, TypeNe<A, Q>>(tea.join_right(teb));
     }
-    joiner(typene::<u8, u16>(), TypeEq::NEW);
+    joiner(type_ne!(u8, u16), TypeEq::NEW);
 }
 
 
@@ -58,7 +54,7 @@ fn zip_test() {
             left.zip(right)
         }
 
-        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>());
+        let _ = do_zip(type_ne!(u16, u8), type_ne!(u16, &'static str));
     }
 
     {
@@ -69,7 +65,7 @@ fn zip_test() {
             left.zip(right)
         }
 
-        let _ = do_zip(typene::<u16, _>(), TypeEq::NEW);        
+        let _ = do_zip(type_ne!(u16, u8), TypeEq::NEW);        
     }
 
     {
@@ -80,8 +76,8 @@ fn zip_test() {
             left.zip(right)
         }
 
-        let _ = do_zip(typene::<u16, _>(), TypeCmp::Ne(typene::<u16, _>()));
-        let _ = do_zip(typene::<u16, _>(), TypeCmp::Eq(TypeEq::NEW));
+        let _ = do_zip(type_ne!(u16, u8), TypeCmp::Ne(type_ne!(u16, &'static str)));
+        let _ = do_zip(type_ne!(u16, u8), TypeCmp::Eq(TypeEq::NEW));
     }
 }
 
@@ -97,7 +93,7 @@ fn zip3_test() {
             a.zip3(b, c)
         }
 
-        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), typene::<u16, _>());
+        let _ = do_zip(type_ne!(u16, u8), type_ne!(u16, &'static str), type_ne!(u16, Vec<u8>));
     }
 
     {
@@ -109,7 +105,7 @@ fn zip3_test() {
             a.zip3(b, c)
         }
 
-        let _ = do_zip(typene::<u16, _>(), TypeEq::NEW, typene::<u16, _>());
+        let _ = do_zip(type_ne!(u16, u8), TypeEq::NEW, type_ne!(u16, Vec<u8>));
     }
 
     {
@@ -121,7 +117,7 @@ fn zip3_test() {
             a.zip3(b, c)
         }
 
-        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), TypeEq::NEW);
+        let _ = do_zip(type_ne!(u16, u8), type_ne!(u16, &'static str), TypeEq::NEW);
     }
 
     {
@@ -133,8 +129,16 @@ fn zip3_test() {
             a.zip3(b, c)
         }
 
-        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), TypeCmp::Ne(typene::<u16, _>()));
-        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), TypeCmp::Eq(TypeEq::NEW));
+        let _ = do_zip(
+            type_ne!(u16, u8),
+            type_ne!(u16, &'static str),
+            TypeCmp::Ne(type_ne!(u16, Vec<u8>)),
+        );
+        let _ = do_zip(
+            type_ne!(u16, u8),
+            type_ne!(u16, &'static str),
+            TypeCmp::Eq(TypeEq::NEW),
+        );
     }
 }
 
@@ -151,7 +155,12 @@ fn zip4_test() {
             a.zip4(b, c, d)
         }
 
-        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), typene::<u16, _>(), typene::<u16, _>());
+        let _ = do_zip(
+            type_ne!(u16, u8),
+            type_ne!(u16, &'static str),
+            type_ne!(u16, Vec<u8>),
+            type_ne!(u16, [u8; 2]),
+        );
     }
 
     {
@@ -164,7 +173,12 @@ fn zip4_test() {
             a.zip4(b, c, d)
         }
 
-        let _ = do_zip(typene::<u16, _>(), TypeEq::NEW, typene::<u16, _>(), typene::<u16, _>());
+        let _ = do_zip(
+            type_ne!(u16, u8), 
+            TypeEq::NEW, 
+            type_ne!(u16, Vec<u8>), 
+            type_ne!(u16, [u8; 2]),
+        );
     }
 
     {
@@ -178,17 +192,17 @@ fn zip4_test() {
         }
 
         let _ = do_zip(
-            typene::<u16, _>(),
+            type_ne!(u16, u8),
             TypeCmp::Eq(TypeEq::NEW),
-            typene::<u16, _>(),
-            typene::<u16, _>(),
+            type_ne!(u16, Vec<u8>),
+            type_ne!(u16, [u8; 2]),
         );
 
         let _ = do_zip(
-            typene::<u16, _>(),
-            TypeCmp::Ne(typene::<u16, _>()),
-            typene::<u16, _>(),
-            typene::<u16, _>(),
+            type_ne!(u16, u8),
+            TypeCmp::Ne(type_ne!(u16, &'static str)),
+            type_ne!(u16, Vec<u8>),
+            type_ne!(u16, [u8; 2]),
         );
     }
 
@@ -202,7 +216,12 @@ fn zip4_test() {
             a.zip4(b, c, d)
         }
 
-        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), TypeEq::NEW, typene::<u16, _>());
+        let _ = do_zip(
+            type_ne!(u16, u8),
+            type_ne!(u16, &'static str),
+            TypeEq::NEW, 
+            type_ne!(u16, [u8; 2]),
+        );
     }
 
     {
@@ -215,7 +234,12 @@ fn zip4_test() {
             a.zip4(b, c, d)
         }
 
-        let _ = do_zip(typene::<u16, _>(), typene::<u16, _>(), typene::<u16, _>(), TypeEq::NEW);
+        let _ = do_zip(
+            type_ne!(u16, u8),
+            type_ne!(u16, &'static str),
+            type_ne!(u16, Vec<u8>),
+            TypeEq::NEW,
+        );
     }
 }
 

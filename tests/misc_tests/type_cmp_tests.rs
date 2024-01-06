@@ -1,5 +1,5 @@
 
-use typewit::{TypeCmp, TypeEq, TypeNe};
+use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
 
 use crate::misc_tests::test_utils::{assertm, assert_type};
 
@@ -7,6 +7,7 @@ use crate::misc_tests::test_utils::{assertm, assert_type};
 mod typecmp_extra_method_tests;
 
 
+#[allow(deprecated)]
 #[test]
 fn test_with_any() {
     {
@@ -23,7 +24,7 @@ fn test_with_any() {
 
 #[test]
 fn test_flip() {
-    let x = TypeCmp::<u8, i8>::with_any().flip();
+    let x = TypeCmp::Ne(type_ne!(u8, i8)).flip();
     assert_type::<_, TypeCmp<i8, u8>>(x);
 
     const fn _const_callable<T: ?Sized, U: ?Sized>(cmp: TypeCmp<T, U>) {
@@ -41,11 +42,11 @@ fn test_join_left() {
     }
 
     {
-        let x = const_callable::<u8, u8, u8>(TypeEq::NEW, TypeCmp::with_any());
+        let x = const_callable::<u8, u8, u8>(TypeEq::NEW, TypeCmp::Eq(TypeEq::NEW));
         assert_type::<_, TypeCmp<u8, u8>>(x);
     }
     {
-        let x = const_callable::<u8, u8, i8>(TypeEq::NEW, TypeCmp::with_any());
+        let x = const_callable::<u8, u8, i8>(TypeEq::NEW, TypeCmp::Ne(type_ne!(u8, i8)));
         assert_type::<_, TypeCmp<u8, i8>>(x);
     }
 }
@@ -60,11 +61,11 @@ fn test_join_right() {
     }
 
     {
-        let x = const_callable::<u8, u8, u8>(TypeCmp::with_any(), TypeEq::NEW);
+        let x = const_callable::<u8, u8, u8>(TypeCmp::Eq(TypeEq::NEW), TypeEq::NEW);
         assert_type::<_, TypeCmp<u8, u8>>(x);
     }
     {
-        let x = const_callable::<u8, i8, i8>(TypeCmp::with_any(), TypeEq::NEW);
+        let x = const_callable::<u8, i8, i8>(TypeCmp::Ne(type_ne!(u8, i8)), TypeEq::NEW);
         assert_type::<_, TypeCmp<u8, i8>>(x);
     }
 }
@@ -77,12 +78,12 @@ fn test_eq() {
     }
 
     {
-        let x = const_callable(TypeCmp::<u8, i8>::with_any()).eq();
+        let x = const_callable(TypeCmp::Ne(type_ne!(u8, i8))).eq();
         assert_type::<_, Option<TypeEq<u8, i8>>>(x);
         assert!(matches!(x, None{}));
     }
     {
-        let x = const_callable(TypeCmp::<u8, u8>::with_any()).eq();
+        let x = const_callable(TypeCmp::<u8, u8>::Eq(TypeEq::NEW)).eq();
         assert_type::<_, Option<TypeEq<u8, u8>>>(x);
         assert!(matches!(x, Some(_)));
     }
@@ -96,12 +97,12 @@ fn test_ne() {
     }
 
     {
-        let x = const_callable(TypeCmp::<u8, i8>::with_any()).ne();
+        let x = const_callable(TypeCmp::Ne(type_ne!(u8, i8))).ne();
         assert_type::<_, Option<TypeNe<u8, i8>>>(x);
         assert!(matches!(x, Some(_)));
     }
     {
-        let x = const_callable(TypeCmp::<u8, u8>::with_any()).ne();
+        let x = const_callable(TypeCmp::<u8, u8>::Eq(TypeEq::NEW)).ne();
         assert_type::<_, Option<TypeNe<u8, u8>>>(x);
         assert!(matches!(x, None{}));
     }
@@ -114,8 +115,8 @@ fn test_is_eq() {
         cmp
     }
 
-    assert!( const_callable(TypeCmp::<u8, u8>::with_any()).is_eq());
-    assert!(!const_callable(TypeCmp::<u8, i8>::with_any()).is_eq());
+    assert!( const_callable(TypeCmp::<u8, u8>::Eq(TypeEq::NEW)).is_eq());
+    assert!(!const_callable(TypeCmp::Ne(type_ne!(u8, i8))).is_eq());
 }
 
 #[test]
@@ -125,8 +126,8 @@ fn test_is_ne() {
         cmp
     }
 
-    assert!(!const_callable(TypeCmp::<u8, u8>::with_any()).is_ne());
-    assert!( const_callable(TypeCmp::<u8, i8>::with_any()).is_ne());
+    assert!(!const_callable(TypeCmp::<u8, u8>::Eq(TypeEq::NEW)).is_ne());
+    assert!( const_callable(TypeCmp::Ne(type_ne!(u8, i8))).is_ne());
 }
 
 #[test]
@@ -136,14 +137,14 @@ fn test_unwrap_eq() {
         cmp
     }
 
-    let x = const_callable(TypeCmp::<u8, u8>::with_any()).unwrap_eq();
+    let x = const_callable(TypeCmp::<u8, u8>::Eq(TypeEq::NEW)).unwrap_eq();
     assert_type::<_, TypeEq<u8, u8>>(x);
 }
 
 #[test]
 #[should_panic]
 fn test_unwrap_eq_panicking() {
-    TypeCmp::<u8, i8>::with_any().unwrap_eq();
+    TypeCmp::Ne(type_ne!(u8, i8)).unwrap_eq();
 }
 
 
@@ -154,14 +155,14 @@ fn test_unwrap_ne() {
         cmp
     }
 
-    let x = const_callable(TypeCmp::<u8, i8>::with_any()).unwrap_ne();
+    let x = const_callable(TypeCmp::Ne(type_ne!(u8, i8))).unwrap_ne();
     assert_type::<_, TypeNe<u8, i8>>(x);
 }
 
 #[test]
 #[should_panic]
 fn test_unwrap_ne_panicking() {
-    TypeCmp::<u8, u8>::with_any().unwrap_ne();
+    TypeCmp::<u8, u8>::Eq(TypeEq::NEW).unwrap_ne();
 }
 
 #[cfg(feature = "rust_1_61")]
@@ -193,9 +194,9 @@ fn test_zip_method() {
 
     constness::<u8, u8, bool, u32, u32, u64>(
         TypeEq::NEW,
-        TypeNe::with_any().unwrap(),
-        TypeCmp::with_any(),
-        TypeCmp::with_any(),
+        type_ne!(u8, bool),
+        TypeCmp::Eq(TypeEq::NEW),
+        TypeCmp::Ne(type_ne!(u32, u64)),
     );
 
 }
@@ -242,9 +243,9 @@ fn test_zip3_method() {
     constness::<u8, u8, u8, bool, u32, u32, u64>(
         TypeEq::NEW,
         TypeEq::NEW,
-        TypeNe::with_any().unwrap(),
-        TypeCmp::with_any(),
-        TypeCmp::with_any(),
+        type_ne!(u8, bool),
+        TypeCmp::Eq(TypeEq::NEW),
+        TypeCmp::Ne(type_ne!(u32, u64)),
     );
 }
 
@@ -281,9 +282,9 @@ fn test_zip4_method() {
 
     with::<u8, u8, bool, u16, u16, u32, u64>(
         TypeEq::NEW, 
-        TypeNe::with_any().unwrap(), 
-        TypeCmp::with_any(),
-        TypeCmp::with_any(),
+        type_ne!(u8, bool), 
+        TypeCmp::Eq(TypeEq::NEW),
+        TypeCmp::Ne(type_ne!(u32, u64)),
     );
 }
 
@@ -295,8 +296,8 @@ fn test_in_array_method() {
         TypeCmp, TypeEq, TypeNe,
     };
     
-    let cmp_eq_ty: TypeCmp<i32, i32> = TypeCmp::with_any();
-    let cmp_ne_ty: TypeCmp<i64, u64> = TypeCmp::with_any();
+    let cmp_eq_ty: TypeCmp<i32, i32> = TypeCmp::Eq(TypeEq::NEW);
+    let cmp_ne_ty: TypeCmp<i64, u64> = TypeCmp::Ne(type_ne!(i64, u64));
     
     let eq_len: TypeEq<Usize<0>, Usize<0>> = TypeEq::NEW;
     let ne_len: TypeNe<Usize<1>, Usize<2>> = Usize.equals(Usize).unwrap_ne();

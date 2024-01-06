@@ -101,11 +101,16 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// let ne = TypeCmp::<u8, i8>::with_any();
     /// assert!(matches!(ne, TypeCmp::Ne(_)));
     /// ```
+    #[deprecated = concat!(
+        "fallout of `https://github.com/rust-lang/rust/issues/97156`,",
+        "`TypeId::of::<L>() != TypeId::of::<R>()` does not imply `L != R`"
+    )]
     pub fn with_any() -> Self
     where
         L: Sized + Any,
         R: Sized + Any,
     {
+        #[allow(deprecated)]
         if let Some(equal) = TypeEq::with_any() {
             TypeCmp::Eq(equal)
         } else if let Some(unequal) = TypeNe::with_any() {
@@ -179,12 +184,12 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// # Example
     /// 
     /// ```rust
-    /// use typewit::{TypeCmp, TypeEq, TypeNe};
+    /// use typewit::{TypeCmp, TypeEq, type_ne};
     /// 
-    /// let eq: TypeCmp<u8, u8> = TypeCmp::with_any();
+    /// let eq: TypeCmp<u8, u8> = TypeCmp::Eq(TypeEq::NEW);
     /// assert!(matches!(eq.eq(), Some(TypeEq::<u8, u8>{..})));
     /// 
-    /// let ne = TypeCmp::<u8, i8>::with_any();
+    /// let ne = TypeCmp::Ne(type_ne!(u8, i8));
     /// assert!(matches!(ne.eq(), None::<TypeEq<u8, i8>>));
     /// ```
     pub const fn eq(self) -> Option<TypeEq<L, R>> {
@@ -199,12 +204,12 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// # Example
     /// 
     /// ```rust
-    /// use typewit::{TypeCmp, TypeEq, TypeNe};
+    /// use typewit::{TypeCmp, TypeEq, TypeNe, type_ne};
     /// 
-    /// let eq: TypeCmp<u8, u8> = TypeCmp::with_any();
+    /// let eq: TypeCmp<u8, u8> = TypeCmp::Eq(TypeEq::NEW);
     /// assert!(matches!(eq.ne(), None::<TypeNe<u8, u8>>));
     /// 
-    /// let ne = TypeCmp::<u8, i8>::with_any();
+    /// let ne = TypeCmp::Ne(type_ne!(u8, i8));
     /// assert!(matches!(ne.ne(), Some(TypeNe::<u8, i8>{..})));
     /// ```
     pub const fn ne(self) -> Option<TypeNe<L, R>> {
@@ -259,7 +264,7 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// ```rust
     /// use typewit::{TypeCmp, TypeEq};
     /// 
-    /// let eq: TypeCmp<u8, u8> = TypeCmp::with_any();
+    /// let eq: TypeCmp<u8, u8> = TypeCmp::Eq(TypeEq::NEW);
     /// assert!(matches!(eq.unwrap_eq(), TypeEq::<u8, u8>{..}));
     /// ```
     #[track_caller]
@@ -279,9 +284,9 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// # Example
     /// 
     /// ```rust
-    /// use typewit::{TypeCmp, TypeNe};
+    /// use typewit::{TypeCmp, TypeNe, type_ne};
     /// 
-    /// let ne = TypeCmp::<u8, i8>::with_any();
+    /// let ne = TypeCmp::Ne(type_ne!(u8, i8));
     /// assert!(matches!(ne.unwrap_ne(), TypeNe::<u8, i8>{..}));
     /// ```
     #[track_caller]

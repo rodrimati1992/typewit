@@ -3,7 +3,7 @@ use typewit::{
     TypeCmp,
     TypeEq,
     TypeNe,
-    type_eq,
+    type_eq, type_ne,
 };
 
 use crate::misc_tests::test_utils::assertm;
@@ -50,9 +50,9 @@ fn zip2_test() {
 
     constness::<u8, u8, bool, u32, u32, u64>(
         TypeEq::NEW,
-        TypeNe::with_any().unwrap(),
-        TypeCmp::with_any(),
-        TypeCmp::with_any(),
+        type_ne!(u8, bool),
+        TypeCmp::Eq(TypeEq::NEW),
+        TypeCmp::Ne(type_ne!(u32, u64)),
     );
 }
 
@@ -101,9 +101,9 @@ fn zip3_test() {
     constness::<u8, u8, u8, bool, u32, u32, u64>(
         TypeEq::NEW,
         TypeEq::NEW,
-        TypeNe::with_any().unwrap(),
-        TypeCmp::with_any(),
-        TypeCmp::with_any(),
+        type_ne!(u8, bool),
+        TypeCmp::Eq(TypeEq::NEW),
+        TypeCmp::Ne(type_ne!(u32, u64)),
     );
 }
 
@@ -117,7 +117,11 @@ fn test_zip4() {
         let _: TypeCmp<(D, A, B, A), (E, B, A, B)> = zip4(cmp, eq, eq.flip(), eq);
     }
 
-    with::<u8, u8, bool, u16, u32>(TypeEq::NEW, TypeNe::with_any().unwrap(), TypeCmp::with_any());
+    with::<u8, u8, bool, u16, u32>(
+        TypeEq::NEW,
+        type_ne!(u8, bool),
+        TypeCmp::Ne(type_ne!(u16, u32)),
+    );
 }
 
 #[test]
@@ -128,8 +132,8 @@ fn test_in_array() {
     };
 
     let eq_ty: TypeEq<i16, i16> = TypeEq::NEW;
-    let ne_ty: TypeNe<i16, u16> = TypeNe::with_any().unwrap();
-    let cmp_ty: TypeCmp<i16, u16> = TypeCmp::with_any();
+    let ne_ty: TypeNe<i16, u16> = type_ne!(i16, u16);
+    let cmp_ty: TypeCmp<i16, u16> = TypeCmp::Ne(type_ne!(i16, u16));
     
     let eq_len: TypeEq<Usize<0>, Usize<0>> = TypeEq::NEW;
     let ne_len: TypeNe<Usize<1>, Usize<2>> = Usize.equals(Usize).unwrap_ne();

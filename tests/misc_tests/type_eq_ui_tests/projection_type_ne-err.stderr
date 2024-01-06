@@ -22,7 +22,7 @@ error[E0308]: mismatched types
   --> tests/misc_tests/type_eq_ui_tests/projection_type_ne-err.rs:19:5
    |
 18 | fn joiner_right<A, B, C>(first: TypeNe<A, B>, second: TypeEq<B, C>) -> TypeNe<(), ()> {
-   |                 - this type parameter                                  -------------- expected `TypeNe<(), ()>` because of return type
+   |                 - found this type parameter                            -------------- expected `TypeNe<(), ()>` because of return type
 19 |     first.join_right(second)
    |     ^^^^^^^^^^^^^^^^^^^^^^^^ expected `TypeNe<(), ()>`, found `TypeNe<A, C>`
    |
@@ -33,7 +33,7 @@ error[E0308]: mismatched types
   --> tests/misc_tests/type_eq_ui_tests/projection_type_ne-err.rs:23:5
    |
 22 | fn joiner_left<A, B, C>(first: TypeNe<A, B>, second: TypeEq<C, A>) -> TypeNe<(), ()> {
-   |                      - this type parameter                            -------------- expected `TypeNe<(), ()>` because of return type
+   |                      - found this type parameter                      -------------- expected `TypeNe<(), ()>` because of return type
 23 |     first.join_left(second)
    |     ^^^^^^^^^^^^^^^^^^^^^^^ expected `TypeNe<(), ()>`, found `TypeNe<C, B>`
    |
@@ -66,7 +66,7 @@ error[E0308]: mismatched types
   --> tests/misc_tests/type_eq_ui_tests/projection_type_ne-err.rs:33:5
    |
 32 | fn unmap_to_different_type<'a, L, R>(te: TypeNe<[L; 1], [R; 1]>) -> TypeNe<u8, u16> {
-   |                                - this type parameter                --------------- expected `TypeNe<u8, u16>` because of return type
+   |                                - found this type parameter          --------------- expected `TypeNe<u8, u16>` because of return type
 33 |     te.unmap(Mapper)
    |     ^^^^^^^^^^^^^^^^ expected `TypeNe<u8, u16>`, found `TypeNe<L, R>`
    |
@@ -77,7 +77,7 @@ error[E0308]: mismatched types
   --> tests/misc_tests/type_eq_ui_tests/projection_type_ne-err.rs:36:5
    |
 35 | fn unproject_to_different_type<'a, L, R>(te: TypeNe<[L; 1], [R; 1]>) -> TypeNe<u8, u16> {
-   |                                    - this type parameter                --------------- expected `TypeNe<u8, u16>` because of return type
+   |                                    - found this type parameter          --------------- expected `TypeNe<u8, u16>` because of return type
 36 |     te.unproject::<Mapper>()
    |     ^^^^^^^^^^^^^^^^^^^^^^^^ expected `TypeNe<u8, u16>`, found `TypeNe<L, R>`
    |
