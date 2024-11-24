@@ -166,7 +166,7 @@ fn in_ref_test() {
 fn in_mut_test() {
     assert_type_eq(TypeEq::new::<u8>().in_mut(), TypeEq::new::<&mut u8>());
     assert_eq!(TypeEq::new::<u8>().in_mut().to_right(&mut 5u8), &mut 5u8);
-    #[cfg(feature = "mut_refs")]
+    #[cfg(feature = "rust_1_83")]
     {
         const fn in_mut<T>(te: TypeEq<T, u8>, x: &mut T) -> &mut u8 {
             te.in_mut().to_right(x)

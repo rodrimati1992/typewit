@@ -8,13 +8,11 @@ use crate::{
 
 
 
-// A `TypeNe` that's impossible to soundly make, 
-// because `()` is the same type as `()`,
-// while `TypeNe` requires its type arguments not to be the same type.
-type ImpTypeNe = TypeNe<(), ()>;
+// A `TypeEq` that's used as padding for the trailing type arguments of SomeTypeArgIsNe.
+type PadTyEq = TypeEq<(), ()>;
 
 // The first TypeNe in the 4 `BaseTypeWitness` type parameters
-pub(crate) enum SomeTypeArgIsNe<A: BTW,  B: BTW, C: BTW = ImpTypeNe, D: BTW = ImpTypeNe> {
+pub(crate) enum SomeTypeArgIsNe<A: BTW,  B: BTW, C: BTW = PadTyEq, D: BTW = PadTyEq> {
     A(TypeEq<A, TypeNe<A::L, A::R>>),
     B(TypeEq<B, TypeNe<B::L, B::R>>),
     C(TypeEq<C, TypeNe<C::L, C::R>>),
@@ -41,21 +39,21 @@ impl<A: BTW, B: BTW, C: BTW, D: BTW> SomeTypeArgIsNe<A, B, C, D> {
     }
 }
 
-impl<A: BTW, B: BTW> SomeTypeArgIsNe<A, B, ImpTypeNe, ImpTypeNe> 
+impl<A: BTW, B: BTW> SomeTypeArgIsNe<A, B, PadTyEq, PadTyEq> 
 where
     A::L: Sized,
     A::R: Sized,
 {
     #[inline(always)]
     pub(crate) const fn zip2(self, _: A, _: B) -> TypeNe<(A::L, B::L), (A::R, B::R)> {
-        // SAFETY: either `A` or `B` is a TypeNe (ImpTypeNe can't be constructed),
+        // SAFETY: either `A` or `B` is a TypeNe (PadTyEq isn't a TypeNe),
         //         therefore: `(A::L, B::L) != (A::R, B::R)`.
         //         (the function parameters are needed for soundness,
         //          since `TypeNe` guarantees type inequality at the value level)
         unsafe { TypeNe::new_unchecked() }
     }
 }
-impl<A: BTW, B: BTW, C: BTW> SomeTypeArgIsNe<A, B, C, ImpTypeNe> 
+impl<A: BTW, B: BTW, C: BTW> SomeTypeArgIsNe<A, B, C, PadTyEq> 
 where
     A::L: Sized,
     A::R: Sized,
@@ -69,7 +67,7 @@ where
         _: B,
         _: C,
     ) -> TypeNe<(A::L, B::L, C::L), (A::R, B::R, C::R)> {
-        // SAFETY: either `A`, `B`, or `C is a TypeNe (ImpTypeNe can't be constructed),
+        // SAFETY: either `A`, `B`, or `C is a TypeNe (PadTyEq isn't a TypeNe),
         //         therefore: `(A::L, B::L, C::L) != (A::R, B::R, C::R)`.
         //         (the function parameters are needed for soundness,
         //          since `TypeNe` guarantees type inequality at the value level)

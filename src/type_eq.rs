@@ -990,22 +990,20 @@ impl<L: ?Sized, R: ?Sized> TypeEq<L, R> {
     }
 
     crate::utils::conditionally_const!{
-        feature = "mut_refs";
+        feature = "rust_1_83";
 
         /// Converts a `TypeEq<L, R>` to `TypeEq<&mut L, &mut R>`
         /// 
         /// # Constness
         /// 
-        /// This requires either of the `"mut_refs"` or `"const_mut_refs"` 
-        /// crate features to be enabled to be a `const fn`.
+        /// This requires the `"rust_1_83"` feature to be a `const fn`.
         /// 
         /// # Example
         /// 
         /// Because this example calls `in_mut` inside a `const fn`,
-        /// it requires either of the `"mut_refs"` or `"nightly_mut_refs"` crate features.
-        #[cfg_attr(not(feature = "mut_refs"), doc = "```ignore")]
-        #[cfg_attr(feature = "mut_refs", doc = "```rust")]
-        #[cfg_attr(feature = "nightly_mut_refs", doc = "# #![feature(const_mut_refs)]")]
+        /// it requires the `"rust_1_83"` crate feature.
+        #[cfg_attr(not(feature = "rust_1_83"), doc = "```ignore")]
+        #[cfg_attr(feature = "rust_1_83", doc = "```rust")]
         /// 
         /// use typewit::{TypeEq, type_eq};
         /// 

@@ -393,6 +393,9 @@
 //! 
 //! - `"rust_stable"`: enables all the `"rust_1_*"` features.
 //! 
+//! - `"rust_1_83"`: turns functions that take mutable references into `const fn`s,
+//! and enables the `"rust_1_65"` feature.
+//! 
 //! - `"rust_1_65"`: enables the [`type_constructors`] module,
 //! the [`methods`] module,
 //! and the `"rust_1_61"` feature.
@@ -413,18 +416,6 @@
 //! enables the `"rust_stable"` crate feature,
 //! and marker types in the [`const_marker`] module that have
 //! non-primitive `const` parameters.
-//! 
-//! - `"nightly_mut_refs"`:
-//! Enables the `"rust_stable"` and `"mut_refs"` crate features,
-//! and turns functions that use mutable references into `const fn`s.
-//! 
-//! ### Future-Rust features
-//! 
-//! These features currently require future compiler versions:
-//! 
-//! - `"mut_refs"`: turns functions that take mutable references into `const fn`s.
-//! note: as of October 2023, 
-//! this crate feature requires a stable compiler from the future.
 //! 
 //! # No-std support
 //! 
@@ -452,7 +443,6 @@
 //! [`MetaBaseTypeWit`]: crate::MetaBaseTypeWit
 //! [`BaseTypeWitness`]:  crate::BaseTypeWitness
 #![no_std]
-#![cfg_attr(feature = "nightly_mut_refs", feature(const_mut_refs))]
 #![cfg_attr(feature = "adt_const_marker", feature(adt_const_params))]
 #![cfg_attr(feature = "adt_const_marker", allow(incomplete_features))]
 #![cfg_attr(feature = "docsrs", feature(doc_cfg))]

@@ -180,14 +180,13 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     }
 
     crate::utils::conditionally_const!{
-        feature = "mut_refs";
+        feature = "rust_1_83";
 
         /// Converts a `TypeNe<L, R>` to `TypeNe<&mut L, &mut R>`
         /// 
         /// # Constness
         /// 
-        /// This requires either of the `"mut_refs"` or `"const_mut_refs"` 
-        /// crate features to be enabled to be a `const fn`.
+        /// This requires the `"rust_1_83"` feature to be a `const fn`.
         /// 
         /// # Example
         /// 
