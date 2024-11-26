@@ -171,6 +171,27 @@ pub type BoolWit<const B: bool> = BoolWitG<Bool<B>>;
 /// Use this over [`BoolWit`] if you want to write a [`HasTypeWitness`] bound
 /// and adding a `const B: bool` parameter would be impossible.
 /// 
+/// # Example
+/// 
+/// This basic example demonstrates where `BoolWitG` would be used instead of `BoolWit`.
+/// 
+/// ```rust
+/// use typewit::const_marker::{Bool, BoolWitG};
+/// use typewit::HasTypeWitness;
+/// 
+/// 
+/// trait Boolean: Sized + HasTypeWitness<BoolWitG<Self>> {
+///     type Not: Boolean<Not = Self>;
+/// }
+/// 
+/// impl Boolean for Bool<true> {
+///     type Not = Bool<false>;
+/// }
+/// 
+/// impl Boolean for Bool<false> {
+///     type Not = Bool<true>;
+/// }
+/// ```
 /// 
 /// [`HasTypeWitness`]: crate::HasTypeWitness
 pub enum BoolWitG<B> {
@@ -197,8 +218,8 @@ impl<const B: bool> Debug for BoolWitG<Bool<B>> {
     }
 }
 
-impl<const B: bool> TypeWitnessTypeArg for BoolWitG<Bool<B>> {
-    type Arg = Bool<B>;
+impl<B> TypeWitnessTypeArg for BoolWitG<B> {
+    type Arg = B;
 }
 
 impl<const B: bool> MakeTypeWitness for BoolWitG<Bool<B>> {
