@@ -17,7 +17,7 @@ use core::{
 /// 
 /// ### Custom array creation
 /// 
-/// (this example requires Rust 1.63.0, because of [`std::array::from_fn`]).
+/// (this example requires Rust 1.63.0, because of [`core::array::from_fn`]).
 /// 
 #[cfg_attr(not(feature = "rust_1_65"), doc = "```ignore")]
 #[cfg_attr(feature = "rust_1_65", doc = "```rust")]
