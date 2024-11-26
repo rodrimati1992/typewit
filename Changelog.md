@@ -4,7 +4,7 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 ### 1.10.1
 
-Fixed `TypeWitnessTypeArg` impl fo `BoolWitG`, it was overconstrained in a way that made `HasTypeWitness<BoolWitG<T>>` not work as a bound.
+Fixed `TypeWitnessTypeArg` impl for `BoolWitG`, it was overconstrained in a way that made `HasTypeWitness<BoolWitG<T>>` not work as a bound.
 
 ### 1.10.0
 
