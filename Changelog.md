@@ -10,6 +10,7 @@ Replaced `typewit::const_marker::BoolWit` enum with type alias to `BoolWitG``
 
 Added `Copy + Clone + Debug` impls to `BoolWit`
 
+Fixed `"adt_const_marker"` crate feature
 
 ### 1.9.0
 

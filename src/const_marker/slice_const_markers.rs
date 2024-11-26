@@ -16,6 +16,7 @@ super::declare_const_param_type! {
     /// 
     /// ```rust
     /// #![feature(adt_const_params)]
+    /// #![feature(unsized_const_params)]
     /// 
     /// use typewit::{const_marker::Str, MakeTypeWitness};
     /// 
