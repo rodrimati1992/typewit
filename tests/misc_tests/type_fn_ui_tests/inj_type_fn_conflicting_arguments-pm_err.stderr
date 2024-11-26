@@ -7,3 +7,24 @@ error[E0119]: conflicting implementations of trait `TypeFn<u8>` for type `Foo`
   |             ^ conflicting implementation for `Foo`
   |
   = note: this error originates in the macro `$crate::__impl_with_span` which comes from the expansion of the macro `typewit::inj_type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0283]: type annotations needed
+ --> tests/misc_tests/type_fn_ui_tests/./inj_type_fn_conflicting_arguments-err.rs
+  |
+  | / typewit::inj_type_fn!{
+  | |     struct Foo;
+  | |
+  | |     impl u8  => u16;
+  | |     impl<T> T => Vec<T>;
+  | | }
+  | |_^ cannot infer type
+  |
+note: multiple `impl`s satisfying `Foo: RevTypeFn<_>` found
+ --> tests/misc_tests/type_fn_ui_tests/./inj_type_fn_conflicting_arguments-err.rs
+  |
+  |     impl u8  => u16;
+  |                 ^^^
+  |     impl<T> T => Vec<T>;
+  |                  ^^^
+  = note: required for `Foo` to implement `InjTypeFn<u8>`
+  = note: this error originates in the macro `$crate::__tyfn_injtypefn_impl` which comes from the expansion of the macro `typewit::inj_type_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
