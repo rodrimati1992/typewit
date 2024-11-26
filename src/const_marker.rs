@@ -38,9 +38,10 @@ use crate::{
     TypeNe,
 };
 
-mod const_witnesses;
+mod boolwit;
 
-pub use const_witnesses::*;
+pub use boolwit::*;
+
 
 #[cfg(feature = "adt_const_marker")]
 mod slice_const_markers;

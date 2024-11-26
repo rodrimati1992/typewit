@@ -1,3 +1,5 @@
+use core::fmt::{self, Debug};
+
 use crate::{
     const_marker::Bool,
     TypeCmp,
@@ -6,8 +8,9 @@ use crate::{
 };
 
 
-
 /// Type Witness that [`Bool<B>`](Bool) is either `Bool<true>` or `Bool<false>`.
+/// 
+/// Use this over [`BoolWitG`] if you have a `const B: bool` parameter already.
 /// 
 /// # Example
 /// 
@@ -160,18 +163,45 @@ use crate::{
 /// ```
 /// 
 /// 
-pub enum BoolWit<const B: bool> {
+pub type BoolWit<const B: bool> = BoolWitG<Bool<B>>;
+
+
+/// Type witness that `B` is either [`Bool`]`<true>` or [`Bool`]`<false>`
+/// 
+/// Use this over [`BoolWit`] if you want to write a [`HasTypeWitness`] bound
+/// and adding a `const B: bool` parameter would be impossible.
+/// 
+/// 
+/// [`HasTypeWitness`]: crate::HasTypeWitness
+pub enum BoolWitG<B> {
     /// Witnesses that `B == true`
-    True(TypeEq<Bool<B>, Bool<true>>),
+    True(TypeEq<B, Bool<true>>),
     /// Witnesses that `B == false`
-    False(TypeEq<Bool<B>, Bool<false>>),
+    False(TypeEq<B, Bool<false>>),
 }
 
-impl<const B: bool> TypeWitnessTypeArg for BoolWit<B> {
+impl<const B: bool> Copy for  BoolWitG<Bool<B>> {}
+
+impl<const B: bool> Clone for  BoolWitG<Bool<B>> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<const B: bool> Debug for BoolWitG<Bool<B>> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(match self {
+            Self::True{..} => "True",
+            Self::False{..} => "False",
+        })
+    }
+}
+
+impl<const B: bool> TypeWitnessTypeArg for BoolWitG<Bool<B>> {
     type Arg = Bool<B>;
 }
 
-impl<const B: bool> MakeTypeWitness for BoolWit<B> {
+impl<const B: bool> MakeTypeWitness for BoolWitG<Bool<B>> {
     const MAKE: Self = {
         if let TypeCmp::Eq(te) = Bool.equals(Bool) {
             BoolWit::True(te)

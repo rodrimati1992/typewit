@@ -2,6 +2,15 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.10.0
+
+Added `typewit::const_marker::BoolWitG` enum
+
+Replaced `typewit::const_marker::BoolWit` enum with type alias to `BoolWitG``
+
+Added `Copy + Clone + Debug` impls to `BoolWit`
+
+
 ### 1.9.0
 
 Deprecated `{TypeCmp, TypeNe}::with_any` due to unsoundness: both constructors rely on `TypeId::of::<L>() != TypeId::of::<R>()` implying `L != R`, which is not true in the general case.
