@@ -6,6 +6,15 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 Added `"rust_1_83"` feature, which turns `typewit` functions that use `&mut` into const fns.
 
+Added these methods to `BoolWitG`: 
+- `is_true`
+- `is_false`
+- `to_true`
+- `to_false`
+- `unwrap_true`
+- `unwrap_false`
+
+Relaxed `Copy + Clone + Debug` impls of `BooleanWitG` to work for any `<B> BooleanWitG<B>`, instead of requirning `<const B: bool> BoolWitG<Bool<B>>`.
 
 
 ### 1.10.1

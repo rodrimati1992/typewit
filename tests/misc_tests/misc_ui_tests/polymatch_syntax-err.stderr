@@ -8,7 +8,7 @@ error: expected arguments to be `matched expression; match arms`
   |
   = note: this error originates in the macro `typewit::polymatch` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: no rules expected the token `500`
+error: no rules expected `500`
  --> tests/misc_tests/misc_ui_tests/polymatch_syntax-err.rs:7:9
   |
 6 |         200 | 300 => 400

@@ -39,6 +39,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `TypeEq<_, (dyn Debug + 'static)>`
               found struct `TypeEq<_, u8>`
+   = help: `u8` implements `Debug` so you could box the found value and coerce it to the trait object `Box<dyn Debug>`, you will have to change the expected type as well
 
 error[E0308]: mismatched types
   --> tests/misc_tests/type_eq_ui_tests/constructor_type_errors-err.rs:18:5
@@ -50,6 +51,7 @@ error[E0308]: mismatched types
    |
    = note: expected struct `TypeEq<(dyn Debug + 'static), _>`
               found struct `TypeEq<u8, _>`
+   = help: `u8` implements `Debug` so you could box the found value and coerce it to the trait object `Box<dyn Debug>`, you will have to change the expected type as well
 
 error[E0308]: mismatched types
   --> tests/misc_tests/type_eq_ui_tests/constructor_type_errors-err.rs:22:5
@@ -61,3 +63,4 @@ error[E0308]: mismatched types
    |
    = note: expected struct `TypeEq<(dyn Debug + 'static), (dyn Debug + 'static)>`
               found struct `TypeEq<u8, u8>`
+   = help: `u8` implements `Debug` so you could box the found value and coerce it to the trait object `Box<dyn Debug>`, you will have to change the expected type as well

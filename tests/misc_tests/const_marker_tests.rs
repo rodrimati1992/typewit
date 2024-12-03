@@ -10,6 +10,8 @@ use typewit::{
 #[cfg(feature = "adt_const_marker")]
 mod slice_const_marker_tests;
 
+mod boolwit_tests;
+
 
 #[test]
 fn test_integer_const_marker() {

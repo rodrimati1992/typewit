@@ -12,11 +12,6 @@ error[E0308]: mismatched types
              found struct `TypeEq<R, L>`
   = note: a type parameter was expected, but a different one was found; you might be missing a type parameter or trait bound
   = note: for more information, visit https://doc.rust-lang.org/book/ch10-02-traits.html#traits-as-parameters
-help: try removing the method call
-  |
-4 -     te.flip()
-4 +     te
-  |
 
 error[E0308]: mismatched types
  --> tests/misc_tests/type_eq_ui_tests/projection_type-err.rs:8:16

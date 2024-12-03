@@ -201,15 +201,61 @@ pub enum BoolWitG<B> {
     False(TypeEq<B, Bool<false>>),
 }
 
-impl<const B: bool> Copy for  BoolWitG<Bool<B>> {}
+impl<B> BoolWitG<B> {
+    /// Whether `B == Bool<true>`
+    pub const fn is_true(self) -> bool {
+        matches!(self, Self::True{..})
+    }
 
-impl<const B: bool> Clone for  BoolWitG<Bool<B>> {
+    /// Whether `B == Bool<false>`
+    pub const fn is_false(self) -> bool {
+        matches!(self, Self::False{..})
+    }
+
+    /// Gets a proof of `B == Bool<true>`, returns None if `B == Bool<false>`
+    pub const fn to_true(self) -> Option<TypeEq<B, Bool<true>>> {
+        match self {
+            Self::True(x) => Some(x),
+            _ => None
+        }
+    }
+
+    /// Gets a proof of `B == Bool<false>`, returns None if `B == Bool<true>`
+    pub const fn to_false(self) -> Option<TypeEq<B, Bool<false>>> {
+        match self {
+            Self::False(x) => Some(x),
+            _ => None
+        }
+    }
+
+
+    /// Gets a proof of `B == Bool<true>`, panics if `B == Bool<false>`
+    pub const fn unwrap_true(self) -> TypeEq<B, Bool<true>> {
+        match self {
+            Self::True(x) => x,
+            _ => panic!("attempted to unwrap into True on False variant")
+        }
+    }
+
+    /// Gets a proof of `B == Bool<false>`, panics if `B == Bool<true>`
+    pub const fn unwrap_false(self) -> TypeEq<B, Bool<false>> {
+        match self {
+            Self::False(x) => x,
+            _ => panic!("attempted to unwrap into False on True variant")
+        }
+    }
+
+}
+
+impl<B> Copy for BoolWitG<B> {}
+
+impl<B> Clone for BoolWitG<B> {
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl<const B: bool> Debug for BoolWitG<Bool<B>> {
+impl<B> Debug for BoolWitG<B> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match self {
             Self::True{..} => "True",

@@ -1,10 +1,6 @@
 [package]
 name = "typewit"
-<<<<<<< HEAD
-version = "1.10.0"
-=======
-version = "1.10.1"
->>>>>>> main
+version = "1.11.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 rust-version = "1.57.0"
 edition = "2021"
@@ -51,12 +47,7 @@ alloc = []
 mut_refs = ["rust_stable"]
 nightly_mut_refs = ["mut_refs"]
 docsrs = []
-<<<<<<< HEAD
-
-__ui_tests = []
-=======
 __ui_tests = ["trybuild"]
->>>>>>> main
 
 [package.metadata.docs.rs]
 features = ["alloc", "rust_stable", "adt_const_marker", "docsrs"]
