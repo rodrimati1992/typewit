@@ -297,7 +297,9 @@ mod type_eq_ {
     // Declared to work around this error in old Rust versions:
     // > error[E0658]: function pointers cannot appear in constant functions
     struct TypeEqHelper<L: ?Sized, R: ?Sized>(
+        #[allow(dead_code)]
         fn(PhantomData<L>) -> PhantomData<L>,
+        #[allow(dead_code)]
         fn(PhantomData<R>) -> PhantomData<R>,
     );
 

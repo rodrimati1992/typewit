@@ -1,5 +1,6 @@
 #![deny(unused_mut)]
 #![cfg_attr(feature = "adt_const_marker", feature(adt_const_params))]
+#![cfg_attr(feature = "adt_const_marker", feature(unsized_const_params))]
 #![cfg_attr(feature = "adt_const_marker", allow(incomplete_features))]
 
 mod misc_tests {

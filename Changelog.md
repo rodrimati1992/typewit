@@ -2,9 +2,25 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
-### 1.10.0
+### 1.11.0
 
 Added `"rust_1_83"` feature, which turns `typewit` functions that use `&mut` into const fns.
+
+
+
+### 1.10.1
+
+Fixed `TypeWitnessTypeArg` impl for `BoolWitG`, it was overconstrained in a way that made `HasTypeWitness<BoolWitG<T>>` not work as a bound.
+
+### 1.10.0
+
+Added `typewit::const_marker::BoolWitG` enum
+
+Replaced `typewit::const_marker::BoolWit` enum with type alias to `BoolWitG``
+
+Added `Copy + Clone + Debug` impls to `BoolWit`
+
+Fixed `"adt_const_marker"` crate feature
 
 ### 1.9.0
 
