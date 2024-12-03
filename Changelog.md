@@ -14,7 +14,7 @@ Added these methods to `BoolWitG`:
 - `unwrap_true`
 - `unwrap_false`
 
-Relaxed `Copy + Clone + Debug` impls of `BooleanWitG` to work for any `<B> BooleanWitG<B>`, instead of requirning `<const B: bool> BoolWitG<Bool<B>>`.
+Relaxed `Copy + Clone + Debug` impls of `BooleanWitG` to work for any `<B> BooleanWitG<B>`, instead of requiring `<const B: bool> BoolWitG<Bool<B>>`.
 
 
 ### 1.10.1
