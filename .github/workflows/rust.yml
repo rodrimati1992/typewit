@@ -69,12 +69,12 @@ jobs:
           "rust_stable adt_const_marker alloc"
 
         cargo test --no-default-features --features \
-          "rust_stable adt_const_marker proc_macros __ui_tests alloc"
-          # "rust_stable adt_const_marker proc_macros          alloc"
+          "rust_stable adt_const_marker proc_macros              alloc"
+          # "rust_stable adt_const_marker proc_macros __ui_tests alloc"
 
         cargo test --no-default-features --features \
-          "rust_stable adt_const_marker             __ui_tests alloc"
-          # "rust_stable adt_const_marker                      alloc"
+          "rust_stable adt_const_marker                        alloc"
+          # "rust_stable adt_const_marker           __ui_tests alloc"
 
         MIRI_NIGHTLY=nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)
         echo "Installing latest nightly with Miri"
