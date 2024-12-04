@@ -203,14 +203,13 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     }
 
     crate::utils::conditionally_const!{
-        feature = "mut_refs";
+        feature = "rust_1_83";
 
         /// Converts a `TypeCmp<L, R>` to `TypeCmp<&mut L, &mut R>`
         /// 
         /// # Constness
         /// 
-        /// This requires either of the `"mut_refs"` or `"const_mut_refs"` 
-        /// crate features to be enabled to be a `const fn`.
+        /// This requires the `"rust_1_83"` crate feature to be a `const fn`.
         /// 
         /// # Example
         /// 

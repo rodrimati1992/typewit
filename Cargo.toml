@@ -1,6 +1,6 @@
 [package]
 name = "typewit"
-version = "1.10.1"
+version = "1.11.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 rust-version = "1.57.0"
 edition = "2021"
@@ -38,7 +38,8 @@ optional = true
 default = ["proc_macros"]
 rust_1_61 = []
 rust_1_65 = ["rust_1_61"]
-rust_stable = ["rust_1_65"]
+rust_1_83 = ["rust_1_65"]
+rust_stable = ["rust_1_83"]
 proc_macros = ["typewit_proc_macros"]
 const_marker = []
 adt_const_marker = ["rust_stable"]
@@ -49,5 +50,5 @@ docsrs = []
 __ui_tests = ["trybuild"]
 
 [package.metadata.docs.rs]
-features = ["alloc", "rust_stable", "nightly_mut_refs", "adt_const_marker", "docsrs"]
+features = ["alloc", "rust_stable", "adt_const_marker", "docsrs"]
 

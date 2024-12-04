@@ -81,7 +81,7 @@ fn in_ref_test() {
 fn in_mut_test() {
     assert_type::<_, TypeNe<&mut u8, &mut u16>>(type_ne!(u8, u16).in_mut());
 
-    #[cfg(feature = "mut_refs")]
+    #[cfg(feature = "rust_1_83")]
     {
         const fn _in_mut<T>(te: TypeNe<T, u8>) {
             let _: TypeNe<&mut T, &mut u8> = te.in_mut();

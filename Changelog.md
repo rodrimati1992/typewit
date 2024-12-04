@@ -2,6 +2,21 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.11.0
+
+Added `"rust_1_83"` feature, which turns `typewit` functions that use `&mut` into const fns.
+
+Added these methods to `BoolWitG`: 
+- `is_true`
+- `is_false`
+- `to_true`
+- `to_false`
+- `unwrap_true`
+- `unwrap_false`
+
+Relaxed `Copy + Clone + Debug` impls of `BooleanWitG` to work for any `<B> BooleanWitG<B>`, instead of requiring `<const B: bool> BoolWitG<Bool<B>>`.
+
+
 ### 1.10.1
 
 Fixed `TypeWitnessTypeArg` impl for `BoolWitG`, it was overconstrained in a way that made `HasTypeWitness<BoolWitG<T>>` not work as a bound.

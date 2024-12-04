@@ -201,15 +201,127 @@ pub enum BoolWitG<B> {
     False(TypeEq<B, Bool<false>>),
 }
 
-impl<const B: bool> Copy for  BoolWitG<Bool<B>> {}
+impl<B> BoolWitG<B> {
+    /// Whether `B == Bool<true>`
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use typewit::{const_marker::BoolWitG, TypeEq};
+    /// 
+    /// assert_eq!(BoolWitG::True(TypeEq::NEW).is_true(), true);
+    /// assert_eq!(BoolWitG::False(TypeEq::NEW).is_true(), false);
+    /// ```
+    ///
+    pub const fn is_true(self) -> bool {
+        matches!(self, Self::True{..})
+    }
 
-impl<const B: bool> Clone for  BoolWitG<Bool<B>> {
+    /// Whether `B == Bool<false>`
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use typewit::{const_marker::BoolWitG, TypeEq};
+    /// 
+    /// assert_eq!(BoolWitG::True(TypeEq::NEW).is_false(), false);
+    /// assert_eq!(BoolWitG::False(TypeEq::NEW).is_false(), true);
+    /// ```
+    ///
+    pub const fn is_false(self) -> bool {
+        matches!(self, Self::False{..})
+    }
+
+    /// Gets a proof of `B == Bool<true>`, returns None if `B == Bool<false>`
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use typewit::{const_marker::{Bool, BoolWitG}, TypeEq};
+    /// 
+    /// assert_eq!(BoolWitG::True(TypeEq::NEW).to_true(), Some(TypeEq::new::<Bool<true>>()));
+    /// assert_eq!(BoolWitG::False(TypeEq::NEW).to_true(), None);
+    /// ```
+    ///
+    pub const fn to_true(self) -> Option<TypeEq<B, Bool<true>>> {
+        match self {
+            Self::True(x) => Some(x),
+            Self::False{..} => None
+        }
+    }
+
+    /// Gets a proof of `B == Bool<false>`, returns None if `B == Bool<true>`
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use typewit::{const_marker::{Bool, BoolWitG}, TypeEq};
+    /// 
+    /// assert_eq!(BoolWitG::True(TypeEq::NEW).to_false(), None);
+    /// assert_eq!(BoolWitG::False(TypeEq::NEW).to_false(), Some(TypeEq::new::<Bool<false>>()));
+    /// ```
+    ///
+    pub const fn to_false(self) -> Option<TypeEq<B, Bool<false>>> {
+        match self {
+            Self::False(x) => Some(x),
+            Self::True{..} => None
+        }
+    }
+
+
+    /// Gets a proof of `B == Bool<true>`.
+    ///
+    /// # Panic
+    ///
+    /// Panics if `B == Bool<false>`
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use typewit::{const_marker::{Bool, BoolWitG}, TypeEq};
+    /// 
+    /// assert_eq!(BoolWitG::True(TypeEq::NEW).unwrap_true(), TypeEq::new::<Bool<true>>());
+    /// ```
+    ///
+    pub const fn unwrap_true(self) -> TypeEq<B, Bool<true>> {
+        match self {
+            Self::True(x) => x,
+            Self::False{..}  => panic!("attempted to unwrap into True on False variant")
+        }
+    }
+
+    /// Gets a proof of `B == Bool<false>`.
+    ///
+    /// # Panic
+    /// 
+    /// Panics if `B == Bool<true>`
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use typewit::{const_marker::{Bool, BoolWitG}, TypeEq};
+    /// 
+    /// assert_eq!(BoolWitG::False(TypeEq::NEW).unwrap_false(), TypeEq::new::<Bool<false>>());
+    /// ```
+    ///
+    pub const fn unwrap_false(self) -> TypeEq<B, Bool<false>> {
+        match self {
+            Self::False(x) => x,
+            Self::True{..} => panic!("attempted to unwrap into False on True variant")
+        }
+    }
+
+}
+
+impl<B> Copy for BoolWitG<B> {}
+
+impl<B> Clone for BoolWitG<B> {
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl<const B: bool> Debug for BoolWitG<Bool<B>> {
+impl<B> Debug for BoolWitG<B> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match self {
             Self::True{..} => "True",

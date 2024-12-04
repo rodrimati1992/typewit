@@ -1,4 +1,5 @@
 #![allow(unused_lifetimes)]
+#![allow(non_local_definitions)]
 
 #[cfg(feature = "rust_1_61")]
 use crate::misc_tests::test_utils::assert_type;
