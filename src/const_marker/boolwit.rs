@@ -280,7 +280,7 @@ impl<B> BoolWitG<B> {
     /// ```rust
     /// use typewit::{const_marker::{Bool, BoolWitG}, TypeEq};
     /// 
-    /// assert_eq!(BoolWitG::False(TypeEq::NEW).unwrap_true(), TypeEq::new::<Bool<true>>());
+    /// assert_eq!(BoolWitG::True(TypeEq::NEW).unwrap_true(), TypeEq::new::<Bool<true>>());
     /// ```
     ///
     pub const fn unwrap_true(self) -> TypeEq<B, Bool<true>> {
