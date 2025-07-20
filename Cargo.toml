@@ -1,6 +1,6 @@
 [package]
 name = "typewit"
-version = "1.11.0"
+version = "1.12.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 rust-version = "1.57.0"
 edition = "2021"
@@ -43,6 +43,7 @@ rust_stable = ["rust_1_83"]
 proc_macros = ["typewit_proc_macros"]
 const_marker = []
 adt_const_marker = ["rust_stable"]
+generic_const_exprs = ["rust_stable"]
 alloc = []
 mut_refs = ["rust_stable"]
 nightly_mut_refs = ["mut_refs"]
