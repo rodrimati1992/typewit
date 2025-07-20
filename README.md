@@ -29,6 +29,7 @@ which can coerce between a type parameter and as many types as there are variant
 This demonstrates how one can write a polymorphic `const fn`
 (as of 2025-07-20, trait methods can't be called in const fns on stable)
 
+(this example requires Rust 1.61.0, since it uses trait bounds in const)
 ```rust
 use typewit::{HasTypeWitness, TypeEq};
 
