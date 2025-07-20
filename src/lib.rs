@@ -660,6 +660,6 @@ pub mod __ {
 
 
 
-#[cfg(all(doctest, feature = "rust_stable"))]
+#[cfg(all(doctest, feature = "generic_const_exprs"))]
 #[doc = include_str!("../README.md")]
 pub struct ReadmeTest;
