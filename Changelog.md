@@ -2,6 +2,12 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.12.0
+
+Added `"generic_const_exprs"` crate feature, currently only used for doc examples.
+
+Fixed outdated README feature section.
+
 ### 1.11.0
 
 Added `"rust_1_83"` feature, which turns `typewit` functions that use `&mut` into const fns.

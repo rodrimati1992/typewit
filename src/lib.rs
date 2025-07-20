@@ -3,7 +3,7 @@
 //! [type witnesses](#what-are-type-witnesses).
 //! 
 //! The inciting motivation for this crate is emulating trait polymorphism in `const fn`
-//! (as of 2023-10-01, it's not possible to call trait methods in const contexts on stable).
+//! (as of 2025-07-20, it's not possible to call trait methods in const contexts on stable).
 //! 
 //! # What are type witnesses
 //! 
@@ -22,42 +22,55 @@
 //! 
 //! ### Polymorphic function
 //! 
-//! This demonstrates how one can write a return-type-polymorphic `const fn`
-//! (as of 2023-10-01, trait methods can't be called in const fns on stable)
+//! This demonstrates how one can write a polymorphic `const fn`
+//! (as of 2025-07-20, trait methods can't be called in const fns on stable)
 //! 
 //! ```rust
-//! use typewit::{MakeTypeWitness, TypeEq};
+//! use typewit::{HasTypeWitness, TypeEq};
 //! 
-//! assert_eq!(returnal::<u8>(), 3);
-//! assert_eq!(returnal::<&str>(), "hello");
+//! const VALS: [&str; 6] = [
+//!     message(0),
+//!     message(1),
+//!     message(2),
+//!     message(3),
+//!     message("hi"),
+//!     message("foo"),
+//! ];
+//! assert_eq!(VALS, ["A", "B", "C", "A", "hi", "foo"]);
 //! 
 //! 
-//! const fn returnal<'a, R>() -> R
-//! where
-//!     RetWitness<'a, R>: MakeTypeWitness,
-//! {
-//!     match MakeTypeWitness::MAKE {
-//!         RetWitness::U8(te) => {
-//!             // `te` (a `TypeEq<R, u8>`) allows coercing between `R` and `u8`,
+//! // A "method" of the `Message` trait (declared below)
+//! const fn message<'a, T: Message<'a>>(val: T) -> &'a str {
+//!     match HasTypeWitness::WITNESS {
+//!         MessageWitness::Usize(te) => {
+//!             // `te` (a `TypeEq<T, usize>`) allows coercing between `T` and `usize`,
 //!             // because `TypeEq` is a value-level proof that both types are the same.
-//!             // `te.to_left(...)` goes from `u8` to `R`.
-//!             te.to_left(3u8)
+//!             let index: usize = te.to_right(val);
+//!             ["A", "B", "C"][index % 3]
 //!         }
-//!         RetWitness::Str(te) => {
-//!             // `te` is a `TypeEq<R, &'a str>`
-//!             // `te.to_left(...)` goes from `&'a str` to `R`.
-//!             te.to_left("hello")
+//!         MessageWitness::Str(te) => {
+//!             // `te` is a `TypeEq<T, &'a str>`
+//!             te.to_right(val)
 //!         }
 //!     }
 //! }
 //! 
-//! // This macro declares a type witness enum
+//! // The trait that we use to emulate polymorphic dispatch,
+//! // the limitation is that it can only emulate it for a limited set of types known
+//! // to the crate that defines the trait, in this case that's `usize` and `&str`.
+//! trait Message<'a>: HasTypeWitness<MessageWitness<'a, Self>> { }
+//! 
+//! // replacing these impls with a blanket impl leads to worse compilation errors
+//! impl<'a> Message<'a> for usize {}
+//! impl<'a> Message<'a> for &'a str {}
+//! 
+//! // This macro declares `enum MessageWitness<'a, __Wit>`, a type witness enum,
+//! // where each variant requires and then guarantees `__Wit` to be a particular type.
+//! // (the `__Wit` type parameter is implicitly added after all generics)
 //! typewit::simple_type_witness! {
-//!     // Declares `enum RetWitness<'a, __Wit>` 
-//!     // (the `__Wit` type parameter is implicitly added after all generics)
-//!     enum RetWitness<'a> {
-//!         // This variant requires `__Wit == u8`
-//!         U8 = u8,
+//!     enum MessageWitness<'a> {
+//!         // This variant requires `__Wit == usize`
+//!         Usize = usize,
 //!    
 //!         // This variant requires `__Wit == &'a str`
 //!         Str = &'a str,
@@ -376,6 +389,77 @@
 //! }
 //! ```
 //! 
+//! ### Generic Const Expressions
+//! 
+//! This example uses [`Usize`] to coerce an arrays whose length is generic to 
+//! another generic, but equal, length.
+//! 
+//! This example requires the `"generic_const_exprs"` crate feature because it uses the
+//! currently-unstable [`generic_const_exprs`] language feature.
+#![cfg_attr(not(feature = "generic_const_exprs"), doc = "```ignore")]
+#![cfg_attr(feature = "generic_const_exprs", doc = "```rust")]
+//! #![feature(generic_const_exprs)]
+//! 
+//! use typewit::{const_marker::Usize, TypeCmp, TypeEq};
+//! 
+//! 
+//! let mut arrays = Arrays::<1, 3> { a: [3, 5, 8], b: [13, 21, 34] };
+//! 
+//! arrays.swap_inner();
+//! 
+//! assert_eq!(arrays.a, [13, 21, 34]);
+//! assert_eq!(arrays.b, [3, 5, 8]);
+//! 
+//! 
+//! struct Arrays<const A: usize, const B: usize> 
+//! where
+//!     [u8; A * B]:, 
+//!     [u8; B * A]:,
+//! {
+//!     a: [u8; A * B],
+//!     b: [u8; B * A],
+//! }
+//! 
+//! impl<const A: usize, const B: usize> Arrays<A, B> 
+//! where
+//!     [u8; A * B]:, 
+//!     [u8; B * A]:,
+//! {
+//!     // Swaps the two array fields
+//!     const fn swap_inner(&mut self) {
+//!         let a = TypeEq::new::<u8>() // : TypeEq<u8, u8>
+//!             .in_array(commutative_proof::<A, B>()) // : TypeEq<[u8; A * B], [u8; B * A]>
+//!             .in_mut() // : TypeEq<&mut [u8; A * B], &mut [u8; B * A]>
+//!             .to_right(
+//!                 &mut self.a // : &mut [u8; A * B] 
+//!             ); // : &mut [u8; B * A] 
+//!         
+//!         core::mem::swap(a, &mut self.b);
+//!     }
+//! }
+//! 
+//! const fn commutative_proof<const A: usize, const B: usize>(
+//! ) -> TypeEq<Usize<{A * B}>, Usize<{B * A}>>
+//! {
+//!     // panic-safety: A * B == B * A always holds, so this `unwrap_eq` can never panic
+//!     Usize::<{A * B}>.equals(Usize::<{B * A}>).unwrap_eq()
+//! }
+//! 
+//! ```
+//! 
+//! If you tried to swap the fields directly, you'd get this error:
+//! ```text
+//! error[E0308]: mismatched types
+//!   --> src/lib.rs:437:38
+//!    |
+//! 42 |         core::mem::swap(&mut self.a, &mut self.b);
+//!    |                                      ^^^^^^^^^^^ expected `A * B`, found `B * A`
+//!    |
+//!    = note: expected constant `A * B`
+//!               found constant `B * A`
+//! ```
+//! 
+//! 
 //! # Cargo features
 //! 
 //! These are the features of this crate.
@@ -417,6 +501,10 @@
 //! and marker types in the [`const_marker`] module that have
 //! non-primitive `const` parameters.
 //! 
+//! - `"generic_const_exprs"`:
+//! enables the `"rust_stable"` crate feature,
+//! and doc examples that use the [`generic_const_exprs`] unstable language feature.
+//! 
 //! # No-std support
 //! 
 //! `typewit` is `#![no_std]`, it can be used anywhere Rust can be used.
@@ -442,6 +530,8 @@
 //! [`methods`]: crate::methods
 //! [`MetaBaseTypeWit`]: crate::MetaBaseTypeWit
 //! [`BaseTypeWitness`]:  crate::BaseTypeWitness
+//! [`Usize`]: crate::const_marker::Usize
+//! [`generic_const_exprs`]: https://doc.rust-lang.org/unstable-book/language-features/generic-const-exprs.html
 #![no_std]
 #![cfg_attr(feature = "adt_const_marker", feature(adt_const_params))]
 #![cfg_attr(feature = "adt_const_marker", feature(unsized_const_params))]
