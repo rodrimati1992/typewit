@@ -291,7 +291,46 @@ fn cfged_out_varians() {
 
 
 typewit::simple_type_witness!{
-    derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)
+    derive(Equals)
+    enum EqualsDer {U8 = u8, Char = char}
+}
+
+#[test]
+fn test_equals_derive() {
+    // ensures constness
+    const fn equals<L, R>(l: EqualsDer<L>, r: EqualsDer<R>) -> typewit::TypeCmp<L, R> {
+        l.equals(r)
+    }
+
+    assert!(equals::<u8, u8>(EqualsDer::MAKE, EqualsDer::MAKE).is_eq());
+    assert!(equals::<u8, char>(EqualsDer::MAKE, EqualsDer::MAKE).is_ne());
+    assert!(equals::<char, u8>(EqualsDer::MAKE, EqualsDer::MAKE).is_ne());
+    assert!(equals::<char, char>(EqualsDer::MAKE, EqualsDer::MAKE).is_eq());
+
+
+    fn cast<L, R>(l: L, r: R) -> Result<[L; 2], (L, R)> 
+    where
+        L: Copy + HasTypeWitness<EqualsDer<L>>,
+        R: Copy + HasTypeWitness<EqualsDer<R>>,
+    {
+        match L::WITNESS.equals(R::WITNESS) {
+            typewit::TypeCmp::Eq(te) => Ok([l, te.to_left(r)]),
+            typewit::TypeCmp::Ne(_) => Err((l, r)),
+        }
+    }
+
+    assert_eq!(cast(0u8, 1u8), Ok([0, 1]));
+    assert_eq!(cast(0u8, '1'), Err((0, '1')));
+    assert_eq!(cast('0', 1u8), Err(('0', 1)));
+    assert_eq!(cast('1', '2'), Ok(['1', '2']));
+}
+
+
+//////////////////////////////
+
+
+typewit::simple_type_witness!{
+    derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Equals)
     enum AllDerives {U8 = u8, U16 = u16}
 }
 
@@ -310,8 +349,17 @@ fn test_all_derives() {
         T: Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash
     {}
 
-    assert_impld::<AllDerives<NoImpls>>()
-    
+    assert_impld::<AllDerives<NoImpls>>();
+
+    // ensures constness
+    const fn equals<L, R>(l: AllDerives<L>, r: AllDerives<R>) -> typewit::TypeCmp<L, R> {
+        l.equals(r)
+    }
+
+    assert!(equals::<u8, u8>(AllDerives::MAKE, AllDerives::MAKE).is_eq());
+    assert!(equals::<u8, u16>(AllDerives::MAKE, AllDerives::MAKE).is_ne());
+    assert!(equals::<u16, u8>(AllDerives::MAKE, AllDerives::MAKE).is_ne());
+    assert!(equals::<u16, u16>(AllDerives::MAKE, AllDerives::MAKE).is_eq());
 }
 
 

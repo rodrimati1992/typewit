@@ -1,0 +1,82 @@
+error: the `simple_type_witness` macro does not support deriving `Equals` when the type has generic parameter(s) or where clause(s)
+ --> tests/misc_tests/stw_ui_tests/stw_equals_syntax-err.rs:2:1
+  |
+2 | / typewit::simple_type_witness! {
+3 | |     derive(Equals)
+4 | |     enum WithLt<'a> { A = &'a () }
+5 | | }
+  | |_^
+  |
+  = note: this error originates in the macro `$crate::__stw_single_derive` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: the `simple_type_witness` macro does not support deriving `Equals` when the type has generic parameter(s) or where clause(s)
+  --> tests/misc_tests/stw_ui_tests/stw_equals_syntax-err.rs:7:1
+   |
+7  | / typewit::simple_type_witness! {
+8  | |     derive(Equals)
+9  | |     enum WithTypes<T> { A = T }
+10 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__stw_single_derive` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: the `simple_type_witness` macro does not support deriving `Equals` when the type has generic parameter(s) or where clause(s)
+  --> tests/misc_tests/stw_ui_tests/stw_equals_syntax-err.rs:12:1
+   |
+12 | / typewit::simple_type_witness! {
+13 | |     derive(Equals)
+14 | |     enum WithConst<const X: usize> { A = u8 }
+15 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__stw_single_derive` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: the `simple_type_witness` macro does not support deriving `Equals` when the type has generic parameter(s) or where clause(s)
+  --> tests/misc_tests/stw_ui_tests/stw_equals_syntax-err.rs:17:1
+   |
+17 | / typewit::simple_type_witness! {
+18 | |     derive(Equals)
+19 | |     enum WithAllGenerics<'a, T, const X: usize> { A = &'a [T; X] }
+20 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__stw_single_derive` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: the `simple_type_witness` macro does not support deriving `Equals` when the type has generic parameter(s) or where clause(s)
+  --> tests/misc_tests/stw_ui_tests/stw_equals_syntax-err.rs:22:1
+   |
+22 | / typewit::simple_type_witness! {
+23 | |     derive(Equals)
+24 | |     enum WithWhereClause<'a, T, const X: usize>
+25 | |     where
+...  |
+30 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__stw_single_derive` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: the `simple_type_witness` macro does not support deriving `Equals` when the type has generic parameter(s) or where clause(s)
+  --> tests/misc_tests/stw_ui_tests/stw_equals_syntax-err.rs:32:1
+   |
+32 | / typewit::simple_type_witness! {
+33 | |     derive(Equals)
+34 | |     enum WithDefaultedArg<'a, T, const X: usize> {
+35 | |         A<'a, T, 0> = &'a [T]
+36 | |     }
+37 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__stw_single_derive` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: the `simple_type_witness` macro does not support deriving `Equals` when the type has generic parameter(s) or where clause(s)
+  --> tests/misc_tests/stw_ui_tests/stw_equals_syntax-err.rs:40:1
+   |
+40 | / typewit::simple_type_witness! {
+41 | |     derive(Equals)
+42 | |     enum WithEverything<'a, T, const X: usize>
+43 | |     where
+...  |
+49 | | }
+   | |_^
+   |
+   = note: this error originates in the macro `$crate::__stw_single_derive` which comes from the expansion of the macro `typewit::simple_type_witness` (in Nightly builds, run with -Z macro-backtrace for more info)

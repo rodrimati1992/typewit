@@ -18,7 +18,7 @@
 /// 
 /// Additional trait impls are generated when the [`derive(...)`](#derive) syntax is used.
 /// 
-/// ### Derivation
+/// # Derivation
 /// 
 /// These impls are generated if you opt into them with the [`derive(...)`](#derive) syntax:
 /// 
@@ -28,12 +28,37 @@
 /// - `PartialOrd`
 /// - `Ord`
 /// - `Hash`
+/// - `Equals`: pseudo-derive which is [explained below](#equals-derive)
 /// 
 /// As opposed to `#[derive(...))]`-generated implementations,
 /// these impls don't require type parameters to implement the derived trait.
 /// 
 /// This macro always implements `Copy` and `Clone` for the declared type witness,
 /// `derive(Copy, Clone)` does nothing.
+/// 
+/// ### Equals derive
+/// 
+/// The `Equals` derive adds this method to the generated witness enum:
+/// ```rust
+/// # enum WitnessEnum<T>{W(T)}
+/// # impl<__Wit> WitnessEnum<__Wit> {
+/// pub const fn equals<__Wit2>(
+///     self: WitnessEnum<__Wit>,
+///     other: WitnessEnum<__Wit2>,
+/// ) -> typewit::TypeCmp<__Wit, __Wit2>
+/// # { unimplemented!() }
+/// # }
+/// ```
+/// 
+/// Limitations: this derive does not allow the type witness to: 
+/// - have any generic parameters
+///   (aside from the implicitly declared `__Wit` type parameter)
+/// - have a `where` clause
+/// - have overriden generic arguments in the generated `MakeTypeWitness` impls
+/// 
+/// Examples:
+/// - [basic usage](#equals-basic-example)
+/// - [working around the limitations of this derive](#equals-workaround-example)
 /// 
 /// # Syntax
 /// 
@@ -314,7 +339,7 @@
 /// typewit::simple_type_witness! {
 ///     // Declares an `enum Witness<__Wit>`,
 ///     // the `__Wit` type parameter is added after all generics.
-///     derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)
+///     derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Equals)
 ///     enum Witness {
 ///         U8 = u8,
 ///         NoImp = NoImpls,
@@ -322,6 +347,176 @@
 /// }
 /// ```
 /// 
+/// <span id = "equals-basic-example"></span>
+/// ### Deriving `Equals`
+/// 
+/// This example demonstrates basic usage of the [`Equals` derive](#equals-derive)
+/// 
+/// ```rust
+/// use typewit::{MakeTypeWitness, TypeCmp};
+/// 
+/// const _: () = {
+///     let u8_wit: Witness<u8> = Witness::MAKE;
+///     let u16_wit: Witness<u16> = Witness::MAKE;
+///     let string_wit: Witness<String> = Witness::MAKE;
+/// 
+///     assert!(matches!(u8_wit.equals(u8_wit), TypeCmp::Eq(_)));
+///     assert!(matches!(u8_wit.equals(u16_wit), TypeCmp::Ne(_)));
+///     assert!(matches!(u8_wit.equals(string_wit), TypeCmp::Ne(_)));
+/// 
+///     assert!(matches!(u16_wit.equals(u8_wit), TypeCmp::Ne(_)));
+///     assert!(matches!(u16_wit.equals(u16_wit), TypeCmp::Eq(_)));
+///     assert!(matches!(u16_wit.equals(string_wit), TypeCmp::Ne(_)));
+/// 
+///     assert!(matches!(string_wit.equals(u8_wit), TypeCmp::Ne(_)));
+///     assert!(matches!(string_wit.equals(u16_wit), TypeCmp::Ne(_)));
+///     assert!(matches!(string_wit.equals(string_wit), TypeCmp::Eq(_)));
+/// };
+/// 
+/// typewit::simple_type_witness! {
+///     // Declares an `enum Witness<__Wit>`,
+///     // the `__Wit` type parameter is added after all generics.
+///     derive(Equals)
+///     enum Witness {
+///         U8 = u8,
+///         U16 = u16,
+///         String = String,
+///     }
+/// }
+/// ```
+/// <span id = "equals-workaround-example"></span>
+/// ### Working around `Equals` limitations
+/// 
+/// This example demonstrates how you can work around the "no generics, no where clause"
+/// limitation of the [`Equals` derive](#equals-derive) to implement a generic function
+/// that coerces equal types into arrays.
+/// 
+/// note: The reason `simple_type_witness` does not do this implicitly is due to:
+/// - the possibility of panics when there's variants with the same witnessed type
+/// - the need for additional bounds on the `equals` method
+/// 
+/// ```rust
+/// use typewit::{HasTypeWitness, MakeTypeWitness, TypeCmp};
+/// 
+/// // Specifying any type that works for the `T` type parameter.
+/// // Cannot avoid having to specify the generic arg here, 
+/// // because defaulting the MakeTypeWitness impl for `u8` and `&str` makes 
+/// // their witness incompatible with the witness for `&[T]` in the `equals` method.
+/// assert_eq!(pair_to_array::<(), _, _>(3, 5), Ok([3, 5]));
+/// assert_eq!(pair_to_array::<(), _, _>("hello", "world"), Ok(["hello", "world"]));
+/// assert_eq!(pair_to_array(&[3u8, 5][..], &[8, 13][..]), Ok([&[3, 5][..], &[8, 13]]));
+/// 
+/// assert_eq!(pair_to_array::<(), _, _>("hello", 10), Err(("hello", 10)));
+/// assert_eq!(pair_to_array(&[3u8, 5][..], 10), Err((&[3u8, 5][..], 10)));
+/// 
+/// 
+/// pub const fn pair_to_array<'a, T: 'a, A, B>(foo: A, bar: B) -> Result<[A; 2], (A, B)>
+/// where
+///     A: Type<'a, T>,
+///     B: Type<'a, T>,
+/// {
+///     match A::WITNESS.equals(B::WITNESS) {
+///         TypeCmp::Eq(te) => Ok([foo, te.to_left(bar)]),
+///         TypeCmp::Ne(_) => Err((foo, bar)),
+///     }
+/// }
+/// 
+/// impl<'a, T, Wit: HasTypeKind> TypeWitness<'a, T, Wit> {
+///     pub const fn equals<Wit2: HasTypeKind>(
+///         self, 
+///         other: TypeWitness<'a, T, Wit2>,
+///     ) -> TypeCmp<Wit, Wit2> {
+///         match (self, other) {
+///             (TypeWitness::U8(l_te), TypeWitness::U8(r_te)) => {
+///                 l_te.join(r_te.flip()).to_cmp()
+///             }
+///             (TypeWitness::Str(l_te), TypeWitness::Str(r_te)) => {
+///                 l_te.join(r_te.flip()).to_cmp()
+///             }
+///             (TypeWitness::Slice(l_te), TypeWitness::Slice(r_te)) => {
+///                 l_te.join(r_te.flip()).to_cmp()
+///             }
+///             // using this instead of a blanket `_ => ` pattern because, 
+///             // with a `_` pattern, adding more variants would run this branch,
+///             // causing a panic when those types are compared to themselves.
+///             |(TypeWitness::U8(_), _)
+///             |(TypeWitness::Str(_), _)
+///             |(TypeWitness::Slice(_), _)
+///             => {
+///                 // caveat: if any of the witnessed types has the same Type::Kind as another,
+///                 //         then the variants with equal kinds will cause unwrap_ne to panic,
+///                 //          
+///                 // important that the `unwrap_ne` is *outside* the `const {}`,
+///                 // if it was inside the `const {}` it'd error when comparing equal witnesses
+///                 // because const in dead code can still be evaluated
+///                 const { Wit::KIND_WITNESS.equals(Wit2::KIND_WITNESS) }
+///                     .unwrap_ne()
+///                     .map_to_arg(TypeKindFn) // maps from kind to type
+///                     .to_cmp()
+///             }
+///         }
+///     }
+/// }
+/// 
+/// typewit::simple_type_witness! {
+///     // Declares an `enum TypeWitness<'a, T: 'a, __Wit>`,
+///     // the `__Wit` type parameter is added after all generics.
+///     pub enum TypeWitness<'a, T: 'a> {
+///         U8 = u8,
+///         Str = &'a str,
+///         Slice = &'a [T],
+///     }
+/// }
+/// 
+/// 
+/// // emulates trait alias for `HasTypeKind + HasTypeWitness<TypeWitness<'a, T, Self>>`
+/// pub trait Type<'a, T: 'a>: HasTypeKind + HasTypeWitness<TypeWitness<'a, T, Self>> {}
+/// 
+/// impl<'a, T: 'a, Self_> Type<'a, T> for Self_
+/// where
+///     Self_: HasTypeKind + HasTypeWitness<TypeWitness<'a, T, Self>>
+/// {}
+/// 
+/// // Giving each type an associated kind, kinds have their own type witness.
+/// pub trait HasTypeKind {
+///     type Kind: HasTypeWitness<KindWitness<Self::Kind>>;
+///     const KIND_WITNESS: KindWitness<Self::Kind> = <Self::Kind>::WITNESS;
+/// }
+/// 
+/// // defining a type-level function from type to its associated kind,
+/// // used by `.map_to_arg` above to do the inverse (going from kind to type).
+/// typewit::type_fn!{
+///     struct TypeKindFn;
+/// 
+///     impl<This: HasTypeKind> This => This::Kind
+/// }
+/// 
+/// pub struct U8Kind;
+/// impl HasTypeKind for u8 {
+///     type Kind = U8Kind;
+/// }
+/// 
+/// pub struct StrKind;
+/// impl HasTypeKind for &str {
+///     type Kind = StrKind;
+/// }
+/// 
+/// pub struct SliceKind;
+/// impl<T> HasTypeKind for &[T] {
+///     type Kind = SliceKind;
+/// }
+/// 
+/// typewit::simple_type_witness! {
+///     // Declares an `enum KindWitness<__Wit>`, type witness for the kinds
+///     derive(Equals)
+///     pub enum KindWitness {
+///         U8 = U8Kind,
+///         Str = StrKind,
+///         Slice = SliceKind,
+///     }
+/// }
+/// 
+/// ```
 /// 
 /// [`TypeEq`]: crate::TypeEq
 /// [`TypeWitnessTypeArg`]: crate::TypeWitnessTypeArg
@@ -802,9 +997,18 @@ macro_rules! __stw_derive_dispatcher_inner {
     (
         $trait:ident $enum:ident[$($generics:tt)*] [$($gen_args:tt)*]
         where [$($where:tt)*]
-        {$(($variant:ident $($rem:tt)*))*}
+        {
+            $((
+                $variant:ident
+                ($(#[$variant_meta:meta])*)
+                ($($SelfTy:tt)*)
+                [$($vari_where:tt)*]
+                $witnessed_ty:ty
+            ))*
+        }
     ) => {
         $crate::__stw_single_derive!{
+            [$enum; ($($generics)*) ($($where)* $($($vari_where)*)*)]
             (
                 impl<$($generics)* __Wit: ?Sized> $enum<$($gen_args)* __Wit> 
                 where
@@ -826,7 +1030,7 @@ macro_rules! __stw_derive_dispatcher_inner {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __stw_single_derive {
-    ($inh_header:tt ($($impl_header:tt)*) Debug [$($variant:ident)*]) => {
+    ($_nom_gen:tt $inh_header:tt ($($impl_header:tt)*) Debug [$($variant:ident)*]) => {
         $($impl_header)*
         {
             fn fmt(&self, f: &mut $crate::__::Formatter<'_>) -> $crate::__::FmtResult {
@@ -836,7 +1040,7 @@ macro_rules! __stw_single_derive {
             }
         }
     };
-    ($inh_header:tt ($($impl_header:tt)*) PartialEq [$($variant:ident)*]) => {
+    ($_nom_gen:tt $inh_header:tt ($($impl_header:tt)*) PartialEq [$($variant:ident)*]) => {
         $($impl_header)*
         {
             fn eq(&self, other: &Self) -> $crate::__::bool {
@@ -844,7 +1048,7 @@ macro_rules! __stw_single_derive {
             }
         }
     };
-    (($($inh_header:tt)*) ($($impl_header:tt)*) PartialOrd [$($variant:ident)*]) => {
+    ($_nom_gen:tt ($($inh_header:tt)*) ($($impl_header:tt)*) PartialOrd [$($variant:ident)*]) => {
         $($inh_header)* {
             const fn __variant_number(&self) -> usize {
                 mod number {
@@ -869,7 +1073,7 @@ macro_rules! __stw_single_derive {
             }
         }
     };
-    ($inh_header:tt ($($impl_header:tt)*) Ord [$($variant:ident)*]) => {
+    ($_nom_gen:tt $inh_header:tt ($($impl_header:tt)*) Ord [$($variant:ident)*]) => {
         $($impl_header)* {
             fn cmp(&self, other: &Self) -> $crate::__::Ordering {
                 $crate::__::Ord::cmp(
@@ -879,23 +1083,61 @@ macro_rules! __stw_single_derive {
             }
         }
     };
-    ($inh_header:tt ($($impl_header:tt)*) Eq [$($variant:ident)*]) => {
+    ($_nom_gen:tt $inh_header:tt ($($impl_header:tt)*) Eq [$($variant:ident)*]) => {
         $($impl_header)* { }
     };
-    ($inh_header:tt ($($impl_header:tt)*) Hash [$($variant:ident)*]) => {
+    ($_nom_gen:tt $inh_header:tt ($($impl_header:tt)*) Hash [$($variant:ident)*]) => {
         $($impl_header)* {
             fn hash<H: $crate::__::Hasher>(&self, state: &mut H) {
                 $crate::__::Hash::hash(&$crate::__::discriminant(self), state)
             }
         }
     };
-    // this is always implemented
-    ($inh_header:tt $impl_header:tt Copy $variants:tt) => {};
-    // this is always implemented
-    ($inh_header:tt $impl_header:tt Clone $variants:tt) => {};
-    ($inh_header:tt $impl_header:tt $derive:ident $variants:tt) => {
+    (
+        [$enum:ident;()()]
+        ($($inh_header:tt)*) 
+        ($($impl_header:tt)*) 
+        Equals 
+        [$($variant:ident)*]
+    ) => {
+        $($inh_header)* {
+            pub const fn equals<__Wit2>(
+                self, 
+                other: $enum<__Wit2>,
+            ) -> $crate::TypeCmp<__Wit, __Wit2> {
+                match (self, other) {
+                    $(
+                        ($enum::$variant(l), $enum::$variant(r)) => {
+                            $crate::TypeCmp::Eq(l.join(r.flip()))
+                        }
+                    )*
+
+                    // SAFETY: simple_type_witness ensures that __Wit != __Wit2 by:
+                    // - requiring that the type witness has no generics (besides __Wit) 
+                    //   and no where clause
+                    // - declaring MakeTypeWitness impls for $enum<$witnessed_ty> for each variant
+                    //   (which would cause an overlap error if two variants have the same type)
+                    // - matching on all pairs of equal variants above
+                    $( |($enum::$variant(_), _) )* => unsafe {
+                        $crate::TypeCmp::Ne($crate::TypeNe::new_unchecked())
+                    }
+                }
+            }
+        }
+    };
+    ($_nom_gen:tt $inh_header:tt $impl_header:tt Equals $variants:tt) => {
         $crate::__::compile_error!{$crate::__::concat!{
-            "The `simple_type_witness` macro does not support deriving `",
+            "the `simple_type_witness` macro does not support deriving `Equals`",
+            " when the type has generic parameter(s) or where clause(s)"
+        }}
+    };
+    // this is always implemented
+    ($_nom_gen:tt $inh_header:tt $impl_header:tt Copy $variants:tt) => {};
+    // this is always implemented
+    ($_nom_gen:tt $inh_header:tt $impl_header:tt Clone $variants:tt) => {};
+    ($_nom_gen:tt $inh_header:tt $impl_header:tt $derive:ident $variants:tt) => {
+        $crate::__::compile_error!{$crate::__::concat!{
+            "the `simple_type_witness` macro does not support deriving `",
             $crate::__::stringify!($derive),
             "`.\n",
             "help: You could try using `#[derive(", 
