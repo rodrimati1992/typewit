@@ -448,11 +448,7 @@
 ///             => {
 ///                 // caveat: if any of the witnessed types has the same Type::Kind as another,
 ///                 //         then the variants with equal kinds will cause unwrap_ne to panic,
-///                 //          
-///                 // important that the `unwrap_ne` is *outside* the `const {}`,
-///                 // if it was inside the `const {}` it'd error when comparing equal witnesses
-///                 // because const in dead code can still be evaluated
-///                 const { Wit::KIND_WITNESS.equals(Wit2::KIND_WITNESS) }
+///                 Wit::KIND_WITNESS.equals(Wit2::KIND_WITNESS)
 ///                     .unwrap_ne()
 ///                     .map_to_arg(TypeKindFn) // maps from kind to type
 ///                     .to_cmp()

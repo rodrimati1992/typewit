@@ -223,11 +223,13 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
     /// ```rust
     /// use typewit::TypeNe;
     /// 
+    /// use std::sync::Arc;
+    /// 
     /// with_typene(typewit::type_ne!(str, [u8]));
     /// 
     /// const fn with_typene(ne: TypeNe<str, [u8]>) {
     ///     let _: TypeNe<&str, &[u8]> = ne.project_to_arg::<TargetFn, _, _>();
-    ///     let _: TypeNe<&mut str, Box<[u8]>> = ne.project_to_arg::<TargetFn, _, _>();
+    ///     let _: TypeNe<Arc<str>, Box<[u8]>> = ne.project_to_arg::<TargetFn, _, _>();
     ///     let _: TypeNe<String, Vec<u8>> = ne.project_to_arg::<TargetFn, _, _>();
     /// }
     /// 
