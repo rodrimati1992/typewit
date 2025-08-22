@@ -175,7 +175,7 @@ error[E0308]: mismatched types
 74 | | }
    | | ^
    | | |
-   | |_expected `TypeEq<(A, B, C, D), ...>`, found `TypeEq<_, _>`
+   | |_expected `TypeEq<(A, B, C, D), (A, B, u8, u64)>`, found `TypeEq<_, _>`
    |   arguments to this enum variant are incorrect
    |
    = note: expected struct `TypeEq<(A, B, C, D), (A, B, u8, u64)>`

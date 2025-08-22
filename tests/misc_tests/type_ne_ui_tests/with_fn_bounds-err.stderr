@@ -23,8 +23,13 @@ error[E0271]: type mismatch resolving `<MakeNe<i8, i16> as RevTypeFn<Option<i8>>
   --> tests/misc_tests/type_ne_ui_tests/with_fn_bounds-err.rs:10:41
    |
 10 | const _: TypeNe<[i16; 0], Option<i8>> = TypeNe::with_fn(MakeNe::NEW);
-   |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `RightArg`, found `u32`
+   |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ type mismatch resolving `<MakeNe<i8, i16> as RevTypeFn<Option<i8>>>::Arg == RightArg`
    |
+note: expected this to be `RightArg`
+  --> tests/misc_tests/type_ne_ui_tests/with_fn_bounds-err.rs:6:10
+   |
+6  |     impl u32 => Option<T>;
+   |          ^^^
    = note: required for `MakeNe<i8, i16>` to implement `InjTypeFn<RightArg>`
 
 error[E0277]: the trait bound `MakeNe<i8, i16>: TypeFn<RightArg>` is not satisfied
