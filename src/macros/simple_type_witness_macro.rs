@@ -395,7 +395,10 @@
 /// - the possibility of panics when there's variants with the same witnessed type
 /// - the need for additional bounds on the `equals` method
 /// 
-/// ```rust
+/// (this example requires Rust 1.61.0 due to use of trait bounds in const fns)
+/// 
+#[cfg_attr(not(feature = "rust_1_61"), doc = "```ignore")]
+#[cfg_attr(feature = "rust_1_61", doc = "```rust")]
 /// use typewit::{HasTypeWitness, MakeTypeWitness, TypeCmp};
 /// 
 /// // Specifying any type that works for the `T` type parameter.

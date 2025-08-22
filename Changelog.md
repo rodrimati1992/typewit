@@ -2,6 +2,12 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.13.0
+
+Added `TypeNe::{map_to_arg, project_to_arg}` methods.
+
+Added `Equals` derive to `simple_type_witness` macro, which defines `equals` inherent method on the type witness.
+
 ### 1.12.0
 
 Added `"generic_const_exprs"` crate feature, currently only used for doc examples.
