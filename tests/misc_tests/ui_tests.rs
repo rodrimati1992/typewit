@@ -1,3 +1,13 @@
+// use this command for ui tests:
+// 
+// clear;clear; env TRYBUILD=overwrite cargo test --no-default-features \
+// --features="rust_stable alloc __ui_tests"
+// (remember to run it with and without the proc_macros feature)
+
+
+
+
+
 #[cfg(feature = "__ui_tests")]
 #[test]
 fn ui() {

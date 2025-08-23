@@ -1,6 +1,6 @@
 [package]
 name = "typewit"
-version = "1.12.1"
+version = "1.13.0"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 rust-version = "1.57.0"
 edition = "2021"

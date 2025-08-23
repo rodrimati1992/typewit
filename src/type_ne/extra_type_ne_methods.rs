@@ -157,6 +157,98 @@ impl<L: ?Sized, R: ?Sized> TypeNe<L, R> {
         unprojected_type_cmp!{self, L, R, InvokeAlias<F>}
     }
 
+    /// Maps the `L` and `R` arguments of this `TypeNe<L, R>` 
+    /// back to any argument of the `F` type-level function that would produce them.
+    /// 
+    /// Use this function over [`project_to_arg`](Self::project_to_arg) 
+    /// if you want the type of the passed in function to be inferred.
+    /// 
+    /// This operation is possible because `Call<F, LA> !=  Call<F, RA>` implies `LA != RA`,
+    /// i.e.: the return values being different implies that the arguments are different.
+    /// 
+    /// As opposed to [`unmap`](Self::unmap), 
+    /// this only requires `F` to implement [`TypeFn`](crate::TypeFn),
+    /// and the return type is determined by the caller.
+    /// 
+    /// # Example
+    /// 
+    /// Projecting from item type to collections
+    /// 
+    /// ```rust
+    /// use typewit::TypeNe;
+    /// 
+    /// use std::ops::{Range, RangeInclusive};
+    /// 
+    /// with_typene(typewit::type_ne!(u8, i8));
+    /// 
+    /// const fn with_typene(ne: TypeNe<u8, i8>) {
+    ///     let _: TypeNe<Vec<u8>, [i8; 1]> = ne.map_to_arg(IntoIterFn);
+    ///     let _: TypeNe<Option<u8>, Result<i8, ()>> = ne.map_to_arg(IntoIterFn);
+    ///     let _: TypeNe<Range<u8>, RangeInclusive<i8>> = ne.map_to_arg(IntoIterFn);
+    /// }
+    /// 
+    /// typewit::type_fn!{
+    ///     struct IntoIterFn;
+    ///     
+    ///     impl<I: IntoIterator> I => I::Item
+    /// }
+    /// ```
+    /// 
+    pub const fn map_to_arg<F, LA, RA>(self: TypeNe<L, R>, func: F) -> TypeNe<LA, RA>
+    where
+        InvokeAlias<F>: crate::TypeFn<LA, Output = L> + crate::TypeFn<RA, Output = R>
+    {
+        core::mem::forget(func);
+
+        self.project_to_arg::<F, LA, RA>()
+    }
+
+    /// Maps the `L` and `R` arguments of this `TypeNe<L, R>` 
+    /// back to any argument of the `F` type-level function that would produce them.
+    /// 
+    /// Use this function over [`map_to_arg`](Self::map_to_arg) 
+    /// if you want to specify the type of the passed in function explicitly.
+    /// 
+    /// This operation is possible because `Call<F, LA> !=  Call<F, RA>` implies `LA != RA`,
+    /// i.e.: the return values being different implies that the arguments are different.
+    /// 
+    /// As opposed to [`unproject`](Self::unproject), 
+    /// this only requires `F` to implement [`TypeFn`](crate::TypeFn),
+    /// and the return type is determined by the caller.
+    /// 
+    /// # Example
+    /// 
+    /// Projecting from types to smart pointers that point to them.
+    /// 
+    /// ```rust
+    /// use typewit::TypeNe;
+    /// 
+    /// use std::sync::Arc;
+    /// 
+    /// with_typene(typewit::type_ne!(str, [u8]));
+    /// 
+    /// const fn with_typene(ne: TypeNe<str, [u8]>) {
+    ///     let _: TypeNe<&str, &[u8]> = ne.project_to_arg::<TargetFn, _, _>();
+    ///     let _: TypeNe<Arc<str>, Box<[u8]>> = ne.project_to_arg::<TargetFn, _, _>();
+    ///     let _: TypeNe<String, Vec<u8>> = ne.project_to_arg::<TargetFn, _, _>();
+    /// }
+    /// 
+    /// typewit::type_fn!{
+    ///     struct TargetFn;
+    ///     
+    ///     impl<I: std::ops::Deref> I => I::Target
+    /// }
+    /// ```
+    /// 
+    pub const fn project_to_arg<F, LA, RA>(self: TypeNe<L, R>) -> TypeNe<LA, RA>
+    where
+        InvokeAlias<F>: crate::TypeFn<LA, Output = L> + crate::TypeFn<RA, Output = R>
+    {
+        // SAFETY: Call<F, LA> !=  Call<F, RA> implies LA != RA
+        //         (a property fundamental to being a function)
+        unsafe { TypeNe::new_unchecked() }
+    }
+
     /// Converts a `TypeNe<L, R>` to `TypeNe<&L, &R>`
     /// 
     /// # Example

@@ -6,6 +6,8 @@ use typewit::{
 
 use crate::misc_tests::test_utils::{assert_type, assert_type_eq};
 
+use std::collections::{BTreeSet, HashSet};
+
 #[test]
 fn map_test() {
     assert_type::<_, TypeNe<&u8, &u16>>(type_ne!(u8, u16).map(GRef::NEW));
@@ -67,6 +69,56 @@ fn unproject_test() {
         assert_type_eq(ne.unproject::<GRefMut<'_>>(),  type_ne!(u8, u16));
     }
     assert_eq!(type_ne!(Foo<u8>, Foo<u16>).unproject::<FooFn>(), type_ne!(u8, u16));
+}
+
+#[test]
+fn map_to_arg_test() {
+    struct IiFn;
+
+    impl<I: IntoIterator> TypeFn<I> for IiFn {
+        type Output = I::Item;
+    }
+
+    const fn _constness(ne: TypeNe<u8, u16>) -> TypeNe<Vec<u8>, Option<u16>> {
+        ne.map_to_arg(IiFn)
+    }
+
+    assert_type::<_, TypeNe<Vec<u8>, Option<u16>>>(
+        type_ne!(u8, u16).map_to_arg::<_, Vec<_>, Option<_>>(IiFn), 
+    );
+
+    assert_type::<_, TypeNe<BTreeSet<bool>, HashSet<&str>>>(
+        type_ne!(bool, &'static str).map_to_arg::<_, BTreeSet<_>, HashSet<_>>(IiFn), 
+    );
+
+    assert_type::<_, TypeNe<[char; 2], Result<i32, ()>>>(
+        type_ne!(char, i32).map_to_arg::<_, [_; 2], Result<_, ()>>(IiFn), 
+    );
+}
+
+#[test]
+fn project_to_arg_test() {
+    struct IiFn;
+
+    impl<I: IntoIterator> TypeFn<I> for IiFn {
+        type Output = I::Item;
+    }
+
+    const fn _constness(ne: TypeNe<u8, u16>) -> TypeNe<Vec<u8>, Option<u16>> {
+        ne.project_to_arg::<IiFn, _, _>()
+    }
+
+    assert_type::<_, TypeNe<Vec<u8>, Option<u16>>>(
+        type_ne!(u8, u16).project_to_arg::<IiFn, Vec<_>, Option<_>>(), 
+    );
+
+    assert_type::<_, TypeNe<BTreeSet<bool>, HashSet<&str>>>(
+        type_ne!(bool, &'static str).project_to_arg::<IiFn, BTreeSet<_>, HashSet<_>>(), 
+    );
+
+    assert_type::<_, TypeNe<[char; 2], Result<i32, ()>>>(
+        type_ne!(char, i32).project_to_arg::<IiFn, [_; 2], Result<_, ()>>(), 
+    );
 }
 
 

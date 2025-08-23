@@ -1,4 +1,4 @@
-error: The `simple_type_witness` macro does not support deriving `Serialize`.
+error: the `simple_type_witness` macro does not support deriving `Serialize`.
        help: You could try using `#[derive(Serialize)]`.
  --> tests/misc_tests/stw_ui_tests/stw_invalid_syntax-err.rs:2:1
   |

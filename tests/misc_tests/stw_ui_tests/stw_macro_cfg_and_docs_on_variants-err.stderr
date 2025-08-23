@@ -6,7 +6,6 @@ error: missing documentation for an enum
 9  | |             Bar = u8,
 10 | |             ///
 ...  |
-14 | |         }
 15 | |     }
    | |_____^
    |
@@ -25,7 +24,6 @@ error: missing documentation for a variant
 9  | |             Bar = u8,
 10 | |             ///
 ...  |
-14 | |         }
 15 | |     }
    | |_____^
    |
@@ -39,7 +37,6 @@ error: missing documentation for an enum
 22 | |             ///
 23 | |             Bar = u8,
 ...  |
-27 | |         }
 28 | |     }
    | |_____^
    |
@@ -53,7 +50,6 @@ error: missing documentation for a variant
 22 | |             ///
 23 | |             Bar = u8,
 ...  |
-27 | |         }
 28 | |     }
    | |_____^
    |
@@ -67,7 +63,6 @@ error: missing documentation for an enum
 35 | |             ///
 36 | |             Bar = u8,
 ...  |
-40 | |         }
 41 | |     }
    | |_____^
    |
@@ -81,7 +76,6 @@ error: missing documentation for a variant
 35 | |             ///
 36 | |             Bar = u8,
 ...  |
-40 | |         }
 41 | |     }
    | |_____^
    |
@@ -95,7 +89,6 @@ error: missing documentation for an enum
 49 | |             Bar = u8,
 50 | |             #[cfg(any())]
 ...  |
-54 | |         }
 55 | |     }
    | |_____^
    |
@@ -109,7 +102,6 @@ error: missing documentation for a variant
 49 | |             Bar = u8,
 50 | |             #[cfg(any())]
 ...  |
-54 | |         }
 55 | |     }
    | |_____^
    |
@@ -123,7 +115,6 @@ error: missing documentation for an enum
 62 | |             ///
 63 | |             Bar = u8,
 ...  |
-67 | |         }
 68 | |     }
    | |_____^
    |
@@ -137,7 +128,6 @@ error: missing documentation for a variant
 62 | |             ///
 63 | |             Bar = u8,
 ...  |
-67 | |         }
 68 | |     }
    | |_____^
    |
