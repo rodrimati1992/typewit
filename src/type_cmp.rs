@@ -11,7 +11,7 @@ use core::{
     fmt::{self, Debug},
 };
 
-/// The result of comparing two types for equality.
+/// A witness of whether its `L` and `R` type parameters are the same or different types.
 /// 
 /// # Example
 /// 

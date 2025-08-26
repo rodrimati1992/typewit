@@ -11,11 +11,12 @@ The inciting motivation for this crate is emulating trait polymorphism in `const
 
 # What are type witnesses
 
-Type witnesses are enums that allow coercing between a type parameter and a
-range of possible types (one per variant).
+Type witnesses are values that prove the equality of a type parameter to a
+fixed set of possible types.
 
-The simplest type witness is [`TypeEq<L, R>`](crate::TypeEq),
-which only allows coercing between `L` and `R`.
+The simplest type witness is [`TypeEq<L, R>`][`TypeEq`],
+which only proves equality of its `L` and `R` type parameters,
+and can be used to coerce between them.
 
 Most type witnesses are enums with [`TypeEq`] fields,
 which can coerce between a type parameter and as many types as there are variants.
