@@ -1,0 +1,167 @@
+error[E0277]: () is not a type-level function over `u8`
+ --> tests/misc_tests/type_fn_ui_tests/type_is_not_fn-err.rs:9:20
+  |
+9 |     let _ = eq.map(());
+  |                --- ^^ the trait `TypeFn<u8>` is not implemented for `()`
+  |                |
+  |                required by a bound introduced by this call
+  |
+  = help: the following other types implement trait `TypeFn<T>`:
+            `FnIdentity` implements `TypeFn<T>`
+            `FnRev<F>` implements `TypeFn<A>`
+            `GBox` implements `TypeFn<T>`
+            `GRef<'a>` implements `TypeFn<T>`
+            `GRefMut<'a>` implements `TypeFn<T>`
+            `Identity` implements `TypeFn<T>`
+            `Invoke<F>` implements `TypeFn<T>`
+            `PhantomData<F>` implements `TypeFn<T>`
+          and $N others
+note: required by a bound in `typewit::type_eq::<impl TypeEq<L, R>>::map`
+ --> src/type_eq.rs
+  |
+  |     pub const fn map<F>(
+  |                  --- required by a bound in this associated function
+...
+  |         InvokeAlias<F>: crate::TypeFn<L> + crate::TypeFn<R>
+  |                         ^^^^^^^^^^^^^^^^ required by this bound in `typewit::type_eq::<impl TypeEq<L, R>>::map`
+
+error[E0277]: () is not a type-level function over `u8`
+  --> tests/misc_tests/type_fn_ui_tests/type_is_not_fn-err.rs:13:16
+   |
+13 |     let _ = ne.map(());
+   |                ^^^ the trait `TypeFn<u8>` is not implemented for `()`
+   |
+   = help: the following other types implement trait `TypeFn<T>`:
+             `FnIdentity` implements `TypeFn<T>`
+             `FnRev<F>` implements `TypeFn<A>`
+             `GBox` implements `TypeFn<T>`
+             `GRef<'a>` implements `TypeFn<T>`
+             `GRefMut<'a>` implements `TypeFn<T>`
+             `Identity` implements `TypeFn<T>`
+             `Invoke<F>` implements `TypeFn<T>`
+             `PhantomData<F>` implements `TypeFn<T>`
+           and $N others
+   = note: required for `()` to implement `InjTypeFn<u8>`
+
+error[E0277]: () does not have an reverse type-level function from `_`
+  --> tests/misc_tests/type_fn_ui_tests/type_is_not_fn-err.rs:13:16
+   |
+13 |     let _ = ne.map(());
+   |                ^^^ the trait `RevTypeFn<_>` is not implemented for `()`
+   |
+   = note: consider declaring `()` with the `typewit::inj_type_fn` macro
+   = help: the following other types implement trait `RevTypeFn<Ret>`:
+             `FnIdentity` implements `RevTypeFn<T>`
+             `FnRev<F>` implements `RevTypeFn<R>`
+             `GBox` implements `RevTypeFn<Box<T>>`
+             `GRef<'a>` implements `RevTypeFn<&'a T>`
+             `GRefMut<'a>` implements `RevTypeFn<&'a mut T>`
+             `Invoke<F>` implements `RevTypeFn<R>`
+             `PhantomData<F>` implements `RevTypeFn<R>`
+             `__TypeNeParameterizer` implements `RevTypeFn<u16>`
+             `__TypeNeParameterizer` implements `RevTypeFn<u8>`
+   = note: required for `()` to implement `InjTypeFn<u8>`
+
+error[E0277]: () is not a type-level function over `u16`
+  --> tests/misc_tests/type_fn_ui_tests/type_is_not_fn-err.rs:13:16
+   |
+13 |     let _ = ne.map(());
+   |                ^^^ the trait `TypeFn<u16>` is not implemented for `()`
+   |
+   = help: the following other types implement trait `TypeFn<T>`:
+             `FnIdentity` implements `TypeFn<T>`
+             `FnRev<F>` implements `TypeFn<A>`
+             `GBox` implements `TypeFn<T>`
+             `GRef<'a>` implements `TypeFn<T>`
+             `GRefMut<'a>` implements `TypeFn<T>`
+             `Identity` implements `TypeFn<T>`
+             `Invoke<F>` implements `TypeFn<T>`
+             `PhantomData<F>` implements `TypeFn<T>`
+           and $N others
+   = note: required for `()` to implement `InjTypeFn<u16>`
+
+error[E0277]: () is not an injective type-level function over `u8`
+  --> tests/misc_tests/type_fn_ui_tests/type_is_not_fn-err.rs:13:20
+   |
+13 |     let _ = ne.map(());
+   |                --- ^^ the trait `RevTypeFn<_>` is not implemented for `()`
+   |                |
+   |                required by a bound introduced by this call
+   |
+   = help: the following other types implement trait `RevTypeFn<Ret>`:
+             `FnIdentity` implements `RevTypeFn<T>`
+             `FnRev<F>` implements `RevTypeFn<R>`
+             `GBox` implements `RevTypeFn<Box<T>>`
+             `GRef<'a>` implements `RevTypeFn<&'a T>`
+             `GRefMut<'a>` implements `RevTypeFn<&'a mut T>`
+             `Invoke<F>` implements `RevTypeFn<R>`
+             `PhantomData<F>` implements `RevTypeFn<R>`
+             `__TypeNeParameterizer` implements `RevTypeFn<u16>`
+             `__TypeNeParameterizer` implements `RevTypeFn<u8>`
+   = note: required for `()` to implement `InjTypeFn<u8>`
+note: required by a bound in `typewit::type_ne_::<impl TypeNe<L, R>>::map`
+  --> src/./type_ne/extra_type_ne_methods.rs
+   |
+   |     pub const fn map<F>(
+   |                  --- required by a bound in this associated function
+...
+   |         InvokeAlias<F>: InjTypeFn<L> + InjTypeFn<R>
+   |                         ^^^^^^^^^^^^ required by this bound in `typewit::type_ne_::<impl TypeNe<L, R>>::map`
+
+error[E0277]: Identity does not have an reverse type-level function from `u8`
+  --> tests/misc_tests/type_fn_ui_tests/type_is_not_fn-err.rs:14:20
+   |
+14 |     let _ = ne.map(Identity);
+   |                --- ^^^^^^^^ the trait `RevTypeFn<u8>` is not implemented for `Identity`
+   |                |
+   |                required by a bound introduced by this call
+   |
+   = note: consider declaring `Identity` with the `typewit::inj_type_fn` macro
+   = help: the following other types implement trait `RevTypeFn<Ret>`:
+             `FnIdentity` implements `RevTypeFn<T>`
+             `FnRev<F>` implements `RevTypeFn<R>`
+             `GBox` implements `RevTypeFn<Box<T>>`
+             `GRef<'a>` implements `RevTypeFn<&'a T>`
+             `GRefMut<'a>` implements `RevTypeFn<&'a mut T>`
+             `Invoke<F>` implements `RevTypeFn<R>`
+             `PhantomData<F>` implements `RevTypeFn<R>`
+             `__TypeNeParameterizer` implements `RevTypeFn<u16>`
+             `__TypeNeParameterizer` implements `RevTypeFn<u8>`
+   = note: required for `Identity` to implement `InjTypeFn<u8>`
+note: required by a bound in `typewit::type_ne_::<impl TypeNe<L, R>>::map`
+  --> src/./type_ne/extra_type_ne_methods.rs
+   |
+   |     pub const fn map<F>(
+   |                  --- required by a bound in this associated function
+...
+   |         InvokeAlias<F>: InjTypeFn<L> + InjTypeFn<R>
+   |                         ^^^^^^^^^^^^ required by this bound in `typewit::type_ne_::<impl TypeNe<L, R>>::map`
+
+error[E0277]: Identity does not have an reverse type-level function from `u16`
+  --> tests/misc_tests/type_fn_ui_tests/type_is_not_fn-err.rs:14:20
+   |
+14 |     let _ = ne.map(Identity);
+   |                --- ^^^^^^^^ the trait `RevTypeFn<u16>` is not implemented for `Identity`
+   |                |
+   |                required by a bound introduced by this call
+   |
+   = note: consider declaring `Identity` with the `typewit::inj_type_fn` macro
+   = help: the following other types implement trait `RevTypeFn<Ret>`:
+             `FnIdentity` implements `RevTypeFn<T>`
+             `FnRev<F>` implements `RevTypeFn<R>`
+             `GBox` implements `RevTypeFn<Box<T>>`
+             `GRef<'a>` implements `RevTypeFn<&'a T>`
+             `GRefMut<'a>` implements `RevTypeFn<&'a mut T>`
+             `Invoke<F>` implements `RevTypeFn<R>`
+             `PhantomData<F>` implements `RevTypeFn<R>`
+             `__TypeNeParameterizer` implements `RevTypeFn<u16>`
+             `__TypeNeParameterizer` implements `RevTypeFn<u8>`
+   = note: required for `Identity` to implement `InjTypeFn<u16>`
+note: required by a bound in `typewit::type_ne_::<impl TypeNe<L, R>>::map`
+  --> src/./type_ne/extra_type_ne_methods.rs
+   |
+   |     pub const fn map<F>(
+   |                  --- required by a bound in this associated function
+...
+   |         InvokeAlias<F>: InjTypeFn<L> + InjTypeFn<R>
+   |                                        ^^^^^^^^^^^^ required by this bound in `typewit::type_ne_::<impl TypeNe<L, R>>::map`

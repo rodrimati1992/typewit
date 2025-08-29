@@ -151,6 +151,9 @@ pub use crate::type_fn;
 /// }
 /// ```
 /// 
+#[cfg_attr(feature = "rust_1_83", diagnostic::on_unimplemented(
+    message = "{Self} is not a type-level function over `{T}`",
+))]
 pub trait TypeFn<T: ?Sized> {
     /// The return value of the function
     type Output: ?Sized;
