@@ -38,6 +38,12 @@ use crate::{
     TypeNe,
 };
 
+#[cfg(feature = "rust_1_83")]
+mod const_marker_trait;
+
+#[cfg(feature = "rust_1_83")]
+pub use const_marker_trait::*;
+
 mod boolwit;
 
 pub use boolwit::*;
@@ -76,19 +82,29 @@ pub mod slice {
 struct Helper<L, R>(L, R);
 
 
-
 macro_rules! __const_eq_with {
-    ($L:ident, $R:ident) => {
+    ($L:expr, $R:expr) => {
         $L == $R
     };
-    ($L:ident, $R:ident, ($L2:ident, $R2:ident) $cmp:expr) => ({
+    ($L:expr, $R:expr, ($L2:ident, $R2:ident) $cmp:expr) => ({
         let $L2 = $L;
         let $R2 = $R;
         $cmp
     });
 } pub(crate) use __const_eq_with;
 
+
 macro_rules! declare_const_param_type {
+    ($($params:tt)*) => {
+        $crate::const_marker::__declare_const_param_type!{ $($params)* }
+
+        #[cfg(feature = "rust_1_83")]
+        $crate::const_marker::const_marker_trait::__const_marker_impls!{ $($params)* }
+    }
+} pub(crate) use declare_const_param_type;
+
+
+macro_rules! __declare_const_param_type {
     (
         $(#[$struct_docs:meta])*
         $struct:ident($prim:ty)
@@ -169,7 +185,7 @@ macro_rules! declare_const_param_type {
             }
         }
     };
-} pub(crate) use declare_const_param_type;
+} pub(crate) use __declare_const_param_type;
 
 
 declare_const_param_type!{
