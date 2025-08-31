@@ -429,6 +429,7 @@ pub type CmEquals<Lhs, Rhs> =
 /// 
 /// ```
 /// 
+#[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_83")))]
 pub const fn equals<L, R>(_lhs: &L, _rhs: &R) -> TypeCmp<L, R>
 where
     L: ConstMarkerEq,
