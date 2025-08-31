@@ -1,0 +1,79 @@
+error[E0277]: the trait bound `L: ConstMarkerEq` is not satisfied
+ --> tests/misc_tests/const_marker_ui_tests/calling_equals-type-err.rs:6:16
+  |
+6 |     cm::equals(l, r)
+  |     ---------- ^ the trait `ConstMarkerEq` is not implemented for `L`
+  |     |
+  |     required by a bound introduced by this call
+  |
+note: required by a bound in `equals`
+ --> src/const_marker/const_marker_eq_traits.rs
+  |
+  | pub const fn equals<L, R>(_lhs: &L, _rhs: &R) -> TypeCmp<L, R>
+  |              ------ required by a bound in this function
+  | where
+  |     L: ConstMarkerEq,
+  |        ^^^^^^^^^^^^^ required by this bound in `equals`
+help: consider restricting type parameter `L` with trait `ConstMarkerEq`
+  |
+5 | const fn call_equals<L: typewit::const_marker::ConstMarkerEq, R>(l: &L, r: &R) -> TypeCmp<L, R> {
+  |                       ++++++++++++++++++++++++++++++++++++++
+
+error[E0277]: the trait bound `R: ConstMarkerEq` is not satisfied
+ --> tests/misc_tests/const_marker_ui_tests/calling_equals-type-err.rs:6:19
+  |
+6 |     cm::equals(l, r)
+  |     ----------    ^ the trait `ConstMarkerEq` is not implemented for `R`
+  |     |
+  |     required by a bound introduced by this call
+  |
+note: required by a bound in `equals`
+ --> src/const_marker/const_marker_eq_traits.rs
+  |
+  | pub const fn equals<L, R>(_lhs: &L, _rhs: &R) -> TypeCmp<L, R>
+  |              ------ required by a bound in this function
+...
+  |     R: ConstMarkerEq<Of = L::Of>,
+  |        ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `equals`
+help: consider restricting type parameter `R` with trait `ConstMarkerEq`
+  |
+5 | const fn call_equals<L, R: typewit::const_marker::ConstMarkerEq>(l: &L, r: &R) -> TypeCmp<L, R> {
+  |                          ++++++++++++++++++++++++++++++++++++++
+
+error[E0277]: the trait bound `L: ConstMarker` is not satisfied
+ --> tests/misc_tests/const_marker_ui_tests/calling_equals-type-err.rs:6:5
+  |
+6 |     cm::equals(l, r)
+  |     ^^^^^^^^^^^^^^^^ the trait `ConstMarker` is not implemented for `L`
+  |
+help: consider restricting type parameter `L` with trait `ConstMarker`
+  |
+5 | const fn call_equals<L: typewit::const_marker::ConstMarker, R>(l: &L, r: &R) -> TypeCmp<L, R> {
+  |                       ++++++++++++++++++++++++++++++++++++
+
+error[E0271]: type mismatch resolving `<R as ConstMarker>::Of == <L as ConstMarker>::Of`
+  --> tests/misc_tests/const_marker_ui_tests/calling_equals-type-err.rs:14:19
+   |
+9  | const fn call_equals_with_unequal<L, R>(l: &L, r: &R) -> TypeCmp<L, R>
+   |                                   -  - found type parameter
+   |                                   |
+   |                                   expected type parameter
+...
+14 |     cm::equals(l, r)
+   |     ----------    ^ expected type parameter `L`, found type parameter `R`
+   |     |
+   |     required by a bound introduced by this call
+   |
+   = note: expected associated type `<L as ConstMarker>::Of`
+              found associated type `<R as ConstMarker>::Of`
+   = note: a type parameter was expected, but a different one was found; you might be missing a type parameter or trait bound
+   = note: for more information, visit https://doc.rust-lang.org/book/ch10-02-traits.html#traits-as-parameters
+   = note: an associated type was expected, but a different one was found
+note: required by a bound in `equals`
+  --> src/const_marker/const_marker_eq_traits.rs
+   |
+   | pub const fn equals<L, R>(_lhs: &L, _rhs: &R) -> TypeCmp<L, R>
+   |              ------ required by a bound in this function
+...
+   |     R: ConstMarkerEq<Of = L::Of>,
+   |                      ^^^^^^^^^^ required by this bound in `equals`

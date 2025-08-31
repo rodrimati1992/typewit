@@ -18,7 +18,7 @@ mod const_marker_trait_tests;
 mod const_marker_eq_traits_tests;
 
 #[cfg(feature = "rust_1_83")]
-mod equals_fn_tests;
+mod equals_tests;
 
 
 #[test]
