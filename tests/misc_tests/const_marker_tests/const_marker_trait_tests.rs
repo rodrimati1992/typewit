@@ -22,10 +22,10 @@ impl ConstAssocOf for Two {
     type C = cm::U16<2>;
 }
 
-const fn generic_fn<T, C: ConstMarkerOf<T>>() -> T {
+fn generic_fn<T, C: ConstMarkerOf<T>>() -> T {
     <C as ConstMarker>::VAL
 }
-const fn const_assoc_fn<T: ConstAssocOf>() -> T::Of {
+fn const_assoc_fn<T: ConstAssocOf>() -> T::Of {
     generic_fn::<T::Of, T::C>()
 }
 
