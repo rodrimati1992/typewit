@@ -4,7 +4,10 @@
 /// 
 /// Emulating generic associated constants on stable
 /// 
-/// ```rust
+/// (this example Requires Rust 1.65.0)
+/// 
+#[cfg_attr(not(feature = "rust_1_65"), doc = "```ignore")]
+#[cfg_attr(feature = "rust_1_65", doc = "```rust")]
 /// use typewit::const_marker::{ConstMarker, ConstMarkerOf};
 /// 
 /// 
