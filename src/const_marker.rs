@@ -38,11 +38,15 @@ use crate::{
     TypeNe,
 };
 
-#[cfg(feature = "rust_1_83")]
 mod const_marker_trait;
 
-#[cfg(feature = "rust_1_83")]
 pub use const_marker_trait::*;
+
+#[cfg(feature = "rust_1_83")]
+mod const_marker_eq_traits;
+
+#[cfg(feature = "rust_1_83")]
+pub use const_marker_eq_traits::*;
 
 mod boolwit;
 
@@ -99,7 +103,7 @@ macro_rules! declare_const_param_type {
         $crate::const_marker::__declare_const_param_type!{ $($params)* }
 
         #[cfg(feature = "rust_1_83")]
-        $crate::const_marker::const_marker_trait::__const_marker_impls!{ $($params)* }
+        $crate::const_marker::__const_marker_impls!{ $($params)* }
     }
 } pub(crate) use declare_const_param_type;
 
@@ -121,6 +125,11 @@ macro_rules! __declare_const_param_type {
         $(#[$struct_docs])*
         #[derive(Debug, Copy, Clone)]
         pub struct $struct<const VAL: $prim>;
+
+        impl<const VAL: $prim> crate::const_marker::ConstMarker for $struct<VAL> {
+            const VAL: Self::Of = VAL;
+            type Of = $prim;
+        }
 
         impl<const L: $prim, const R: $prim> $crate::const_marker::Helper<$struct<L>, $struct<R>> {
             const EQ: Result<

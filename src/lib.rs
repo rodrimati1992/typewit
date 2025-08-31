@@ -481,6 +481,7 @@
 //! - `"rust_stable"`: enables all the `"rust_1_*"` features.
 //! 
 //! - `"rust_1_83"`: turns functions that take mutable references into `const fn`s,
+//! enables [`const_marker`] items for comparing [`ConstMarker`]s,
 //! and enables the `"rust_1_65"` feature.
 //! 
 //! - `"rust_1_65"`: enables the [`type_constructors`] module,
@@ -534,6 +535,8 @@
 //! [`MetaBaseTypeWit`]: crate::MetaBaseTypeWit
 //! [`BaseTypeWitness`]:  crate::BaseTypeWitness
 //! [`Usize`]: crate::const_marker::Usize
+//! [`typewit::const_marker`]: crate::const_marker
+//! [`ConstMarker`]: crate::const_marker::ConstMarker
 //! [`generic_const_exprs`]: https://doc.rust-lang.org/unstable-book/language-features/generic-const-exprs.html
 #![no_std]
 #![cfg_attr(feature = "adt_const_marker", feature(adt_const_params))]

@@ -482,6 +482,7 @@ These features enable items that have a minimum Rust version:
 - `"rust_stable"`: enables all the `"rust_1_*"` features.
 
 - `"rust_1_83"`: turns functions that take mutable references into `const fn`s,
+enables [`const_marker`] items for comparing [`ConstMarker`]s,
 and enables the `"rust_1_65"` feature.
 
 - `"rust_1_65"`: enables the [`type_constructors`] module,
@@ -538,4 +539,5 @@ need to be explicitly enabled with crate features.
 [`MetaBaseTypeWit`]: https://docs.rs/typewit/latest/typewit/enum.MetaBaseTypeWit.html
 [`BaseTypeWitness`]: https://docs.rs/typewit/latest/typewit/trait.BaseTypeWitness.html
 [`Usize`]: https://docs.rs/typewit/latest/typewit/const_marker/struct.Usize.html
+[`ConstMarker`]: https://docs.rs/typewit/latest/typewit/const_marker/trait.ConstMarker.html
 [`generic_const_exprs`]: https://doc.rust-lang.org/unstable-book/language-features/generic-const-exprs.html
