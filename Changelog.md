@@ -2,6 +2,28 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.14.0
+
+Added these items:
+- `typewit::const_marker::ConstMarker` trait
+- `typewit::const_marker::ConstMarkerOf` trait (alias for `ConstMarker`)
+
+Added these items (gated on `"rust_1_83"` feature):
+- `typewit::const_marker::CmEquals` type alias
+- `typewit::const_marker::ConstMarkerEq` trait
+- `typewit::const_marker::ConstMarkerEqOf` trait (alias for `ConstMarkerEq`)
+- `typewit::const_marker::ConstMarkerHasWitness` trait (with a blanket impl)
+- `typewit::const_marker::HasConstMarker` trait
+- `typewit::const_marker::StdTypeEquality` type
+
+Added `ConstMarker`, `ConstMarkerEq` impls for std-related marker types from `typewit::const_marker`.
+
+Added `HasConstMarker` impls for std types.
+
+Changed Debug impls of const marker types from only formatting their type name to delegating to the const parameter.
+
+Added `PartialEq` and `Eq` impls for const marker types.
+
 ### 1.13.0
 
 Added `TypeNe::{map_to_arg, project_to_arg}` methods.
