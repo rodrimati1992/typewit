@@ -58,9 +58,9 @@ pub trait ConstMarker: Sized {
 /// 
 /// This trait also shows the `Of` type in unsatisfied trait bound errors
 /// (`ConstMarker<Of = ...>` bounds obfuscate this a bit as of 1.89.0) 
-#[diagnostic::on_unimplemented(
+#[cfg_attr(feature = "rust_1_83", diagnostic::on_unimplemented(
     message = "`{Self}` is not a type-level constant of type `{Of}`",
-)]
+))]
 pub trait ConstMarkerOf<Of>: ConstMarker<Of = Of> {}
 
 impl<C, Of> ConstMarkerOf<Of> for C
