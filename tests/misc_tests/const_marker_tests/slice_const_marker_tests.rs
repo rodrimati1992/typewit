@@ -75,36 +75,36 @@ fn str_slice_eq_test() {
     case!{&["foo", "foo2", "bar"], &["foo", "foo2", "car"], is_ne}
 }
 
+macro_rules! test_val_perms_case {
+    ($T:ident, $lhs:expr, $rhs:expr, $is_eq:ident, $msg:expr) => ({
+        assert!($T::<{$lhs}>.equals($T::<{$rhs}>).$is_eq(), ".equals(), {}", $msg);
+        
+        assert!(
+            cm::CmEquals::<$T<{$lhs}>, $T<{$rhs}>>::VAL.$is_eq(), 
+            "CmEquals, {}", 
+            $msg,
+        );
+        
+        assert!(cm::equals(&$T::<{$lhs}>, &$T::<{$rhs}>).$is_eq(), "fn equals, {}", $msg);
+    })
+}
+
 macro_rules! test_val_perms {
     ($T:ident, $a:expr, $b:expr, $c:expr, $d:expr) => {
-        assert!($T::<{&[]}>.equals($T::<{&[]}>).is_eq(), "0:");
 
-        assert!($T::<{&[]}>.equals($T::<{&[$a]}>).is_ne(), "1:");
-        assert!($T::<{&[$a]}>.equals($T::<{&[]}>).is_ne(), "2:");
-        assert!($T::<{&[$b]}>.equals($T::<{&[$b ]}>).is_eq(), "3:");
-        assert!($T::<{&[$a]}>.equals($T::<{&[$a]}>).is_eq(), "4:");
+        test_val_perms_case!($T, &[], &[], is_eq, "0");
 
-        assert!($T::<{&[$d, $d]}>.equals($T::<{&[$d]}>).is_ne(), "5:");
-        assert!($T::<{&[$d, $d]}>.equals($T::<{&[$c]}>).is_ne(), "6:");
-        assert!($T::<{&[$d, $d]}>.equals($T::<{&[$d, $c]}>).is_ne(), "7:");
-        assert!($T::<{&[$c, $c]}>.equals($T::<{&[$c, $d]}>).is_ne(), "8:");
-        assert!($T::<{&[$d, $d]}>.equals($T::<{&[$d, $d]}>).is_eq(), "9:");
-        assert!($T::<{&[$c, $c]}>.equals($T::<{&[$c, $c]}>).is_eq(), "10:");
+        test_val_perms_case!($T, &[], &[$a], is_ne, "1");
+        test_val_perms_case!($T, &[$a], &[], is_ne, "2");
+        test_val_perms_case!($T, &[$b], &[$b ], is_eq, "3");
+        test_val_perms_case!($T, &[$a], &[$a], is_eq, "4");
 
-        assert!(cm::CmEquals::<$T<{&[]}>, $T<{&[]}>>::VAL.is_eq(), "0:");
-
-        assert!(cm::CmEquals::<$T<{&[]}>, $T<{&[$a]}>>::VAL.is_ne(), "1:");
-        assert!(cm::CmEquals::<$T<{&[$a]}>, $T<{&[]}>>::VAL.is_ne(), "2:");
-        assert!(cm::CmEquals::<$T<{&[$b]}>, $T<{&[$b ]}>>::VAL.is_eq(), "3:");
-        assert!(cm::CmEquals::<$T<{&[$a]}>, $T<{&[$a]}>>::VAL.is_eq(), "4:");
-
-        assert!(cm::CmEquals::<$T<{&[$d, $d]}>, $T<{&[$d]}>>::VAL.is_ne(), "5:");
-        assert!(cm::CmEquals::<$T<{&[$d, $d]}>, $T<{&[$c]}>>::VAL.is_ne(), "6:");
-        assert!(cm::CmEquals::<$T<{&[$d, $d]}>, $T<{&[$d, $c]}>>::VAL.is_ne(), "7:");
-        assert!(cm::CmEquals::<$T<{&[$c, $c]}>, $T<{&[$c, $d]}>>::VAL.is_ne(), "8:");
-        assert!(cm::CmEquals::<$T<{&[$d, $d]}>, $T<{&[$d, $d]}>>::VAL.is_eq(), "9:");
-        assert!(cm::CmEquals::<$T<{&[$c, $c]}>, $T<{&[$c, $c]}>>::VAL.is_eq(), "10:");
-
+        test_val_perms_case!($T, &[$d, $d], &[$d], is_ne, "5");
+        test_val_perms_case!($T, &[$d, $d], &[$c], is_ne, "6");
+        test_val_perms_case!($T, &[$d, $d], &[$d, $c], is_ne, "7");
+        test_val_perms_case!($T, &[$c, $c], &[$c, $d], is_ne, "8");
+        test_val_perms_case!($T, &[$d, $d], &[$d, $d], is_eq, "9");
+        test_val_perms_case!($T, &[$c, $c], &[$c, $c], is_eq, "10");
     };
 }
 

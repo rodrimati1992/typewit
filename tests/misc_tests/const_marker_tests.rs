@@ -17,6 +17,9 @@ mod const_marker_trait_tests;
 #[cfg(feature = "rust_1_83")]
 mod const_marker_eq_traits_tests;
 
+#[cfg(feature = "rust_1_83")]
+mod equals_fn_tests;
+
 
 #[test]
 fn test_integer_const_marker() {
@@ -51,6 +54,26 @@ fn test_integer_const_marker() {
             };
             const Z: $prim = 0;
             const P: $prim = 1;
+
+            // Debug formatting
+            {                
+                assert_eq!(format!("{:?}", $ty::<N>), format!("{:?}", N));
+                assert_eq!(format!("{:?}", $ty::<Z>), format!("{:?}", Z));
+                assert_eq!(format!("{:?}", $ty::<P>), format!("{:?}", P));
+            }
+
+            // PartialEq-based inequality
+            {
+                assert_ne!($ty::<N>, $ty::<Z>);
+                assert_ne!($ty::<N>, $ty::<P>);
+            }
+            
+            // PartialEq-based equality
+            {                
+                assert_eq!($ty::<N>, $ty::<N>);
+                assert_eq!($ty::<Z>, $ty::<Z>);
+                assert_eq!($ty::<P>, $ty::<P>);
+            }
 
             match $equals_macro!($ty<N>, $ty<Z>) {
                 TypeCmp::Eq(typewit::TypeEq::<$ty<N>, $ty<Z>>{..}) => panic!("OH NO"),
@@ -115,6 +138,16 @@ fn test_integer_const_marker() {
 }
 
 #[test]
+fn test_char_const_marker_std_impls() {
+    assert_eq!(format!("{:?}", Char::<'a'>), format!("{:?}", 'a'));
+    assert_eq!(format!("{:?}", Char::<'\n'>), format!("{:?}", '\n'));
+
+    assert_eq!(Char::<'4'>, Char::<'4'>);
+
+    assert_ne!(Char::<'a'>, Char::<'4'>);
+}
+
+#[test]
 fn test_char_const_marker() {
     match Char::<'a'>.equals(Char::<'4'>) {
         TypeCmp::Eq(typewit::TypeEq::<Char<'a'>, Char<'4'>>{..}) => panic!("OH NO"),
@@ -125,6 +158,18 @@ fn test_char_const_marker() {
         TypeCmp::Eq(typewit::TypeEq::<Char<'4'>, Char<'4'>>{..}) => (),
         TypeCmp::Ne(typewit::TypeNe::<Char<'4'>, Char<'4'>>{..}) => panic!("OH NO"),
     }
+}
+
+#[test]
+fn test_bool_const_marker_std_impls() {
+    assert_eq!(format!("{:?}", Bool::<false>), format!("{:?}", false));
+    assert_eq!(format!("{:?}", Bool::<true>), format!("{:?}", true));
+
+    assert_eq!(Bool::<false>, Bool::<false>);
+    assert_eq!(Bool::<true>, Bool::<true>);
+
+    assert_ne!(Bool::<false>, Bool::<true>);
+    assert_ne!(Bool::<true>, Bool::<false>);
 }
 
 #[test]

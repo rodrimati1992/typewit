@@ -123,7 +123,7 @@ macro_rules! __declare_const_param_type {
             "` as a type parameter."
         )]
         $(#[$struct_docs])*
-        #[derive(Debug, Copy, Clone)]
+        #[derive(Copy, Clone)]
         pub struct $struct<const VAL: $prim>;
 
         impl<const VAL: $prim> crate::const_marker::ConstMarker for $struct<VAL> {
@@ -193,6 +193,23 @@ macro_rules! __declare_const_param_type {
                 $crate::const_marker::Helper::<$struct<VAL>, $struct<OTHER>>::EQUALS
             }
         }
+
+        /////////
+
+        impl<const VAL: $prim> core::fmt::Debug for $struct<VAL> {
+            fn fmt(&self, fmt: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                core::fmt::Debug::fmt(&VAL, fmt)
+            }
+        }
+
+        impl<const L: $prim, const R: $prim> core::cmp::PartialEq<$struct<R>> for $struct<L> {
+            fn eq(&self, _: &$struct<R>) -> bool {
+                L == R
+            }
+        }
+
+        impl<const VAL: $prim> core::cmp::Eq for $struct<VAL> {}
+
     };
 } pub(crate) use __declare_const_param_type;
 

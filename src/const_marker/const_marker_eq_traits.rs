@@ -2,7 +2,7 @@ use crate::{TypeCmp, TypeWitnessTypeArg, MakeTypeWitness};
 use crate::const_marker::{ConstMarkerOf, ConstMarker};
 
 
-/// For types whose values have a [`ConstMarker`]-equivalent.
+/// For types whose values have a [`ConstMarker`] equivalent.
 #[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_83")))]
 pub trait HasConstMarker {
     /// The type witness used by the [`ConstMarkerEq<Of = Self>`](ConstMarkerEq) impl of `CM`
@@ -40,17 +40,21 @@ pub trait HasConstMarker {
 /// use typewit::TypeCmp;
 /// use typewit::const_marker::{ConstMarker, ConstMarkerEqOf, U8};
 /// 
-/// // T == U
-/// assert!(typecast::<_, U8<5>>(U8::<5>).is_ok());
 /// 
-/// // T != U
-/// assert!(typecast::<_, U8<5>>(U8::<3>).is_err());
-/// assert!(typecast::<_, U8<5>>(U8::<4>).is_err());
-/// assert!(typecast::<_, U8<5>>(U8::<6>).is_err());
-/// assert!(typecast::<_, U8<5>>(U8::<7>).is_err());
+/// const _: () = {
+///     // T == U
+///     assert!(matches!(typecast::<_, U8<5>>(U8::<5>), Ok(U8::<5>)));
+/// 
+///     // T != U
+///     assert!(matches!(typecast::<_, U8<5>>(U8::<3>), Err(U8::<3>)));
+///     assert!(matches!(typecast::<_, U8<5>>(U8::<4>), Err(U8::<4>)));
+///     assert!(matches!(typecast::<_, U8<5>>(U8::<6>), Err(U8::<6>)));
+///     assert!(matches!(typecast::<_, U8<5>>(U8::<7>), Err(U8::<7>)));
+/// };
+/// 
 /// 
 /// // Typecasts `T` to `U` if T == U, returns `Err(val)` if `T != U`.
-/// fn typecast<T, U>(val: T) -> Result<U, T>
+/// const fn typecast<T, U>(val: T) -> Result<U, T>
 /// where
 ///     T: ConstMarkerEqOf<u8>,
 ///     U: ConstMarkerEqOf<u8>,
@@ -77,19 +81,19 @@ pub trait HasConstMarker {
 /// 
 /// const _: () = {
 ///     // returns Some if L == R
-///     assert!(typecast_bar::<_, _, First>(&Bar(3, First)).is_some());
-///     assert!(typecast_bar::<_, _, Second>(&Bar(5, Second)).is_some());
-///     assert!(typecast_bar::<_, _, Third>(&Bar(8, Third)).is_some());
+///     assert!(matches!(typecast_bar::<_, _, First>(&Bar(3, First)), Some(&Bar(3, First))));
+///     assert!(matches!(typecast_bar::<_, _, Second>(&Bar(5, Second)), Some(&Bar(5, Second))));
+///     assert!(matches!(typecast_bar::<_, _, Third>(&Bar(8, Third)), Some(&Bar(8, Third))));
 ///     
 ///     // returns None if L != R
-///     assert!(typecast_bar::<_, _, First>(&Bar(5, Second)).is_none());
-///     assert!(typecast_bar::<_, _, First>(&Bar(8, Third)).is_none());
+///     assert!(matches!(typecast_bar::<_, _, First>(&Bar(5, Second)), None));
+///     assert!(matches!(typecast_bar::<_, _, First>(&Bar(8, Third)), None));
 ///     
-///     assert!(typecast_bar::<_, _, Second>(&Bar(3, First)).is_none());
-///     assert!(typecast_bar::<_, _, Second>(&Bar(8, Third)).is_none());
+///     assert!(matches!(typecast_bar::<_, _, Second>(&Bar(3, First)), None));
+///     assert!(matches!(typecast_bar::<_, _, Second>(&Bar(8, Third)), None));
 ///     
-///     assert!(typecast_bar::<_, _, Third>(&Bar(3, First)).is_none());
-///     assert!(typecast_bar::<_, _, Third>(&Bar(5, Second)).is_none());
+///     assert!(matches!(typecast_bar::<_, _, Third>(&Bar(3, First)), None));
+///     assert!(matches!(typecast_bar::<_, _, Third>(&Bar(5, Second)), None));
 /// };
 /// 
 /// 
@@ -197,17 +201,30 @@ pub trait HasConstMarker {
 /// 
 /// use core::marker::PhantomData as PD;
 /// 
-/// // `T == U`, does the typecast
-/// assert!(typecast_pair::<Pair<U8<3>, U8<5>>, Pair<U8<3>, U8<5>>>(Pair(PD)).is_ok());
-/// assert!(typecast_pair::<Pair<I8<3>, I8<5>>, Pair<I8<3>, I8<5>>>(Pair(PD)).is_ok());
-/// 
-/// // `T != U`, returns error
-/// assert!(typecast_pair::<Pair<U16<3>, U16<5>>, Pair<U16<3>, U16<9>>>(Pair(PD)).is_err());
-/// assert!(typecast_pair::<Pair<I16<3>, I16<5>>, Pair<I16<9>, I16<5>>>(Pair(PD)).is_err());
-/// 
-/// 
+/// const _: () = {
+///     // `T == U`, does the typecast
+///     assert!(matches!(
+///         typecast::<Pair<U8<3>, U8<5>>, Pair<U8<3>, U8<5>>>(Pair(PD)),
+///         Ok(Pair::<U8<3>, U8<5>>(PD)),
+///     ));
+///     assert!(matches!(
+///         typecast::<Pair<I8<3>, I8<5>>, Pair<I8<3>, I8<5>>>(Pair(PD)),
+///         Ok(Pair::<I8<3>, I8<5>>(PD)),
+///     ));
+///     
+///     // `T != U`, returns error
+///     assert!(matches!(
+///        typecast::<Pair<U16<3>, U16<5>>, Pair<U16<3>, U16<9>>>(Pair(PD)),
+///        Err(Pair::<U16<3>, U16<5>>(PD)),
+///     ));
+///     assert!(matches!(
+///        typecast::<Pair<I16<3>, I16<5>>, Pair<I16<9>, I16<5>>>(Pair(PD)),
+///        Err(Pair::<I16<3>, I16<5>>(PD)),
+///     ));
+/// };
+///     
 /// // Typecasts `T` to `U` if `T == U`, returns `Err(pair)` if `T != U`.
-/// const fn typecast_pair<T: IsPair, U: IsPair<Of = T::Of>>(pair: T) -> Result<U, T> {
+/// const fn typecast<T: IsPair, U: IsPair<Of = T::Of>>(pair: T) -> Result<U, T> {
 ///     match T::PairEquals::<U>::VAL {
 ///         // `te: TypeEq<T, U>`, a proof of `T == U`
 ///         TypeCmp::Eq(te) => Ok(te.to_right(pair)),
@@ -377,6 +394,48 @@ where
 #[cfg_attr(feature = "docsrs", doc(cfg(feature = "rust_1_83")))]
 pub type CmEquals<Lhs, Rhs> = 
     <Lhs as ConstMarkerEq>::Equals::<Rhs>;
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/// Compared any two [`ConstMarkerEq`] types that have constants of the same type,
+/// returning a proof of their type (in)equality.
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use typewit::TypeCmp;
+/// use typewit::const_marker::{self, ConstMarkerEq, Char, U8};
+/// 
+/// assert_eq!(typecast(Char::<' '>, Char::<' '>), Ok([Char::<' '>, Char::<' '>]));
+/// assert_eq!(typecast(Char::<'X'>, Char::<'Y'>), Err((Char::<'X'>, Char::<'Y'>)));
+/// 
+/// assert_eq!(typecast(U8::<3>, U8::<3>), Ok([U8::<3>, U8::<3>]));
+/// assert_eq!(typecast(U8::<5>, U8::<8>), Err((U8::<5>, U8::<8>)));
+/// 
+/// 
+/// 
+/// const fn typecast<L, R>(lhs: L, rhs: R) -> Result<[L; 2], (L, R)>
+/// where
+///    L: ConstMarkerEq,
+///    R: ConstMarkerEq<Of = L::Of>,
+/// {
+///     match const_marker::equals(&lhs, &rhs) {
+///         TypeCmp::Eq(te) => Ok([lhs, te.to_left(rhs)]),
+///         TypeCmp::Ne(_) => Err((lhs, rhs))
+///     }
+/// }
+/// 
+/// ```
+/// 
+pub const fn equals<L, R>(_lhs: &L, _rhs: &R) -> TypeCmp<L, R>
+where
+    L: ConstMarkerEq,
+    R: ConstMarkerEq<Of = L::Of>,
+{
+    L::Equals::<R>::VAL
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
