@@ -13,6 +13,7 @@
 fn ui() {
     let t = trybuild::TestCases::new();
     for dir in [
+        "const_marker_ui_tests",
         "misc_ui_tests",
         "stw_ui_tests",
         "type_eq_ui_tests",

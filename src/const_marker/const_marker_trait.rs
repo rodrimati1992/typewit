@@ -89,8 +89,9 @@ pub trait HasConstMarker {
 /// A [`ConstMarker`] that can be compared to another `ConstMarker` to 
 /// produce a [`TypeCmp`] of the comparison.
 /// 
-/// This trait is mostly designed to support `ConstMarker`s of primitive std types,
-/// field-less enums, and single-field structs.
+/// This trait is mostly designed to support `ConstMarker`s of:
+/// - primitive std types
+/// - field-less enums
 /// 
 /// # Examples
 /// 
@@ -104,7 +105,7 @@ pub trait HasConstMarker {
 /// ### Basic usage of std types
 /// 
 /// ```rust
-/// use typewit::{MakeTypeWitness, TypeCmp};
+/// use typewit::TypeCmp;
 /// use typewit::const_marker::{ConstMarker, ConstMarkerEqOf, U8};
 /// 
 /// // T == U
@@ -137,7 +138,7 @@ pub trait HasConstMarker {
 /// Defining a type-level enum that can be compared for equality with `ConstMarkerEq`
 /// 
 /// ```rust
-/// use typewit::{MakeTypeWitness, TypeCmp};
+/// use typewit::TypeCmp;
 /// use typewit::const_marker::{
 ///     ConstMarker, ConstMarkerOf, ConstMarkerEq, ConstMarkerEqOf, HasConstMarker
 /// };
@@ -332,7 +333,7 @@ pub trait HasConstMarker {
 ///         }
 ///         
 ///         // uses the `Identity` supertrait to get a proof that `Lhs` and `Rhs` are `Pair`s
-///         let eq_Lhs: TypeEq<Lhs, Pair<Lhs::T, Lhs::U>> = Lhs::TYPE_EQ;
+///         let eq_lhs: TypeEq<Lhs, Pair<Lhs::T, Lhs::U>> = Lhs::TYPE_EQ;
 ///         let eq_rhs: TypeEq<Rhs, Pair<Rhs::T, Rhs::U>> = Rhs::TYPE_EQ;
 ///     
 ///         let cmp_t: TypeCmp<Lhs::T, Rhs::T> = CmEquals::<Lhs::T, Rhs::T>::VAL;
@@ -341,7 +342,7 @@ pub trait HasConstMarker {
 ///         let cmp: TypeCmp<Pair<Lhs::T, Lhs::U>, Pair<Rhs::T, Rhs::U>> =
 ///             cmp_t.zip(cmp_u).map(PairFn::NEW);
 ///     
-///         cmp.join_left(eq_Lhs).join_right(eq_rhs.flip())
+///         cmp.join_left(eq_lhs).join_right(eq_rhs.flip())
 ///     };
 /// }
 /// 
@@ -487,19 +488,20 @@ macro_rules! __const_marker_impls {
         }
 
         impl crate::const_marker::HasConstMarker for $prim {
-            type Witness<CM: ConstMarkerOf<Self>> = crate::const_marker::__StdIdentityTypeEq<CM>;
+            type Witness<CM: crate::const_marker::ConstMarkerOf<Self>> =
+                crate::const_marker::__StdIdentityTypeEq<CM>;
         }
 
         impl<const VAL: $prim> crate::const_marker::ConstMarkerEq for $struct<VAL> {
-            type Equals<Rhs: ConstMarkerEqOf<Self::Of>> = 
+            type Equals<Rhs: crate::const_marker::ConstMarkerEqOf<Self::Of>> = 
                 crate::const_marker::StdTypeEquality<$prim, Self, Rhs>;
         }
 
         impl<L, R> crate::const_marker::ConstMarker
         for crate::const_marker::StdTypeEquality<$prim, L, R>
         where
-            L: ConstMarkerEqOf<$prim>,
-            R: ConstMarkerEqOf<$prim>,
+            L: crate::const_marker::ConstMarkerEqOf<$prim>,
+            R: crate::const_marker::ConstMarkerEqOf<$prim>,
         {
             const VAL: Self::Of = 
                 if crate::const_marker::__const_eq_with!(
