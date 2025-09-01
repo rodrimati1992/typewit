@@ -279,7 +279,7 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// 
     /// # Panic
     /// 
-    /// Panics if the contained value is a `TypeNe`.
+    /// Panics if the contained value is a `TypeNe`, with `msg` as the panic message.
     /// 
     /// # Example
     /// 
@@ -323,7 +323,7 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     /// 
     /// # Panic
     /// 
-    /// Panics if the contained value is a `TypeEq`.
+    /// Panics if the contained value is a `TypeEq`, with `msg` as the panic message.
     /// 
     /// # Example
     /// 

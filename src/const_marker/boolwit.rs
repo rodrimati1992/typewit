@@ -294,7 +294,7 @@ impl<B> BoolWitG<B> {
     ///
     /// # Panic
     ///
-    /// Panics if `B == Bool<false>`
+    /// Panics if `B == Bool<false>`, with `msg` as the panic message.
     ///
     /// # Example
     ///
@@ -336,7 +336,7 @@ impl<B> BoolWitG<B> {
     ///
     /// # Panic
     /// 
-    /// Panics if `B == Bool<true>`
+    /// Panics if `B == Bool<true>`, with `msg` as the panic message.
     ///
     /// # Example
     ///
