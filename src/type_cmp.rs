@@ -275,6 +275,28 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
         }
     }
 
+    /// Returns the contained `TypeEq`
+    /// 
+    /// # Panic
+    /// 
+    /// Panics if the contained value is a `TypeNe`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeEq};
+    /// 
+    /// let eq: TypeCmp<u8, u8> = TypeCmp::Eq(TypeEq::NEW);
+    /// assert!(matches!(eq.expect_eq("they're the same type!"), TypeEq::<u8, u8>{..}));
+    /// ```
+    #[track_caller]
+    pub const fn expect_eq(self, msg: &str) -> TypeEq<L, R> {
+        match self {
+            TypeCmp::Eq(te) => te,
+            TypeCmp::Ne(_) => panic!("{}", msg),
+        }
+    }
+
     /// Returns the contained `TypeNe`
     /// 
     /// # Panic
@@ -293,6 +315,28 @@ impl<L: ?Sized, R: ?Sized> TypeCmp<L, R> {
     pub const fn unwrap_ne(self) -> TypeNe<L, R> {
         match self {
             TypeCmp::Eq(_) => panic!("called `TypeCmp::unwrap_ne` on a `TypeEq` value"),
+            TypeCmp::Ne(te) => te,
+        }
+    }
+
+    /// Returns the contained `TypeNe`
+    /// 
+    /// # Panic
+    /// 
+    /// Panics if the contained value is a `TypeEq`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use typewit::{TypeCmp, TypeNe, type_ne};
+    /// 
+    /// let ne = TypeCmp::Ne(type_ne!(u8, i8));
+    /// assert!(matches!(ne.expect_ne("but u8 isn't i8..."), TypeNe::<u8, i8>{..}));
+    /// ```
+    #[track_caller]
+    pub const fn expect_ne(self, msg: &str) -> TypeNe<L, R> {
+        match self {
+            TypeCmp::Eq(_) => panic!("{}", msg),
             TypeCmp::Ne(te) => te,
         }
     }

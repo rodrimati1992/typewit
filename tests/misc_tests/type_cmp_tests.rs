@@ -149,6 +149,24 @@ fn test_unwrap_eq_panicking() {
 
 
 #[test]
+fn test_expect_eq() {
+    const fn const_callable<T: ?Sized, U: ?Sized>(cmp: TypeCmp<T, U>) -> TypeCmp<T, U> {
+        let _ = cmp.expect_eq("huh...");
+        cmp
+    }
+
+    let x = const_callable(TypeCmp::<u8, u8>::Eq(TypeEq::NEW)).expect_eq("huh...");
+    assert_type::<_, TypeEq<u8, u8>>(x);
+}
+
+#[test]
+#[should_panic]
+fn test_expect_eq_panicking() {
+    TypeCmp::Ne(type_ne!(u8, i8)).expect_eq("huh...");
+}
+
+
+#[test]
 fn test_unwrap_ne() {
     const fn const_callable<T: ?Sized, U: ?Sized>(cmp: TypeCmp<T, U>) -> TypeCmp<T, U> {
         let _ = cmp.unwrap_ne();
@@ -164,6 +182,25 @@ fn test_unwrap_ne() {
 fn test_unwrap_ne_panicking() {
     TypeCmp::<u8, u8>::Eq(TypeEq::NEW).unwrap_ne();
 }
+
+
+#[test]
+fn test_expect_ne() {
+    const fn const_callable<T: ?Sized, U: ?Sized>(cmp: TypeCmp<T, U>) -> TypeCmp<T, U> {
+        let _ = cmp.expect_ne("oh no...");
+        cmp
+    }
+
+    let x = const_callable(TypeCmp::Ne(type_ne!(u8, i8))).expect_ne("oh no...");
+    assert_type::<_, TypeNe<u8, i8>>(x);
+}
+
+#[test]
+#[should_panic]
+fn test_expect_ne_panicking() {
+    TypeCmp::<u8, u8>::Eq(TypeEq::NEW).expect_ne("oh no...");
+}
+
 
 #[cfg(feature = "rust_1_61")]
 #[test]

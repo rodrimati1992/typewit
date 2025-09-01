@@ -1,0 +1,47 @@
+error[E0080]: evaluation panicked: attempted to unwrap into False on True variant
+ --> tests/misc_tests/const_marker_ui_tests/boolwit_unwraps-err.rs:8:44
+  |
+8 | const _: TypeEq<Bool<true>, Bool<false>> = T.unwrap_false();
+  |                                            ^^^^^^^^^^^^^^^^ evaluation of `_` failed inside this call
+  |
+note: inside `BoolWitG::<Bool<true>>::unwrap_false`
+ --> src/const_marker/boolwit.rs
+  |
+  |             Self::True{..} => panic!("attempted to unwrap into False on True variant")
+  |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+error[E0080]: evaluation panicked: testing testing 123
+  --> tests/misc_tests/const_marker_ui_tests/boolwit_unwraps-err.rs:10:44
+   |
+10 | const _: TypeEq<Bool<true>, Bool<false>> = T.expect_false("testing testing 123");
+   |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `_` failed inside this call
+   |
+note: inside `BoolWitG::<Bool<true>>::expect_false`
+  --> src/const_marker/boolwit.rs
+   |
+   |             Self::True{..} => panic!("{}", msg)
+   |                               ^^^^^^^^^^^^^^^^^ the failure occurred here
+
+error[E0080]: evaluation panicked: attempted to unwrap into True on False variant
+  --> tests/misc_tests/const_marker_ui_tests/boolwit_unwraps-err.rs:12:44
+   |
+12 | const _: TypeEq<Bool<false>, Bool<true>> = F.unwrap_true();
+   |                                            ^^^^^^^^^^^^^^^ evaluation of `_` failed inside this call
+   |
+note: inside `BoolWitG::<Bool<false>>::unwrap_true`
+  --> src/const_marker/boolwit.rs
+   |
+   |             Self::False{..}  => panic!("attempted to unwrap into True on False variant")
+   |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+
+error[E0080]: evaluation panicked: testing testing 456
+  --> tests/misc_tests/const_marker_ui_tests/boolwit_unwraps-err.rs:14:44
+   |
+14 | const _: TypeEq<Bool<false>, Bool<true>> = F.expect_true("testing testing 456");
+   |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `_` failed inside this call
+   |
+note: inside `BoolWitG::<Bool<false>>::expect_true`
+  --> src/const_marker/boolwit.rs
+   |
+   |             Self::False{..}  => panic!("{}", msg)
+   |                                 ^^^^^^^^^^^^^^^^^ the failure occurred here

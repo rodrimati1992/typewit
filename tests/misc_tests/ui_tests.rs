@@ -16,6 +16,7 @@ fn ui() {
         "const_marker_ui_tests",
         "misc_ui_tests",
         "stw_ui_tests",
+        "type_cmp_ui_tests",
         "type_eq_ui_tests",
         "type_fn_ui_tests",
         "type_ne_ui_tests",

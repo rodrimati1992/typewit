@@ -1,0 +1,23 @@
+error[E0080]: evaluation panicked: called `TypeCmp::unwrap_ne` on a `TypeEq` value
+ --> tests/misc_tests/type_cmp_ui_tests/typecmp_unwrap-err.rs:6:27
+  |
+6 | const _: TypeNe<u8, u8> = TypeCmp::Eq(EQ).unwrap_ne();
+  |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `_` failed here
+
+error[E0080]: evaluation panicked: testing testing 123
+ --> tests/misc_tests/type_cmp_ui_tests/typecmp_unwrap-err.rs:8:27
+  |
+8 | const _: TypeNe<u8, u8> = TypeCmp::Eq(EQ).expect_ne("testing testing 123");
+  |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `_` failed here
+
+error[E0080]: evaluation panicked: called `TypeCmp::unwrap_eq` on a `TypeNe` value
+  --> tests/misc_tests/type_cmp_ui_tests/typecmp_unwrap-err.rs:10:27
+   |
+10 | const _: TypeEq<u8, i8> = TypeCmp::Ne(NE).unwrap_eq();
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `_` failed here
+
+error[E0080]: evaluation panicked: testing testing 456
+  --> tests/misc_tests/type_cmp_ui_tests/typecmp_unwrap-err.rs:12:27
+   |
+12 | const _: TypeEq<u8, i8> = TypeCmp::Ne(NE).expect_eq("testing testing 456");
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `_` failed here

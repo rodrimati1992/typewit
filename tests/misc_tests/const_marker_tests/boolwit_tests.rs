@@ -41,6 +41,7 @@ fn to_false_test() {
     assert_eq!(inner(BoolWitG::False(TypeEq::NEW)), Some(TypeEq::new::<Bool<false>>()));
 }
 
+
 #[test]
 fn unwrap_true_test() {
     const fn inner<B>(wit: BoolWitG<B>) -> TypeEq<B, Bool<true>> {
@@ -61,6 +62,26 @@ fn unwrap_true_on_false_test() {
 }
 
 #[test]
+fn expect_true_test() {
+    const fn inner<B>(wit: BoolWitG<B>) -> TypeEq<B, Bool<true>> {
+        wit.expect_true("what?")
+    }
+
+    assert_eq!(inner(BoolWitG::True(TypeEq::NEW)), TypeEq::new::<Bool<true>>());
+}
+
+#[test]
+#[should_panic]
+fn expect_true_on_false_test() {
+    const fn inner<B>(wit: BoolWitG<B>) -> TypeEq<B, Bool<true>> {
+        wit.expect_true("oh no...")
+    }
+
+    let _ = inner(BoolWitG::False(TypeEq::NEW));
+}
+
+
+#[test]
 fn unwrap_false_test() {
     const fn inner<B>(wit: BoolWitG<B>) -> TypeEq<B, Bool<false>> {
         wit.unwrap_false()
@@ -74,6 +95,25 @@ fn unwrap_false_test() {
 fn unwrap_false_on_true_test() {
     const fn inner<B>(wit: BoolWitG<B>) -> TypeEq<B, Bool<false>> {
         wit.unwrap_false()
+    }
+
+    let _ = inner(BoolWitG::True(TypeEq::NEW));
+}
+
+#[test]
+fn expect_false_test() {
+    const fn inner<B>(wit: BoolWitG<B>) -> TypeEq<B, Bool<false>> {
+        wit.expect_false("what")
+    }
+
+    assert_eq!(inner(BoolWitG::False(TypeEq::NEW)), TypeEq::new::<Bool<false>>());
+}
+
+#[test]
+#[should_panic]
+fn expect_false_on_true_test() {
+    const fn inner<B>(wit: BoolWitG<B>) -> TypeEq<B, Bool<false>> {
+        wit.expect_false("what the ffff")
     }
 
     let _ = inner(BoolWitG::True(TypeEq::NEW));

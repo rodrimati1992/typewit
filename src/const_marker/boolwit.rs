@@ -290,6 +290,27 @@ impl<B> BoolWitG<B> {
         }
     }
 
+    /// Gets a proof of `B == Bool<true>`.
+    ///
+    /// # Panic
+    ///
+    /// Panics if `B == Bool<false>`
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use typewit::{const_marker::{Bool, BoolWitG}, TypeEq};
+    /// 
+    /// assert_eq!(BoolWitG::True(TypeEq::NEW).expect_true(":("), TypeEq::new::<Bool<true>>());
+    /// ```
+    ///
+    pub const fn expect_true(self, msg: &str) -> TypeEq<B, Bool<true>> {
+        match self {
+            Self::True(x) => x,
+            Self::False{..}  => panic!("{}", msg)
+        }
+    }
+
     /// Gets a proof of `B == Bool<false>`.
     ///
     /// # Panic
@@ -308,6 +329,30 @@ impl<B> BoolWitG<B> {
         match self {
             Self::False(x) => x,
             Self::True{..} => panic!("attempted to unwrap into False on True variant")
+        }
+    }
+
+    /// Gets a proof of `B == Bool<false>`.
+    ///
+    /// # Panic
+    /// 
+    /// Panics if `B == Bool<true>`
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use typewit::{const_marker::{Bool, BoolWitG}, TypeEq};
+    /// 
+    /// assert_eq!(
+    ///     BoolWitG::False(TypeEq::NEW).expect_false("it is false"),
+    ///     TypeEq::new::<Bool<false>>(),
+    /// );
+    /// ```
+    ///
+    pub const fn expect_false(self, msg: &str) -> TypeEq<B, Bool<false>> {
+        match self {
+            Self::False(x) => x,
+            Self::True{..} => panic!("{}", msg)
         }
     }
 

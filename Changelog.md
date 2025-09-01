@@ -4,6 +4,10 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 ### 1.14.0
 
+Added `expect_true` and `expect_false` methods to `typewit::const_marker::BoolWitG`
+
+Added `expect_eq` and `expect_ne` methods to `typewit::TypeCmp`
+
 Added these items:
 - `typewit::const_marker::ConstMarker` trait
 - `typewit::const_marker::ConstMarkerOf` trait (alias for `ConstMarker`)
