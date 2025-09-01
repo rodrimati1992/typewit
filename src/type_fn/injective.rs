@@ -65,6 +65,9 @@ use core::marker::PhantomData;
 /// ```
 /// 
 /// [injective]: mod@crate::type_fn#injective
+#[cfg_attr(feature = "rust_1_83", diagnostic::on_unimplemented(
+    message = "{Self} is not an injective type-level function over `{A}`"
+))]
 pub trait InjTypeFn<A: ?Sized>: TypeFn<A, Output = Self::Ret> + RevTypeFn<Self::Ret, Arg = A> {
     /// Return value of the function
     type Ret: ?Sized;
@@ -174,6 +177,10 @@ where
 /// ```
 /// 
 /// [injective]: mod@crate::type_fn#injective
+#[cfg_attr(feature = "rust_1_83", diagnostic::on_unimplemented(
+    message = "{Self} does not have an reverse type-level function from `{Ret}`",
+    note = "consider declaring `{Self}` with the `typewit::inj_type_fn` macro",
+))]
 pub trait RevTypeFn<Ret: ?Sized>: TypeFn<Self::Arg, Output = Ret> {
     /// The argument to this function with `Ret` as the return value.
     type Arg: ?Sized;

@@ -49,6 +49,8 @@
 /// # { unimplemented!() }
 /// # }
 /// ```
+/// ([`TypeCmp<L, R>`](crate::TypeCmp) is a witness of whether 
+/// `L` and `R` are the same or different types)
 /// 
 /// Limitations: this derive does not allow the type witness to: 
 /// - have any generic parameters
@@ -394,6 +396,7 @@
 /// note: The reason `simple_type_witness` does not do this implicitly is due to:
 /// - the possibility of panics when there's variants with the same witnessed type
 /// - the need for additional bounds on the `equals` method
+/// - having to decide how to handle compatibility of witnesses with unequal generic arguments.
 /// 
 /// (this example requires Rust 1.61.0 due to use of trait bounds in const fns)
 /// 
@@ -401,10 +404,12 @@
 #[cfg_attr(feature = "rust_1_61", doc = "```rust")]
 /// use typewit::{HasTypeWitness, MakeTypeWitness, TypeCmp};
 /// 
-/// // Specifying any type that works for the `T` type parameter.
-/// // Cannot avoid having to specify the generic arg here, 
-/// // because defaulting the MakeTypeWitness impl for `u8` and `&str` makes 
-/// // their witness incompatible with the witness for `&[T]` in the `equals` method.
+/// 
+/// // Cannot avoid having to specify the first generic arg here, 
+/// // because defaulting the `MakeTypeWitness` impl for `TypeWitness` over `u8` and `&str` 
+/// // (which would make the first argument of `pair_to_array` inferrable)
+/// // makes their witnesses incompatible types with the witness for `&[T]` 
+/// // when they're passed to the `TypeWitness::equals` method.
 /// assert_eq!(pair_to_array::<(), _, _>(3, 5), Ok([3, 5]));
 /// assert_eq!(pair_to_array::<(), _, _>("hello", "world"), Ok(["hello", "world"]));
 /// assert_eq!(pair_to_array(&[3u8, 5][..], &[8, 13][..]), Ok([&[3, 5][..], &[8, 13]]));
@@ -418,27 +423,41 @@
 ///     A: Type<'a, T>,
 ///     B: Type<'a, T>,
 /// {
+///     // calls `TypeWitness::equals`
 ///     match A::WITNESS.equals(B::WITNESS) {
-///         TypeCmp::Eq(te) => Ok([foo, te.to_left(bar)]),
-///         TypeCmp::Ne(_) => Err((foo, bar)),
+///         // te: TypeEq<A, B>, a value-level proof that A == B
+///         TypeCmp::Eq(te) => {
+///             // `te.to_left(bar)` here coerces `bar` from `B` to `A`
+///             Ok([foo, te.to_left(bar)])
+///         }
+///         // _ne: TypeNe<A, B>, a value-level proof that A != B
+///         TypeCmp::Ne(_ne) => Err((foo, bar)),
 ///     }
 /// }
 /// 
 /// impl<'a, T, Wit: HasTypeKind> TypeWitness<'a, T, Wit> {
+///     /// Compares `Wit` and Wit2` for equality, 
+///     /// returning a proof of their (in)equality.
 ///     pub const fn equals<Wit2: HasTypeKind>(
 ///         self, 
 ///         other: TypeWitness<'a, T, Wit2>,
 ///     ) -> TypeCmp<Wit, Wit2> {
 ///         match (self, other) {
+///             // `Wit == u8` and `Wit2 == u8`, therefore Wit == Wit2
 ///             (TypeWitness::U8(l_te), TypeWitness::U8(r_te)) => {
 ///                 l_te.join(r_te.flip()).to_cmp()
 ///             }
+///             // `Wit == &'a str` and `Wit2 == &'a str`, therefore Wit == Wit2
 ///             (TypeWitness::Str(l_te), TypeWitness::Str(r_te)) => {
 ///                 l_te.join(r_te.flip()).to_cmp()
 ///             }
+///             // `Wit == &'a [T]` and `Wit2 == &'a [T]`, therefore Wit == Wit2
 ///             (TypeWitness::Slice(l_te), TypeWitness::Slice(r_te)) => {
 ///                 l_te.join(r_te.flip()).to_cmp()
 ///             }
+///             // the witnesses aren't the same variant, so they're different types
+///             // (requires the witness to be declared with never-overlapping variants)
+///             // 
 ///             // using this instead of a blanket `_ => ` pattern because, 
 ///             // with a `_` pattern, adding more variants would run this branch,
 ///             // causing a panic when those types are compared to themselves.
@@ -446,8 +465,13 @@
 ///             |(TypeWitness::Str(_), _)
 ///             |(TypeWitness::Slice(_), _)
 ///             => {
-///                 // caveat: if any of the witnessed types has the same Type::Kind as another,
-///                 //         then the variants with equal kinds will cause unwrap_ne to panic,
+///                 // Compares the `HasTypeKind::Kind` assoc types of `Wit` and `Wit2` 
+///                 // with `.equals()`, unwraps into a proof of `Wit::Kind != Wit2::Kind`,
+///                 // then maps that proof to one of `Wit != Wit2`.
+///                 // 
+///                 // caveat: if any of the variants holds a type witness with the same 
+///                 //         `HasTypeKind::Kind` as another,
+///                 //         then comparing those variants will cause `unwrap_ne` to panic,
 ///                 Wit::KIND_WITNESS.equals(Wit2::KIND_WITNESS)
 ///                     .unwrap_ne()
 ///                     .map_to_arg(TypeKindFn) // maps from kind to type
@@ -479,10 +503,12 @@
 /// // Giving each type an associated kind, kinds have their own type witness.
 /// pub trait HasTypeKind {
 ///     type Kind: HasTypeWitness<KindWitness<Self::Kind>>;
+/// 
+///     // helper for getting the type witness of the `Kind` associated type
 ///     const KIND_WITNESS: KindWitness<Self::Kind> = <Self::Kind>::WITNESS;
 /// }
 /// 
-/// // defining a type-level function from type to its associated kind,
+/// // defining a type-level function from a type to its associated kind,
 /// // used by `.map_to_arg` above to do the inverse (going from kind to type).
 /// typewit::type_fn!{
 ///     struct TypeKindFn;

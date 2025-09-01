@@ -11,11 +11,12 @@ The inciting motivation for this crate is emulating trait polymorphism in `const
 
 # What are type witnesses
 
-Type witnesses are enums that allow coercing between a type parameter and a
-range of possible types (one per variant).
+Type witnesses are values that prove the equality of a type parameter to a
+fixed set of possible types.
 
-The simplest type witness is [`TypeEq<L, R>`](crate::TypeEq),
-which only allows coercing between `L` and `R`.
+The simplest type witness is [`TypeEq<L, R>`][`TypeEq`],
+which only proves equality of its `L` and `R` type parameters,
+and can be used to coerce between them.
 
 Most type witnesses are enums with [`TypeEq`] fields,
 which can coerce between a type parameter and as many types as there are variants.
@@ -481,6 +482,7 @@ These features enable items that have a minimum Rust version:
 - `"rust_stable"`: enables all the `"rust_1_*"` features.
 
 - `"rust_1_83"`: turns functions that take mutable references into `const fn`s,
+enables [`const_marker`] items for comparing [`ConstMarker`]s,
 and enables the `"rust_1_65"` feature.
 
 - `"rust_1_65"`: enables the [`type_constructors`] module,
@@ -537,4 +539,5 @@ need to be explicitly enabled with crate features.
 [`MetaBaseTypeWit`]: https://docs.rs/typewit/latest/typewit/enum.MetaBaseTypeWit.html
 [`BaseTypeWitness`]: https://docs.rs/typewit/latest/typewit/trait.BaseTypeWitness.html
 [`Usize`]: https://docs.rs/typewit/latest/typewit/const_marker/struct.Usize.html
+[`ConstMarker`]: https://docs.rs/typewit/latest/typewit/const_marker/trait.ConstMarker.html
 [`generic_const_exprs`]: https://doc.rust-lang.org/unstable-book/language-features/generic-const-exprs.html

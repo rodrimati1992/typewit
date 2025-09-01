@@ -38,6 +38,16 @@ use crate::{
     TypeNe,
 };
 
+mod const_marker_trait;
+
+pub use const_marker_trait::*;
+
+#[cfg(feature = "rust_1_83")]
+mod const_marker_eq_traits;
+
+#[cfg(feature = "rust_1_83")]
+pub use const_marker_eq_traits::*;
+
 mod boolwit;
 
 pub use boolwit::*;
@@ -76,19 +86,29 @@ pub mod slice {
 struct Helper<L, R>(L, R);
 
 
-
 macro_rules! __const_eq_with {
-    ($L:ident, $R:ident) => {
+    ($L:expr, $R:expr) => {
         $L == $R
     };
-    ($L:ident, $R:ident, ($L2:ident, $R2:ident) $cmp:expr) => ({
+    ($L:expr, $R:expr, ($L2:ident, $R2:ident) $cmp:expr) => ({
         let $L2 = $L;
         let $R2 = $R;
         $cmp
     });
 } pub(crate) use __const_eq_with;
 
+
 macro_rules! declare_const_param_type {
+    ($($params:tt)*) => {
+        $crate::const_marker::__declare_const_param_type!{ $($params)* }
+
+        #[cfg(feature = "rust_1_83")]
+        $crate::const_marker::__const_marker_impls!{ $($params)* }
+    }
+} pub(crate) use declare_const_param_type;
+
+
+macro_rules! __declare_const_param_type {
     (
         $(#[$struct_docs:meta])*
         $struct:ident($prim:ty)
@@ -103,8 +123,13 @@ macro_rules! declare_const_param_type {
             "` as a type parameter."
         )]
         $(#[$struct_docs])*
-        #[derive(Debug, Copy, Clone)]
+        #[derive(Copy, Clone)]
         pub struct $struct<const VAL: $prim>;
+
+        impl<const VAL: $prim> crate::const_marker::ConstMarker for $struct<VAL> {
+            const VAL: Self::Of = VAL;
+            type Of = $prim;
+        }
 
         impl<const L: $prim, const R: $prim> $crate::const_marker::Helper<$struct<L>, $struct<R>> {
             const EQ: Result<
@@ -168,8 +193,25 @@ macro_rules! declare_const_param_type {
                 $crate::const_marker::Helper::<$struct<VAL>, $struct<OTHER>>::EQUALS
             }
         }
+
+        /////////
+
+        impl<const VAL: $prim> core::fmt::Debug for $struct<VAL> {
+            fn fmt(&self, fmt: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                core::fmt::Debug::fmt(&VAL, fmt)
+            }
+        }
+
+        impl<const L: $prim, const R: $prim> core::cmp::PartialEq<$struct<R>> for $struct<L> {
+            fn eq(&self, _: &$struct<R>) -> bool {
+                L == R
+            }
+        }
+
+        impl<const VAL: $prim> core::cmp::Eq for $struct<VAL> {}
+
     };
-} pub(crate) use declare_const_param_type;
+} pub(crate) use __declare_const_param_type;
 
 
 declare_const_param_type!{

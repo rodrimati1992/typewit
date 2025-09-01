@@ -12,12 +12,42 @@ mod slice_const_marker_tests;
 
 mod boolwit_tests;
 
+mod const_marker_trait_tests;
+
+#[cfg(feature = "rust_1_83")]
+mod const_marker_eq_traits_tests;
+
+#[cfg(feature = "rust_1_83")]
+mod equals_tests;
+
 
 #[test]
 fn test_integer_const_marker() {
+    type Type<T> = T;
+
+    macro_rules! use_equals_method {
+        ($lhs:ty, $rhs:ty) => {
+            Type::<$lhs>{}.equals(Type::<$rhs>{})
+        }
+    }
+    #[cfg(feature = "rust_1_83")]
+    macro_rules! use_cm_equals {
+        ($lhs:ty, $rhs:ty) => {
+            <typewit::const_marker::CmEquals<$lhs, $rhs> as typewit::const_marker::ConstMarker>::VAL
+        }
+    }
 
     macro_rules! shared_test_case {
         ($ty:ident, $prim:ty) => ({
+            shared_test_case_inner!{$ty, $prim, use_equals_method}
+
+            #[cfg(feature = "rust_1_83")]
+            shared_test_case_inner!{$ty, $prim, use_cm_equals}
+        })
+    }
+
+    macro_rules! shared_test_case_inner {
+        ($ty:ident, $prim:ty, $equals_macro:ident) => ({
             const N: $prim = {
                 let n: $prim = 0;
                 n.wrapping_sub(1)
@@ -25,47 +55,67 @@ fn test_integer_const_marker() {
             const Z: $prim = 0;
             const P: $prim = 1;
 
-            match $ty::<N>.equals($ty::<Z>) {
+            // Debug formatting
+            {                
+                assert_eq!(format!("{:?}", $ty::<N>), format!("{:?}", N));
+                assert_eq!(format!("{:?}", $ty::<Z>), format!("{:?}", Z));
+                assert_eq!(format!("{:?}", $ty::<P>), format!("{:?}", P));
+            }
+
+            // PartialEq-based inequality
+            {
+                assert_ne!($ty::<N>, $ty::<Z>);
+                assert_ne!($ty::<N>, $ty::<P>);
+            }
+            
+            // PartialEq-based equality
+            {                
+                assert_eq!($ty::<N>, $ty::<N>);
+                assert_eq!($ty::<Z>, $ty::<Z>);
+                assert_eq!($ty::<P>, $ty::<P>);
+            }
+
+            match $equals_macro!($ty<N>, $ty<Z>) {
                 TypeCmp::Eq(typewit::TypeEq::<$ty<N>, $ty<Z>>{..}) => panic!("OH NO"),
                 TypeCmp::Ne(typewit::TypeNe::<$ty<N>, $ty<Z>>{..}) => (),
             }
 
-            match $ty::<Z>.equals($ty::<N>) {
+            match $equals_macro!($ty<Z>, $ty<N>) {
                 TypeCmp::Eq(typewit::TypeEq::<$ty<Z>, $ty<N>>{..}) => panic!("OH NO"),
                 TypeCmp::Ne(typewit::TypeNe::<$ty<Z>, $ty<N>>{..}) => (),
             }
 
-            match $ty::<P>.equals($ty::<N>) {
+            match $equals_macro!($ty<P>, $ty<N>) {
                 TypeCmp::Eq(typewit::TypeEq::<$ty<P>, $ty<N>>{..}) => panic!("OH NO"),
                 TypeCmp::Ne(typewit::TypeNe::<$ty<P>, $ty<N>>{..}) => (),
             }
 
-            match $ty::<N>.equals($ty::<P>) {
+            match $equals_macro!($ty<N>, $ty<P>) {
                 TypeCmp::Eq(typewit::TypeEq::<$ty<N>, $ty<P>>{..}) => panic!("OH NO"),
                 TypeCmp::Ne(typewit::TypeNe::<$ty<N>, $ty<P>>{..}) => (),
             }
 
-            match $ty::<P>.equals($ty::<Z>) {
+            match $equals_macro!($ty<P>, $ty<Z>) {
                 TypeCmp::Eq(typewit::TypeEq::<$ty<P>, $ty<Z>>{..}) => panic!("OH NO"),
                 TypeCmp::Ne(typewit::TypeNe::<$ty<P>, $ty<Z>>{..}) => (),
             }
 
-            match $ty::<Z>.equals($ty::<P>) {
+            match $equals_macro!($ty<Z>, $ty<P>) {
                 TypeCmp::Eq(typewit::TypeEq::<$ty<Z>, $ty<P>>{..}) => panic!("OH NO"),
                 TypeCmp::Ne(typewit::TypeNe::<$ty<Z>, $ty<P>>{..}) => (),
             }
 
-            match $ty::<N>.equals($ty::<N>) {
+            match $equals_macro!($ty<N>, $ty<N>) {
                 TypeCmp::Eq(typewit::TypeEq::<$ty<N>, $ty<N>>{..}) => (),
                 TypeCmp::Ne(typewit::TypeNe::<$ty<N>, $ty<N>>{..}) => panic!("OH NO"),
             }
 
-            match $ty::<Z>.equals($ty::<Z>) {
+            match $equals_macro!($ty::<Z>, $ty::<Z>) {
                 TypeCmp::Eq(typewit::TypeEq::<$ty<Z>, $ty<Z>>{..}) => (),
                 TypeCmp::Ne(typewit::TypeNe::<$ty<Z>, $ty<Z>>{..}) => panic!("OH NO"),
             }
 
-            match $ty::<P>.equals($ty::<P>) {
+            match $equals_macro!($ty::<P>, $ty::<P>) {
                 TypeCmp::Eq(typewit::TypeEq::<$ty<P>, $ty<P>>{..}) => (),
                 TypeCmp::Ne(typewit::TypeNe::<$ty<P>, $ty<P>>{..}) => panic!("OH NO"),
             }
@@ -88,6 +138,16 @@ fn test_integer_const_marker() {
 }
 
 #[test]
+fn test_char_const_marker_std_impls() {
+    assert_eq!(format!("{:?}", Char::<'a'>), format!("{:?}", 'a'));
+    assert_eq!(format!("{:?}", Char::<'\n'>), format!("{:?}", '\n'));
+
+    assert_eq!(Char::<'4'>, Char::<'4'>);
+
+    assert_ne!(Char::<'a'>, Char::<'4'>);
+}
+
+#[test]
 fn test_char_const_marker() {
     match Char::<'a'>.equals(Char::<'4'>) {
         TypeCmp::Eq(typewit::TypeEq::<Char<'a'>, Char<'4'>>{..}) => panic!("OH NO"),
@@ -98,6 +158,18 @@ fn test_char_const_marker() {
         TypeCmp::Eq(typewit::TypeEq::<Char<'4'>, Char<'4'>>{..}) => (),
         TypeCmp::Ne(typewit::TypeNe::<Char<'4'>, Char<'4'>>{..}) => panic!("OH NO"),
     }
+}
+
+#[test]
+fn test_bool_const_marker_std_impls() {
+    assert_eq!(format!("{:?}", Bool::<false>), format!("{:?}", false));
+    assert_eq!(format!("{:?}", Bool::<true>), format!("{:?}", true));
+
+    assert_eq!(Bool::<false>, Bool::<false>);
+    assert_eq!(Bool::<true>, Bool::<true>);
+
+    assert_ne!(Bool::<false>, Bool::<true>);
+    assert_ne!(Bool::<true>, Bool::<false>);
 }
 
 #[test]

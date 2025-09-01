@@ -1,0 +1,22 @@
+error[E0277]: the trait bound `__StdIdentityTypeEq<Foo<N>>: MakeTypeWitness` is not satisfied
+  --> tests/misc_tests/const_marker_ui_tests/cant_have_constmarkereq_for_std_types_outside_of_typewit-err.rs:12:37
+   |
+12 | impl<const N: u8> ConstMarkerEq for Foo<N> {
+   |                                     ^^^^^^ the trait `MakeTypeWitness` is not implemented for `__StdIdentityTypeEq<Foo<N>>`
+   |
+   = help: the following other types implement trait `MakeTypeWitness`:
+             __StdIdentityTypeEq<Bool<T>>
+             __StdIdentityTypeEq<I128<T>>
+             __StdIdentityTypeEq<I16<T>>
+             __StdIdentityTypeEq<I32<T>>
+             __StdIdentityTypeEq<I64<T>>
+             __StdIdentityTypeEq<I8<T>>
+             __StdIdentityTypeEq<Isize<T>>
+             __StdIdentityTypeEq<U128<T>>
+           and $N others
+   = note: required for `Foo<N>` to implement `ConstMarkerHasWitness`
+note: required by a bound in `ConstMarkerEq`
+  --> src/const_marker/const_marker_eq_traits.rs
+   |
+   | pub trait ConstMarkerEq: ConstMarker + ConstMarkerHasWitness {
+   |                                        ^^^^^^^^^^^^^^^^^^^^^ required by this bound in `ConstMarkerEq`
