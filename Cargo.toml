@@ -48,6 +48,7 @@ alloc = []
 mut_refs = ["rust_stable"]
 nightly_mut_refs = ["mut_refs"]
 docsrs = []
+__test_doc_lints = []
 __ui_tests = ["trybuild"]
 
 [package.metadata.docs.rs]

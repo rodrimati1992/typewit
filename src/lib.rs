@@ -632,6 +632,9 @@ pub use crate::type_fn::{CallFn, CallInjFn, InjTypeFn, RevTypeFn, TypeFn, Uncall
 #[doc(hidden)]
 pub use typewit_proc_macros::__impl_with_span;
 
+/// tests doc lints with `cargo doc --features="__test_doc_lints rust_stable"`
+#[cfg(all(feature = "__test_doc_lints"))]
+pub mod test_doc_lints;
 
 #[doc(hidden)]
 pub mod __ {

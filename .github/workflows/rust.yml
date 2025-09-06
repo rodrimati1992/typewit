@@ -46,6 +46,9 @@ jobs:
         cargo update
         cd "${{github.workspace}}/"
 
+        cargo doc --features="__test_doc_lints ${{env.rustv}} alloc"
+        cargo doc --features="__test_doc_lints ${{env.rustv}} alloc proc_macros"
+
         cargo test --no-default-features 
         cargo test --no-default-features --features "${{env.rustv}}"
         cargo test --no-default-features --features "alloc"
@@ -61,6 +64,9 @@ jobs:
 
         cd "${{github.workspace}}/"
         cargo build
+
+        cargo doc --features="__test_doc_lints rust_stable adt_const_marker alloc"
+        cargo doc --features="__test_doc_lints rust_stable adt_const_marker alloc proc_macros"
         
         cargo test --no-default-features --features \
           "rust_stable adt_const_marker"
