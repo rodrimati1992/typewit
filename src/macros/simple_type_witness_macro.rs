@@ -1080,7 +1080,7 @@ macro_rules! __stw_single_derive {
                     enum __Number__ {
                         $($variant,)*
                     }
-                    $( pub const $variant: $crate::__::usize = __Number__::$variant as _; )*
+                    $( pub(super) const $variant: $crate::__::usize = __Number__::$variant as _; )*
                 }
 
                 match self {
@@ -1125,7 +1125,9 @@ macro_rules! __stw_single_derive {
         Equals 
         [$($variant:ident)*]
     ) => {
+        #[automatically_derived]
         $($inh_header)* {
+            /// Gets a proof of whether `__Wit` and `__Wit2` are same or different types.
             pub const fn equals<__Wit2>(
                 self, 
                 other: $enum<__Wit2>,
@@ -1143,7 +1145,7 @@ macro_rules! __stw_single_derive {
                     // - declaring MakeTypeWitness impls for $enum<$witnessed_ty> for each variant
                     //   (which would cause an overlap error if two variants have the same type)
                     // - matching on all pairs of equal variants above
-                    $( |($enum::$variant(_), _) )* => unsafe {
+                    $( ($enum::$variant(_), _) )|* => unsafe {
                         $crate::TypeCmp::Ne($crate::TypeNe::new_unchecked())
                     }
                 }

@@ -1,6 +1,6 @@
 [package]
 name = "typewit"
-version = "1.14.0"
+version = "1.14.1"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 rust-version = "1.57.0"
 edition = "2021"
@@ -48,6 +48,7 @@ alloc = []
 mut_refs = ["rust_stable"]
 nightly_mut_refs = ["mut_refs"]
 docsrs = []
+__test_doc_lints = []
 __ui_tests = ["trybuild"]
 
 [package.metadata.docs.rs]

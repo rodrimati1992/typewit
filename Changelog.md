@@ -2,6 +2,10 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.14.1
+
+Fix: Added docs to `simple_type_witness`-generated `equals` method to avoid triggering `missing_docs` lint in downstream crates.
+
 ### 1.14.0
 
 Added `expect_true` and `expect_false` methods to `typewit::const_marker::BoolWitG`
