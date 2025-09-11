@@ -1,4 +1,4 @@
-use crate::{TypeCmp, TypeWitnessTypeArg, MakeTypeWitness};
+use crate::{Identity, TypeCmp, TypeWitnessTypeArg, MakeTypeWitness};
 use crate::const_marker::{ConstMarkerOf, ConstMarker};
 
 
@@ -348,11 +348,8 @@ pub trait ConstMarkerHasWitness: ConstMarker<Of: HasConstMarker> {
     const CM_WITNESS: <Self::Of as HasConstMarker>::Witness<Self>;
 
     #[doc(hidden)]
-    const __SEAL__: __DerivesConstMarkerHasWitness<Self>;
+    type __Seal__: MakeTypeWitness + Identity<Type = <Self::Of as HasConstMarker>::Witness<Self>>;
 }
-
-#[doc(hidden)]
-pub struct __DerivesConstMarkerHasWitness<T>(core::marker::PhantomData<T>);
 
 
 impl<CM> ConstMarkerHasWitness for CM
@@ -363,8 +360,7 @@ where
     const CM_WITNESS: <Self::Of as HasConstMarker>::Witness<Self> = MakeTypeWitness::MAKE;
 
     #[doc(hidden)]
-    const __SEAL__: __DerivesConstMarkerHasWitness<Self> = 
-        __DerivesConstMarkerHasWitness(core::marker::PhantomData);
+    type __Seal__ = <Self::Of as HasConstMarker>::Witness<Self>;
 }
 
 
