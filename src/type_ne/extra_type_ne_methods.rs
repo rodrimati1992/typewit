@@ -4,6 +4,7 @@ use alloc::boxed::Box;
 
 use crate::type_fn::{InjTypeFn, InvokeAlias, CallInjFn, UncallFn};
 
+#[cfg(feature = "rust_1_61")]
 use crate::const_marker::Usize;
 
 
