@@ -48,12 +48,15 @@ jobs:
 
         cargo doc --features="__test_doc_lints ${{env.rustv}} alloc"
         cargo doc --features="__test_doc_lints ${{env.rustv}} alloc proc_macros"
+        cargo doc --features="__test_doc_lints ${{env.rustv}} alloc proc_macros const_marker_extra_impls"
 
         cargo test --no-default-features 
         cargo test --no-default-features --features "${{env.rustv}}"
         cargo test --no-default-features --features "alloc"
         cargo test --no-default-features --features "proc_macros"
-        cargo test --no-default-features --features "${{env.rustv}} proc_macros alloc"
+        cargo test --no-default-features --features "const_marker_extra_impls"
+        cargo test --no-default-features --features \
+          "${{env.rustv}} alloc proc_macros const_marker_extra_impls"
 
     - uses: actions/checkout@v2
     - name: ci-nighly
@@ -65,8 +68,11 @@ jobs:
         cd "${{github.workspace}}/"
         cargo build
 
-        cargo doc --features="__test_doc_lints rust_stable adt_const_marker alloc"
-        cargo doc --features="__test_doc_lints rust_stable adt_const_marker alloc proc_macros"
+        cargo doc --features \
+          "__test_doc_lints rust_stable adt_const_marker alloc const_marker_extra_impls"
+
+        cargo doc --features \
+          "__test_doc_lints rust_stable adt_const_marker alloc const_marker_extra_impls proc_macros"
         
         cargo test --no-default-features --features \
           "rust_stable adt_const_marker"
@@ -74,12 +80,12 @@ jobs:
           "rust_stable adt_const_marker alloc"
 
         cargo test --no-default-features --features \
-          "rust_stable adt_const_marker generic_const_exprs proc_macros              alloc"
-          # "rust_stable adt_const_marker generic_const_exprs proc_macros __ui_tests alloc"
+          "rust_stable adt_const_marker generic_const_exprs const_marker_extra_impls proc_macros              alloc"
+          # "rust_stable adt_const_marker generic_const_exprs const_marker_extra_impls proc_macros __ui_tests alloc"
 
         cargo test --no-default-features --features \
-          "rust_stable adt_const_marker generic_const_exprs                         alloc"
-          # "rust_stable adt_const_marker generic_const_exprs            __ui_tests alloc"
+          "rust_stable adt_const_marker generic_const_exprs const_marker_extra_impls                         alloc"
+          # "rust_stable adt_const_marker generic_const_exprs const_marker_extra_impls            __ui_tests alloc"
 
         MIRI_NIGHTLY=nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)
         echo "Installing latest nightly with Miri"
@@ -93,4 +99,4 @@ jobs:
         cargo clean 
 
         env RUST_BACKTRACE=0 cargo miri test --no-default-features \
-            --features "${{env.rustv}} adt_const_marker generic_const_exprs proc_macros alloc"
+            --features "${{env.rustv}} adt_const_marker generic_const_exprs const_marker_extra_impls proc_macros alloc"

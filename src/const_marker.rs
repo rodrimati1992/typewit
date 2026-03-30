@@ -42,11 +42,20 @@ mod const_marker_trait;
 
 pub use const_marker_trait::*;
 
+
 #[cfg(feature = "rust_1_83")]
 mod const_marker_eq_traits;
 
 #[cfg(feature = "rust_1_83")]
 pub use const_marker_eq_traits::*;
+
+
+#[cfg(feature = "const_marker_extra_impls")]
+mod const_marker_additional_impls;
+
+#[cfg(feature = "const_marker_extra_impls")]
+pub(crate) use const_marker_additional_impls::*;
+
 
 mod boolwit;
 
@@ -209,7 +218,15 @@ macro_rules! __declare_const_param_type {
         }
 
         impl<const VAL: $prim> core::cmp::Eq for $struct<VAL> {}
+        
+        impl<const VAL: $prim> Default for $struct<VAL> {
+            fn default() -> Self {
+                Self
+            }
+        }
 
+        #[cfg(feature = "const_marker_extra_impls")]
+        crate::const_marker::__declare_const_marker_additional_impls!{$struct($prim)}
     };
 } pub(crate) use __declare_const_param_type;
 
