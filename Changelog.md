@@ -2,6 +2,19 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.15.0
+
+Added opt-in `"serde"` feature
+
+Added these impls for const marker types:
+- `Default`
+- `Hash`
+- `Ord`
+- `PartialOrd`
+- `serde::Deserialize` (gated on `"serde"` feature)
+- `serde::Serialize` (gated on `"serde"` feature)
+
+
 ### 1.14.1
 
 Fix: Added docs to `simple_type_witness`-generated `equals` method to avoid triggering `missing_docs` lint in downstream crates.
