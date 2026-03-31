@@ -17,7 +17,6 @@ mod const_marker_trait_tests;
 #[cfg(feature = "rust_1_83")]
 mod const_marker_eq_traits_tests;
 
-#[cfg(feature = "const_marker_extra_impls")]
 mod const_marker_extra_traits_tests;
 
 #[cfg(feature = "serde")]

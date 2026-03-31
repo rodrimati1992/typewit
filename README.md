@@ -475,10 +475,6 @@ These features are enabled by default:
 - `"proc_macros"`: uses proc macros to improve compile-errors involving 
 macro-generated impls.
 
-- `"const_marker_extra_impls"`: enables additional impls 
-(`PartialOrd`,`Ord`, `Hash`)
-for types in `const_marker` module.
-
 ### Rust-versions and standard crates
 
 These features enable items that have a minimum Rust version:
@@ -505,7 +501,7 @@ These features enable items that require a non-`core` standard crate:
 
 These are features that are NOT enabled by default:
 
-- `"serde"`: enables serde dependency, `"const_marker_extra_impls"` feature, and 
+- `"serde"`: enables serde dependency and 
 `serde::{Serialize, Deserialize}` impls for types in `const_marker` module.
 
 ### Nightly features

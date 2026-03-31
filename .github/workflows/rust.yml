@@ -48,15 +48,14 @@ jobs:
 
         cargo doc --features="__test_doc_lints ${{env.rustv}} alloc"
         cargo doc --features="__test_doc_lints ${{env.rustv}} alloc proc_macros"
-        cargo doc --features="__test_doc_lints ${{env.rustv}} alloc proc_macros serde const_marker_extra_impls"
+        cargo doc --features="__test_doc_lints ${{env.rustv}} alloc proc_macros serde"
 
         cargo test --no-default-features 
         cargo test --no-default-features --features "${{env.rustv}}"
         cargo test --no-default-features --features "alloc"
         cargo test --no-default-features --features "proc_macros"
-        cargo test --no-default-features --features "const_marker_extra_impls"
         cargo test --no-default-features --features \
-          "${{env.rustv}} alloc proc_macros const_marker_extra_impls"
+          "${{env.rustv}} alloc proc_macros"
 
     - name: enable-rust-stable
       if: matrix.rust == 'stable' || matrix.rust == 'beta' || matrix.rust == 'nightly'
@@ -71,7 +70,7 @@ jobs:
           "${{env.rustv}} serde"
 
         cargo test --no-default-features --features \
-          "${{env.rustv}} alloc proc_macros const_marker_extra_impls serde"
+          "${{env.rustv}} alloc proc_macros serde"
 
     - uses: actions/checkout@v2
     - name: ci-nighly
@@ -84,10 +83,10 @@ jobs:
         cargo build
 
         cargo doc --features \
-          "__test_doc_lints rust_stable adt_const_marker alloc const_marker_extra_impls serde"
+          "__test_doc_lints rust_stable adt_const_marker alloc serde"
 
         cargo doc --features \
-          "__test_doc_lints rust_stable adt_const_marker alloc const_marker_extra_impls serde proc_macros"
+          "__test_doc_lints rust_stable adt_const_marker alloc serde proc_macros"
         
         cargo test --no-default-features --features \
           "rust_stable adt_const_marker"
@@ -95,15 +94,15 @@ jobs:
           "rust_stable adt_const_marker alloc"
 
         cargo test --no-default-features --features \
-          "rust_stable adt_const_marker generic_const_exprs const_marker_extra_impls serde\
+          "rust_stable adt_const_marker generic_const_exprs serde\
            proc_macros              alloc"
-          # "rust_stable adt_const_marker generic_const_exprs const_marker_extra_impls serde\
+          # "rust_stable adt_const_marker generic_const_exprs serde\
           #  proc_macros __ui_tests alloc"
 
         cargo test --no-default-features --features \
-          "rust_stable adt_const_marker generic_const_exprs const_marker_extra_impls serde\
+          "rust_stable adt_const_marker generic_const_exprs serde\
                         alloc"
-          # "rust_stable adt_const_marker generic_const_exprs const_marker_extra_impls serde\
+          # "rust_stable adt_const_marker generic_const_exprs serde\
           #  __ui_tests alloc"
 
         MIRI_NIGHTLY=nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)
@@ -118,5 +117,5 @@ jobs:
         cargo clean 
 
         env RUST_BACKTRACE=0 cargo miri test --no-default-features --features \
-          "${{env.rustv}} adt_const_marker generic_const_exprs const_marker_extra_impls serde\
+          "${{env.rustv}} adt_const_marker generic_const_exprs serde\
             proc_macros alloc"
