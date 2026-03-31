@@ -20,6 +20,9 @@ mod const_marker_eq_traits_tests;
 #[cfg(feature = "const_marker_extra_impls")]
 mod const_marker_extra_traits_tests;
 
+#[cfg(feature = "serde")]
+mod const_marker_serde_tests;
+
 #[cfg(feature = "rust_1_83")]
 mod equals_tests;
 

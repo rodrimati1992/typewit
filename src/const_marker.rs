@@ -57,6 +57,13 @@ mod const_marker_additional_impls;
 pub(crate) use const_marker_additional_impls::*;
 
 
+#[cfg(feature = "serde")]
+mod const_marker_serde_impls;
+
+#[cfg(feature = "serde")]
+pub(crate) use const_marker_serde_impls::*;
+
+
 mod boolwit;
 
 pub use boolwit::*;
@@ -131,6 +138,10 @@ macro_rules! __declare_const_param_type {
             "Marker type for passing `const VAL: ", stringify!($prim),
             "` as a type parameter."
         )]
+        /// # Serde compatibility
+        /// 
+        /// When the `"serde"` feature is enabled, 
+        /// this type is serialized/deserialized as the `VAL` const parameter.
         $(#[$struct_docs])*
         #[derive(Copy, Clone)]
         pub struct $struct<const VAL: $prim>;
@@ -227,6 +238,11 @@ macro_rules! __declare_const_param_type {
 
         #[cfg(feature = "const_marker_extra_impls")]
         crate::const_marker::__declare_const_marker_additional_impls!{$struct($prim)}
+
+        #[cfg(feature = "serde")]
+        crate::const_marker::__declare_const_marker_serde_impls!{$struct($prim)}
+
+
     };
 } pub(crate) use __declare_const_param_type;
 
