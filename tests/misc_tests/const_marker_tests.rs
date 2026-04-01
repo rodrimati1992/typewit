@@ -17,6 +17,11 @@ mod const_marker_trait_tests;
 #[cfg(feature = "rust_1_83")]
 mod const_marker_eq_traits_tests;
 
+mod const_marker_extra_traits_tests;
+
+#[cfg(feature = "serde")]
+mod const_marker_serde_tests;
+
 #[cfg(feature = "rust_1_83")]
 mod equals_tests;
 
@@ -135,6 +140,13 @@ fn test_integer_const_marker() {
     shared_test_case!{I64, i64}
     shared_test_case!{I128, i128}
     shared_test_case!{Isize, isize}
+}
+
+#[test]
+fn test_const_marker_default_impls() {
+    assert_eq!(<U8<4> as Default>::default(), U8::<4>);
+
+    assert_eq!(<Char<'4'> as Default>::default(), Char::<'4'>);
 }
 
 #[test]
