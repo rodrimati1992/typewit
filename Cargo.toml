@@ -40,14 +40,17 @@ version = "1.0.200"
 default-features = false
 optional = true
 
-[dev-dependencies.serde_json]
+# no such thing as optional dev-dependencies, aaaaaaah
+[dependencies.serde_json]
 version = "1.0"
 default-features = false
+optional = true
 features = ["alloc"]
 
 [features]
 default = ["proc_macros", "const_marker_extra_impls"]
 serde = ["serde_"]
+__test_serde = ["serde_", "serde_json"]
 rust_1_61 = []
 rust_1_65 = ["rust_1_61"]
 rust_1_83 = ["rust_1_65"]
