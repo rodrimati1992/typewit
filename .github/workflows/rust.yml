@@ -40,7 +40,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: ci-all-versions
       run: |
-        echo "rustv = ${{env.rustv}}"
         set -ex
         rustup override set ${{ matrix.rust }}
         cargo update
@@ -59,8 +58,7 @@ jobs:
 
     - name: enable-rust-stable
       if: matrix.rust == 'stable' || matrix.rust == 'beta' || matrix.rust == 'nightly'
-      run: echo "rustv=rust_latest_stable" >> $GITHUB_ENV
-        echo "rustv = ${{env.rustv}}"
+      run: 
         set -ex
         rustup override set ${{ matrix.rust }}
         cargo update
