@@ -83,7 +83,7 @@ super::declare_const_param_type! {
     /// 
     /// ```
     #[cfg_attr(feature = "docsrs", doc(cfg(feature = "adt_const_marker")))]
-    Str(&'static str) slice,
+    Str(&'static str) str,
 
     fn equals(l, r) { u8_slice_eq(l.as_bytes(), r.as_bytes()) };
 }

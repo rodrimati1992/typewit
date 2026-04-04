@@ -58,7 +58,10 @@ macro_rules! __const_marker_deserialize_seed_impl {
         }.call()
     };
     (slice => $seed:ident, $deser:ident, $ty:ty) => {
-        $deser.deserialize_any($seed)
+        $deser.deserialize_seq($seed)
+    };
+    (str => $seed:ident, $deser:ident, $ty:ty) => {
+        $deser.deserialize_str($seed)
     };
 }
 
