@@ -1,6 +1,6 @@
 [package]
 name = "typewit"
-version = "1.15.0"
+version = "1.15.1"
 authors = ["rodrimati1992 <rodrimatt1985@gmail.com>"]
 rust-version = "1.57.0"
 edition = "2021"
@@ -47,10 +47,16 @@ default-features = false
 optional = true
 features = ["alloc"]
 
+# no such thing as optional dev-dependencies, aaaaaaah
+[dependencies.postcard]
+version = "1.0"
+default-features = false
+optional = true
+
 [features]
 default = ["proc_macros", "const_marker_extra_impls"]
 serde = ["serde_"]
-__test_serde = ["serde_", "serde_json"]
+__test_serde = ["serde", "serde_json", "postcard"]
 rust_1_61 = []
 rust_1_65 = ["rust_1_61"]
 rust_1_83 = ["rust_1_65"]

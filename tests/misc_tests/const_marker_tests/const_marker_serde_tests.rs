@@ -158,3 +158,69 @@ fn test_serialize_str() {
     assert_eq!(serde_json::to_string(&Str::<"foo">).unwrap(), r#""foo""#);
 }
 
+
+struct Buffer([u8; 300]);
+
+impl Buffer {    
+    // tests that T roundtrips through a non-self-describing format
+    #[track_caller]
+    fn roundtrips_nsd<T>(&mut self, val: &T) 
+    where
+        T: serde_::Serialize + serde_::de::DeserializeOwned + core::cmp::Eq + core::fmt::Debug
+    {
+        let serialized = postcard::to_slice(val, &mut self.0).unwrap();
+        let deserialized = postcard::from_bytes(serialized).unwrap();
+        assert_eq!(val, &deserialized);
+    }
+}
+
+
+#[test]
+fn primitives_nonselfdescribing_test() {
+    let mut bf = Buffer([0; 300]);
+    
+    bf.roundtrips_nsd(&3u8);
+    bf.roundtrips_nsd(&5u16);
+    bf.roundtrips_nsd(&8u32);
+    bf.roundtrips_nsd(&13u64);
+    bf.roundtrips_nsd(&64u128);
+    
+    bf.roundtrips_nsd(&-64i128);
+    bf.roundtrips_nsd(&-13i64);
+    bf.roundtrips_nsd(&-8i32);
+    bf.roundtrips_nsd(&-5i16);
+    bf.roundtrips_nsd(&-3i8);
+    bf.roundtrips_nsd(&0i8);    
+    bf.roundtrips_nsd(&3i8);
+    bf.roundtrips_nsd(&5i16);
+    bf.roundtrips_nsd(&8i32);
+    bf.roundtrips_nsd(&13i64);
+    bf.roundtrips_nsd(&64i128);
+    
+    bf.roundtrips_nsd(&false);
+    bf.roundtrips_nsd(&true);
+    
+    bf.roundtrips_nsd(&'A');
+    bf.roundtrips_nsd(&'#');
+    bf.roundtrips_nsd(&'é');
+}
+
+
+#[test]
+#[cfg(feature = "adt_const_marker")]
+fn str_and_slice_nonselfdescribing_test() {
+    use typewit::const_marker::slice::{StrSlice, U8Slice};
+
+    let mut bf = Buffer([0; 300]);
+
+    bf.roundtrips_nsd(&Str::<"">);
+    bf.roundtrips_nsd(&Str::<"foo">);
+    
+    bf.roundtrips_nsd(&StrSlice::<{&[]}>);
+    bf.roundtrips_nsd(&StrSlice::<{&["foo", "bar"]}>);
+    
+    bf.roundtrips_nsd(&U8Slice::<{&[]}>);
+    bf.roundtrips_nsd(&U8Slice::<{&[3, 5, 8]}>);
+
+
+}
