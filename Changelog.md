@@ -2,6 +2,10 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.15.1
+
+Fixed support for de/serializing into non-self-describing formats
+
 ### 1.15.0
 
 Added opt-in `"serde"` feature
