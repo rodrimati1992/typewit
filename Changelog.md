@@ -2,6 +2,10 @@ This is the changelog, summarising changes in each version(some minor changes ma
 
 # 1.0
 
+### 1.15.2
+
+Fixed inclusion of serde impls on docs.rs documentation
+
 ### 1.15.1
 
 Fixed support for de/serializing into non-self-describing formats
