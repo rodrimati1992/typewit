@@ -136,6 +136,24 @@ macro_rules! __declare_const_param_type {
         /// 
         /// When the `"serde"` feature is enabled, 
         /// this type is serialized/deserialized as the `VAL` const parameter.
+        /// 
+        #[cfg_attr(
+            all(feature = "serde", feature = "serde_json"),
+            doc = $crate::const_marker::__const_marker_deserialize_doc_example!(
+                $deser_type
+                $struct
+                "rust"
+            )
+        )]
+        #[cfg_attr(
+            not(all(feature = "serde", feature = "serde_json")),
+            doc = $crate::const_marker::__const_marker_deserialize_doc_example!(
+                $deser_type
+                $struct
+                "ignore"
+            )
+        )]
+        /// 
         $(#[$struct_docs])*
         #[derive(Copy, Clone)]
         pub struct $struct<const VAL: $prim>;
@@ -273,15 +291,15 @@ declare_const_param_type!{
 }
 declare_const_param_type!{Char(char) primitive,}
 
-declare_const_param_type!{U8(u8) primitive,}
-declare_const_param_type!{U16(u16) primitive,}
-declare_const_param_type!{U32(u32) primitive,}
-declare_const_param_type!{U64(u64) primitive,}
-declare_const_param_type!{U128(u128) primitive,}
+declare_const_param_type!{U8(u8) int,}
+declare_const_param_type!{U16(u16) int,}
+declare_const_param_type!{U32(u32) int,}
+declare_const_param_type!{U64(u64) int,}
+declare_const_param_type!{U128(u128) int,}
 
 declare_const_param_type!{
     Usize(usize)
-    primitive,
+    int,
 
     /// # Examples
     /// 
@@ -375,10 +393,10 @@ declare_const_param_type!{
     fn equals;
 }
 
-declare_const_param_type!{I8(i8) primitive,}
-declare_const_param_type!{I16(i16) primitive,}
-declare_const_param_type!{I32(i32) primitive,}
-declare_const_param_type!{I64(i64) primitive,}
-declare_const_param_type!{I128(i128) primitive,}
-declare_const_param_type!{Isize(isize) primitive,}
+declare_const_param_type!{I8(i8) int,}
+declare_const_param_type!{I16(i16) int,}
+declare_const_param_type!{I32(i32) int,}
+declare_const_param_type!{I64(i64) int,}
+declare_const_param_type!{I128(i128) int,}
+declare_const_param_type!{Isize(isize) int,}
 
