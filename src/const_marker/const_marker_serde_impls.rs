@@ -49,35 +49,6 @@ pub(crate) use __declare_const_marker_serde_impls;
 
 //////////////
 
-
-macro_rules! __const_marker_deserialize_doc_example {
-    (int $struct:ident $example_ty:literal) => {concat!(
-        "```", $example_ty, "\n",
-        "use typewit::const_marker::", stringify!($struct), "; \n",
-        " \n",
-        "assert_eq!(serde_json::from_str::<",
-        stringify!($struct), 
-        "<1>>(\"1\").unwrap(), ",
-        stringify!($struct),
-        "::<1>); \n",
-        " \n",
-        "// trying to deserialize `", stringify!($struct),
-        "<1>` from any value other than `1` produces an error \n",
-        "assert!(serde_json::from_str::<", stringify!($struct), "<1>>(\"0\").is_err()); \n",
-        " \n",
-        " \n",
-        "assert_eq!(serde_json::to_string(&", stringify!($struct), "::<1>).unwrap(), \"1\"); \n",
-        " \n",
-        "assert_eq!(serde_json::to_string(&", stringify!($struct), "::<92>).unwrap(), \"92\"); \n",
-        " \n",
-        "```"
-    )};
-    ($other:ident $struct:ident $example_ty:tt) => { "" };
-}
-
-pub(crate) use __const_marker_deserialize_doc_example;
-
-
 macro_rules! __const_marker_deserialize_seed_impl {
     ($(int)? $(primitive)? => $seed:ident, $deser:ident, $ty:ty) => {
         CheckExpected {
